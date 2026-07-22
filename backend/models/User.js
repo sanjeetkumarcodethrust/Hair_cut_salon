@@ -27,13 +27,25 @@ const userSchema = new mongoose.Schema(
       enum: ['Customer', 'Barber', 'SalonOwner', 'Admin'],
       default: 'Customer',
     },
+    profileImage: {
+      type: String,
+      default: 'default-avatar-url.jpg',
+    },
     phone: {
       type: String,
       default: '',
     },
-    avatar: {
+    gender: {
       type: String,
-      default: 'default-avatar-url.jpg',
+      enum: ['Male', 'Female', 'Other'],
+    },
+    address: {
+      type: String,
+      default: '',
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
     },
   },
   {
