@@ -35,11 +35,16 @@ const salonSchema = new mongoose.Schema(
       required: [true, 'Please add a description'],
     },
     address: {
-      street: String,
-      city: String,
-      state: String,
-      zipCode: String,
-      country: String,
+      type: String,
+      required: [true, 'Please add an address'],
+    },
+    city: {
+      type: String,
+      required: [true, 'Please add a city'],
+    },
+    state: {
+      type: String,
+      required: [true, 'Please add a state'],
     },
     location: {
       // GeoJSON Point for Map/Distance searches
@@ -59,7 +64,7 @@ const salonSchema = new mongoose.Schema(
     email: {
       type: String,
     },
-    photos: {
+    images: {
       type: [String],
       default: [],
     },
@@ -73,7 +78,7 @@ const salonSchema = new mongoose.Schema(
       saturday: { open: String, close: String, isClosed: { type: Boolean, default: false } },
       sunday: { open: String, close: String, isClosed: { type: Boolean, default: true } },
     },
-    averageRating: {
+    rating: {
       type: Number,
       default: 0,
     },

@@ -5,8 +5,36 @@ import Salon from '../models/Salon.js';
 // @access  Public
 export const getSalons = async (req, res) => {
   try {
-    const salons = await Salon.find();
-    res.status(200).json(salons);
+    const { keyword, city, state, page = 1, limit = 10 } = req.query;
+    
+    // Build query
+    const query = {};
+    if (keyword) {
+      query.name = { $regex: keyword, $options: 'i' };
+    }
+    if (city) {
+      query.city = { $regex: city, $options: 'i' };
+    }
+    if (state) {
+      query.state = { $regex: state, $options: 'i' };
+    }
+
+    // Pagination setup
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+    const startIndex = (pageNum - 1) * limitNum;
+
+    const total = await Salon.countDocuments(query);
+    const salons = await Salon.find(query).skip(startIndex).limit(limitNum);
+
+    res.status(200).json({
+      success: true,
+      count: salons.length,
+      total,
+      page: pageNum,
+      pages: Math.ceil(total / limitNum),
+      data: salons,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -35,7 +63,7 @@ export const createSalon = async (req, res) => {
   try {
     // Check if owner already has a salon (optional business rule)
     const existingSalon = await Salon.findOne({ owner: req.user._id });
-    if (existingSalon && req.user.role !== 'Admin') {
+    if (existingSalon && req.user.role !== 'admin') {
       return res.status(400).json({ message: 'Owner already has a salon registered' });
     }
 
@@ -63,7 +91,7 @@ export const updateSalon = async (req, res) => {
     }
 
     // Make sure user is salon owner
-    if (salon.owner.toString() !== req.user._id.toString() && req.user.role !== 'Admin') {
+    if (salon.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'User not authorized to update this salon' });
     }
 
@@ -90,13 +118,43 @@ export const deleteSalon = async (req, res) => {
     }
 
     // Make sure user is salon owner
-    if (salon.owner.toString() !== req.user._id.toString() && req.user.role !== 'Admin') {
+    if (salon.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'User not authorized to delete this salon' });
     }
 
     await Salon.findByIdAndDelete(req.params.id);
 
     res.status(200).json({ message: 'Salon removed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get salons within a radius
+// @route   GET /api/salons/nearby
+// @access  Public
+export const getNearbySalons = async (req, res) => {
+  try {
+    const { lat, lng, distance = 10 } = req.query; // distance in kilometers
+
+    if (!lat || !lng) {
+      return res.status(400).json({ message: 'Please provide latitude and longitude' });
+    }
+
+    // Convert distance to radians. Divide distance by radius of Earth (6371 km)
+    const radius = distance / 6371;
+
+    const salons = await Salon.find({
+      location: {
+        $geoWithin: { $centerSphere: [[lng, lat], radius] },
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      count: salons.length,
+      data: salons,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
