@@ -5,7 +5,7 @@ import BarberProfile from '../models/BarberProfile.js';
 // @access  Public
 export const getBarberProfiles = async (req, res) => {
   try {
-    const profiles = await BarberProfile.find().populate('user', 'name email avatar').populate('salon', 'name address');
+    const profiles = await BarberProfile.find().populate('user', 'name email avatar').populate('salonId', 'name address city state');
     res.status(200).json(profiles);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -19,7 +19,7 @@ export const getBarberProfile = async (req, res) => {
   try {
     const profile = await BarberProfile.findById(req.params.id)
       .populate('user', 'name email avatar phone')
-      .populate('salon', 'name address');
+      .populate('salonId', 'name address city state');
       
     if (profile) {
       res.status(200).json(profile);

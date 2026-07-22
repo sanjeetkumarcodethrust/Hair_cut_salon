@@ -1,5 +1,11 @@
 import mongoose from 'mongoose';
 
+const serviceSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  price: { type: Number, required: true },
+  duration: { type: Number, required: true }, // in minutes
+});
+
 const barberProfileSchema = new mongoose.Schema(
   {
     user: {
@@ -8,24 +14,33 @@ const barberProfileSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    salon: {
+    name: {
+      type: String,
+    },
+    profilePhoto: {
+      type: String,
+    },
+    salonId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Salon', // Can be null if freelance, but for this platform usually tied to a salon
+      ref: 'Salon',
     },
     bio: {
       type: String,
       maxlength: 500,
     },
-    specialties: {
+    specialization: {
       type: [String],
       default: [],
     },
-    experienceYears: {
+    experience: {
       type: Number,
       default: 0,
     },
-    workingHours: {
-      // Barber's specific working hours within the salon's hours
+    skills: {
+      type: [String],
+      default: [],
+    },
+    availability: {
       monday: { start: String, end: String, isWorking: { type: Boolean, default: false } },
       tuesday: { start: String, end: String, isWorking: { type: Boolean, default: false } },
       wednesday: { start: String, end: String, isWorking: { type: Boolean, default: false } },
@@ -35,10 +50,15 @@ const barberProfileSchema = new mongoose.Schema(
       sunday: { start: String, end: String, isWorking: { type: Boolean, default: false } },
     },
     portfolio: {
-      type: [String], // Array of image URLs
+      type: [String],
       default: [],
     },
-    averageRating: {
+    gallery: {
+      type: [String],
+      default: [],
+    },
+    services: [serviceSchema],
+    rating: {
       type: Number,
       default: 0,
     },
