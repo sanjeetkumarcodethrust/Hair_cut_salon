@@ -2,6 +2,8 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+import morgan from 'morgan';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import connectDB from './config/db.js';
@@ -25,6 +27,10 @@ const io = new Server(httpServer, {
 });
 
 // Middlewares
+app.use(helmet());
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
