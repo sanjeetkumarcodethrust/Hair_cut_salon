@@ -2,19 +2,19 @@ import mongoose from 'mongoose';
 
 const reviewSchema = new mongoose.Schema(
   {
-    salon: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Salon',
-      required: true,
-    },
-    barber: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'BarberProfile', // Optional: if the review is specific to a barber
-    },
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+    },
+    // Either salon or barber must be provided
+    salon: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Salon',
+    },
+    barber: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'BarberProfile',
     },
     rating: {
       type: Number,
@@ -25,6 +25,7 @@ const reviewSchema = new mongoose.Schema(
     comment: {
       type: String,
       required: [true, 'Please add a comment'],
+      maxlength: [500, 'Comment cannot exceed 500 characters'],
     },
   },
   {
@@ -32,44 +33,59 @@ const reviewSchema = new mongoose.Schema(
   }
 );
 
-// Prevent user from submitting more than one review per salon
-reviewSchema.index({ salon: 1, customer: 1 }, { unique: true });
+// One review per customer per salon
+reviewSchema.index({ salon: 1, customer: 1 }, { unique: true, sparse: true });
+// One review per customer per barber
+reviewSchema.index({ barber: 1, customer: 1 }, { unique: true, sparse: true });
 
-// Static method to get average rating and save
-reviewSchema.statics.getAverageRating = async function (salonId) {
-  const obj = await this.aggregate([
-    {
-      $match: { salon: salonId },
-    },
+// ─── Auto-update Salon rating ────────────────────────────────────────────────
+reviewSchema.statics.updateSalonRating = async function (salonId) {
+  if (!salonId) return;
+  const result = await this.aggregate([
+    { $match: { salon: salonId } },
     {
       $group: {
         _id: '$salon',
-        averageRating: { $avg: '$rating' },
+        rating: { $avg: '$rating' },
         totalReviews: { $sum: 1 },
       },
     },
   ]);
-
-  try {
-    await this.model('Salon').findByIdAndUpdate(salonId, {
-      averageRating: obj[0] ? Math.round(obj[0].averageRating * 10) / 10 : 0,
-      totalReviews: obj[0] ? obj[0].totalReviews : 0,
-    });
-  } catch (err) {
-    console.error(err);
-  }
+  await mongoose.model('Salon').findByIdAndUpdate(salonId, {
+    rating: result[0] ? Math.round(result[0].rating * 10) / 10 : 0,
+    totalReviews: result[0] ? result[0].totalReviews : 0,
+  });
 };
 
-// Call getAverageRating after save
-reviewSchema.post('save', function () {
-  this.constructor.getAverageRating(this.salon);
+// ─── Auto-update Barber rating ───────────────────────────────────────────────
+reviewSchema.statics.updateBarberRating = async function (barberId) {
+  if (!barberId) return;
+  const result = await this.aggregate([
+    { $match: { barber: barberId } },
+    {
+      $group: {
+        _id: '$barber',
+        rating: { $avg: '$rating' },
+        totalReviews: { $sum: 1 },
+      },
+    },
+  ]);
+  await mongoose.model('BarberProfile').findByIdAndUpdate(barberId, {
+    rating: result[0] ? Math.round(result[0].rating * 10) / 10 : 0,
+    totalReviews: result[0] ? result[0].totalReviews : 0,
+  });
+};
+
+// ─── Hooks ───────────────────────────────────────────────────────────────────
+reviewSchema.post('save', async function () {
+  if (this.salon) await this.constructor.updateSalonRating(this.salon);
+  if (this.barber) await this.constructor.updateBarberRating(this.barber);
 });
 
-// Call getAverageRating before remove (if using remove middleware, for modern mongoose use deleteOne)
 reviewSchema.post('findOneAndDelete', async function (doc) {
-  if (doc) {
-    await doc.constructor.getAverageRating(doc.salon);
-  }
+  if (!doc) return;
+  if (doc.salon) await doc.constructor.updateSalonRating(doc.salon);
+  if (doc.barber) await doc.constructor.updateBarberRating(doc.barber);
 });
 
 const Review = mongoose.model('Review', reviewSchema);

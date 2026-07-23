@@ -11,6 +11,8 @@ import authRoutes from './routes/authRoutes.js';
 import salonRoutes from './routes/salonRoutes.js';
 import barberRoutes from './routes/barberRoutes.js';
 import appointmentRoutes from './routes/appointmentRoutes.js';
+import reviewRoutes from './routes/reviewRoutes.js';
+import favoriteRoutes from './routes/favoriteRoutes.js';
 
 dotenv.config();
 
@@ -44,6 +46,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/salons', salonRoutes);
 app.use('/api/barbers', barberRoutes);
 app.use('/api/appointments', appointmentRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/favorites', favoriteRoutes);
 
 // Basic route
 app.get('/', (req, res) => {
