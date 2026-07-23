@@ -230,6 +230,9 @@ const buildSearchText = (vacancy) =>
     .join(' ')
     .toLowerCase();
 
+const matchesExternalKeywords = (vacancy) =>
+  EXTERNAL_JOB_KEYWORDS.some((keyword) => buildSearchText(vacancy).includes(keyword));
+
 const normalizeJobTypeFilter = (value) => {
   const normalizedValue = normalizeText(value).toLowerCase();
   if (!normalizedValue) return null;
@@ -515,7 +518,9 @@ const fetchMuseVacancies = async (filters) => {
     }
   }
 
-  return filterVacancies(collected, filters);
+  const keywordRelevantVacancies = collected.filter(matchesExternalKeywords);
+
+  return filterVacancies(keywordRelevantVacancies, filters);
 };
 
 export const fetchExternalVacancies = async (filters = {}) => {
