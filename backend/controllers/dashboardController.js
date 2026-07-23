@@ -177,10 +177,13 @@ const monthlySeries = async (match, valueField = null, months = 6) => {
   });
 };
 
-const buildAppointmentItem = (appointment) => ({
+const buildAppointmentItem = (appointment, audience = 'customer') => ({
   id: appointment._id.toString(),
   title: appointment.service?.name || 'Appointment',
-  subtitle: [appointment.salon?.name, appointment.barber?.name].filter(Boolean).join(' � '),
+  subtitle:
+    audience === 'barber' || audience === 'owner'
+      ? [appointment.customer?.name, appointment.salon?.name].filter(Boolean).join(' - ')
+      : [appointment.barber?.name, appointment.salon?.name].filter(Boolean).join(' - '),
   meta: formatDayLabel(appointment.rescheduleDate || appointment.date, appointment.rescheduleTime || appointment.time),
   value: formatCurrency(appointment.price),
   badge: appointment.status,
@@ -211,9 +214,9 @@ const buildFavoriteItem = (favorite) => {
   };
 };
 
-const buildReviewItem = (review) => ({
+const buildReviewItem = (review, audience = 'customer') => ({
   id: review._id.toString(),
-  title: review.salon?.name || review.barber?.name || 'Review',
+  title: audience === 'barber' ? review.customer?.name || 'Customer review' : review.salon?.name || review.barber?.name || 'Review',
   subtitle: review.comment,
   meta: formatDate(review.createdAt),
   value: String(review.rating) + '/5',
@@ -231,10 +234,10 @@ const buildJobItem = (job) => ({
   href: '/jobs/' + job._id.toString(),
 });
 
-const buildApplicationItem = (application) => ({
+const buildApplicationItem = (application, audience = 'barber') => ({
   id: application._id.toString(),
   title: application.jobId?.title || 'Job application',
-  subtitle: application.jobId?.salon?.name || application.barberId?.name || '',
+  subtitle: audience === 'owner' ? [application.barberId?.name, application.jobId?.salon?.name].filter(Boolean).join(' - ') : [application.jobId?.salon?.name, application.jobId?.location].filter(Boolean).join(' - '),
   meta: formatDate(application.createdAt),
   value: application.status,
   badge: application.status,
@@ -324,11 +327,11 @@ const getCustomerDashboard = async (userId) => {
       buildSummaryCard('Reviews', reviews.length, 'Reviews you left', 'violet'),
     ],
     sections: {
-      upcomingAppointments: buildSection('Upcoming appointments', upcomingAppointments.map(buildAppointmentItem), 'No upcoming appointments yet.'),
-      history: buildSection('History', historyAppointments.map(buildAppointmentItem), 'No appointment history yet.'),
+      upcomingAppointments: buildSection('Upcoming appointments', upcomingAppointments.map((appointment) => buildAppointmentItem(appointment, 'customer')), 'No upcoming appointments yet.'),
+      history: buildSection('History', historyAppointments.map((appointment) => buildAppointmentItem(appointment, 'customer')), 'No appointment history yet.'),
       favorites: buildSection('Favorites', favoriteItems, 'No favorites saved yet.'),
-      reviews: buildSection('Reviews', reviews.map(buildReviewItem), 'No reviews submitted yet.'),
-      payments: buildSection('Payments', paidAppointments.map(buildAppointmentItem), 'No payments recorded yet.'),
+      reviews: buildSection('Reviews', reviews.map((review) => buildReviewItem(review, 'customer')), 'No reviews submitted yet.'),
+      payments: buildSection('Payments', paidAppointments.map((appointment) => buildAppointmentItem(appointment, 'customer')), 'No payments recorded yet.'),
     },
   };
 };
@@ -395,7 +398,7 @@ const getBarberDashboard = async (userId) => {
       buildSummaryCard('Applications', applications.length, 'Job applications submitted', 'violet'),
     ],
     sections: {
-      schedule: buildSection('Schedule', schedule.map(buildAppointmentItem), 'No upcoming appointments scheduled.'),
+      schedule: buildSection('Schedule', schedule.map((appointment) => buildAppointmentItem(appointment, 'barber')), 'No upcoming appointments scheduled.'),
       earnings: buildSection(
         'Earnings',
         monthlyRevenue.map((row) => ({
@@ -408,8 +411,8 @@ const getBarberDashboard = async (userId) => {
         })),
         'No earnings recorded yet.'
       ),
-      reviews: buildSection('Reviews', reviews.map(buildReviewItem), 'No reviews yet.'),
-      jobApplications: buildSection('Job applications', applications.map(buildApplicationItem), 'No job applications yet.'),
+      reviews: buildSection('Reviews', reviews.map((review) => buildReviewItem(review, 'barber')), 'No reviews yet.'),
+      jobApplications: buildSection('Job applications', applications.map((application) => buildApplicationItem(application, 'barber')), 'No job applications yet.'),
       availability: buildSection('Availability', availabilityItems, 'No availability set yet.'),
     },
   };
@@ -507,9 +510,9 @@ const getOwnerDashboard = async (userId) => {
             })),
         'No revenue recorded yet.'
       ),
-      bookings: buildSection('Bookings', bookings.map(buildAppointmentItem), 'No bookings found yet.'),
+      bookings: buildSection('Bookings', bookings.map((appointment) => buildAppointmentItem(appointment, 'owner')), 'No bookings found yet.'),
       jobs: buildSection('Jobs', jobs.map(buildJobItem), 'No jobs posted yet.'),
-      applicants: buildSection('Applicants', applications.map(buildApplicationItem), 'No applicants yet.'),
+      applicants: buildSection('Applicants', applications.map((application) => buildApplicationItem(application, 'owner')), 'No applicants yet.'),
       reports: buildSection(
         'Reports',
         bookingStatusCounts.concat(jobStatusCounts).map((item) => ({
