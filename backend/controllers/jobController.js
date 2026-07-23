@@ -1,5 +1,13 @@
 import Job from '../models/Job.js';
 import Salon from '../models/Salon.js';
+import {
+  buildMongoJobQuery,
+  buildVacancyResponse,
+  buildVacancyFilters,
+  fetchExternalVacancies,
+  normalizeLocalJob,
+} from '../utils/jobFeed.js';
+import { cacheGet, cacheSet } from '../utils/cache.js';
 
 // ─── OWNER — Job CRUD ─────────────────────────────────────────────────────────
 
@@ -145,30 +153,10 @@ export const toggleJobStatus = async (req, res) => {
 // @access  Public
 export const getJobs = async (req, res) => {
   try {
-    const {
-      keyword,
-      location,
-      jobType,
-      minExperience,
-      maxExperience,
-      page = 1,
-      limit = 10,
-    } = req.query;
-
-    const query = { status: 'open' };
-
-    // Full-text keyword search
-    if (keyword) {
-      query.$text = { $search: keyword };
-    }
-
-    if (location) query.location = { $regex: location, $options: 'i' };
-    if (jobType) query.jobType = jobType;
-    if (minExperience) query.experience = { ...query.experience, $gte: Number(minExperience) };
-    if (maxExperience) query.experience = { ...query.experience, $lte: Number(maxExperience) };
-
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
+    const filters = buildVacancyFilters(req.query);
+    const query = buildMongoJobQuery(filters);
+    const pageNum = filters.page;
+    const limitNum = filters.limit;
     const skip = (pageNum - 1) * limitNum;
 
     const total = await Job.countDocuments(query);
@@ -189,6 +177,60 @@ export const getJobs = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get open jobs merged with an external vacancy feed
+// @route   GET /api/jobs/external
+// @access  Public
+export const getExternalJobs = async (req, res) => {
+  try {
+    const filters = buildVacancyFilters(req.query);
+    const cacheKey = `external-jobs:${JSON.stringify(filters)}`;
+    const cachedResponse = cacheGet(cacheKey);
+
+    if (cachedResponse) {
+      return res.status(200).json({ ...cachedResponse, cached: true });
+    }
+
+    const query = buildMongoJobQuery(filters);
+    const [localJobs, externalFeed] = await Promise.all([
+      Job.find(query)
+        .populate('salon', 'name city address images rating')
+        .populate('createdBy', 'name')
+        .sort('-createdAt'),
+      fetchExternalVacancies(filters),
+    ]);
+
+    const localVacancies = localJobs.map(normalizeLocalJob);
+    const response = buildVacancyResponse({
+      localVacancies,
+      externalVacancies: externalFeed.vacancies,
+      filters,
+    });
+
+    const payload = {
+      success: true,
+      cached: false,
+      feedSource: externalFeed.source,
+      warning: externalFeed.error ? 'External feed fell back to mock data.' : undefined,
+      count: response.data.length,
+      total: response.total,
+      page: response.page,
+      pages: response.pages,
+      sourceCounts: response.sourceCounts,
+      data: response.data,
+    };
+
+    if (!payload.warning) {
+      delete payload.warning;
+    }
+
+    cacheSet(cacheKey, payload, Number(process.env.EXTERNAL_JOBS_CACHE_TTL_SECONDS) || 180);
+
+    return res.status(200).json(payload);
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
