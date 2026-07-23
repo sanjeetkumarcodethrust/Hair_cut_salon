@@ -1,36 +1,42 @@
 import multer from 'multer';
 import path from 'path';
 
-// Define storage for Multer (Using local temp storage before uploading to Cloudinary)
+// Shared disk storage (temp local before Cloudinary)
 const storage = multer.diskStorage({
   filename: function (req, file, cb) {
     cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-  }
+  },
 });
 
-// Check file type
-function checkFileType(file, cb) {
-  // Allowed ext
+// ─── Image Upload (jpeg/jpg/png/webp) ─────────────────────────────────────────
+const imageFilter = (req, file, cb) => {
   const filetypes = /jpeg|jpg|png|webp/;
-  // Check ext
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  // Check mime
   const mimetype = filetypes.test(file.mimetype);
+  if (mimetype && extname) return cb(null, true);
+  cb(new Error('Images only! (jpeg, jpg, png, webp)'));
+};
 
-  if (mimetype && extname) {
-    return cb(null, true);
-  } else {
-    cb('Error: Images Only!');
-  }
-}
-
-// Initialize upload
-const upload = multer({
+export const uploadImage = multer({
   storage,
-  limits: { fileSize: 5000000 }, // 5MB limit
-  fileFilter: function (req, file, cb) {
-    checkFileType(file, cb);
-  }
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: imageFilter,
 });
 
-export default upload;
+// ─── Resume Upload (PDF only) ─────────────────────────────────────────────────
+const resumeFilter = (req, file, cb) => {
+  const filetypes = /pdf/;
+  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = file.mimetype === 'application/pdf';
+  if (mimetype && extname) return cb(null, true);
+  cb(new Error('Resume must be a PDF file!'));
+};
+
+export const uploadResume = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  fileFilter: resumeFilter,
+});
+
+// Default export (image) for backward compatibility
+export default uploadImage;
