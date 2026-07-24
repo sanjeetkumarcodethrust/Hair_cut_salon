@@ -279,7 +279,7 @@ export const CustomerDashboardPage = () => (
 export const BarberDashboardPage = () => (
   <PageShell eyebrow="Barber dashboard" title="Manage your day" description="Track bookings, availability, and client requests from a single place.">
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {['Today's bookings', 'Open requests', 'Weekly earnings'].map((item) => (
+      {["Today's bookings", 'Open requests', 'Weekly earnings'].map((item) => (
         <div key={item} className={panelClasses}>
           <h3 className="text-lg font-semibold text-slate-900">{item}</h3>
           <p className="mt-2 text-sm text-slate-600">This page can be connected to your barber workflow and calendar.</p>
