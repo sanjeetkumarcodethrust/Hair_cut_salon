@@ -1,14 +1,46 @@
 ﻿@import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-  --color-primary: #1d4ed8;
-  --color-secondary: #9333ea;
-  --color-dark: #1e293b;
+  --color-primary: #2563eb;
+  --color-secondary: #8b5cf6;
+  --color-dark: #0f172a;
   --color-light: #f8fafc;
 }
 
 @layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
+  }
+
+  * {
+    @apply box-border;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
   body {
-    @apply bg-light text-dark font-sans antialiased;
+    @apply min-h-screen bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.18),_transparent_40%)] bg-light text-slate-900 antialiased transition-colors duration-300 dark:bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.18),_transparent_42%)] dark:bg-slate-950 dark:text-slate-100;
+  }
+
+  ::selection {
+    @apply bg-primary/25 text-slate-900 dark:text-slate-100;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply rounded-[1.75rem] border border-white/60 bg-white/70 shadow-[0_20px_60px_-25px_rgba(15,23,42,0.35)] backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-900/70;
+  }
+
+  .glass-pill {
+    @apply rounded-full border border-white/70 bg-white/70 shadow-sm backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-900/70;
   }
 }
