@@ -9,6 +9,7 @@ import {
   bookingRescheduledEmail,
   ownerNewBookingEmail,
 } from '../utils/sendEmail.js';
+import { createCheckoutSessionForAppointment } from './paymentController.js';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -37,11 +38,14 @@ export const createAppointment = async (req, res) => {
       price,
       notes,
       status: 'pending',
+      paymentStatus: 'pending',
     });
 
     const populated = await populateAppointment(
       Appointment.findById(appointment._id)
     );
+
+    const payment = await createCheckoutSessionForAppointment(appointment, req.user);
 
     // Notify customer
     const pendingTpl = bookingPendingEmail(populated, req.user.name);
@@ -54,7 +58,7 @@ export const createAppointment = async (req, res) => {
       await sendEmail({ to: salonDoc.owner.email, ...ownerTpl });
     }
 
-    res.status(201).json(populated);
+    res.status(201).json({ appointment: populated, payment });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

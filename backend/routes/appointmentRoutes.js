@@ -8,12 +8,24 @@ import {
   rescheduleAppointment,
   completeAppointment,
 } from '../controllers/appointmentController.js';
+import {
+  createCheckoutSession,
+  confirmPayment,
+  getPaymentHistory,
+  refundPayment,
+} from '../controllers/paymentController.js';
 import { protect, authorize } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
 // Book appointment (customer)
 router.post('/', protect, authorize('customer'), createAppointment);
+
+// Payments
+router.post('/checkout', protect, authorize('customer'), createCheckoutSession);
+router.post('/payments/confirm', protect, authorize('customer'), confirmPayment);
+router.get('/payments/history', protect, authorize('customer'), getPaymentHistory);
+router.post('/:id/refund', protect, authorize('customer', 'owner', 'admin'), refundPayment);
 
 // Get my appointments (role-aware)
 router.get('/my', protect, getMyAppointments);

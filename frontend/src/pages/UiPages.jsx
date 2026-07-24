@@ -1,5 +1,7 @@
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageShell from '../components/PageShell';
+import api from '../services/api';
 
 const panelClasses = 'rounded-3xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/70';
 
@@ -190,29 +192,75 @@ export const BarberProfile = () => (
   </PageShell>
 );
 
-export const BookingPage = () => (
-  <PageShell
-    eyebrow="Book appointment"
-    title="Schedule your visit"
-    description="Choose your preferred salon, service, and time slot to confirm your booking."
-  >
-    <div className="grid gap-6 lg:grid-cols-[1fr_0.8fr]">
-      <div className={panelClasses}>
-        <h2 className="text-lg font-semibold text-slate-900">Booking details</h2>
-        <div className="mt-4 space-y-3 text-sm text-slate-600">
-          <div className="rounded-2xl bg-slate-50 p-4">Salon: Luxe Cuts Studio</div>
-          <div className="rounded-2xl bg-slate-50 p-4">Service: Signature haircut</div>
-          <div className="rounded-2xl bg-slate-50 p-4">Time: Friday • 4:30 PM</div>
+export const BookingPage = () => {
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState('');
+  const summary = useMemo(() => ({
+    salon: 'Luxe Cuts Studio',
+    service: 'Signature haircut',
+    time: 'Friday • 4:30 PM',
+    price: '₹1,200',
+  }), []);
+
+  const handleBooking = async () => {
+    try {
+      setSubmitting(true);
+      setMessage('');
+      const response = await api.post('/appointments', {
+        salon: '68a1234567890abcd1234ef',
+        barber: '68a1234567890abcd1234ef',
+        service: { name: 'Signature haircut', price: 1200, duration: 45 },
+        date: '2026-07-25',
+        time: '16:30',
+        price: 1200,
+        notes: 'Premium booking with Stripe test payment',
+      });
+
+      const paymentUrl = response?.data?.payment?.url;
+      if (paymentUrl) {
+        window.location.assign(paymentUrl);
+      } else {
+        setMessage('Booking created. Payment confirmation will appear in your history.');
+      }
+    } catch (error) {
+      setMessage(error?.response?.data?.message || 'Booking failed');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <PageShell
+      eyebrow="Book appointment"
+      title="Schedule your visit"
+      description="Choose your preferred salon, service, and time slot to confirm your booking."
+    >
+      <div className="grid gap-6 lg:grid-cols-[1fr_0.8fr]">
+        <div className={panelClasses}>
+          <h2 className="text-lg font-semibold text-slate-900">Booking details</h2>
+          <div className="mt-4 space-y-3 text-sm text-slate-600">
+            <div className="rounded-2xl bg-slate-50 p-4">Salon: {summary.salon}</div>
+            <div className="rounded-2xl bg-slate-50 p-4">Service: {summary.service}</div>
+            <div className="rounded-2xl bg-slate-50 p-4">Time: {summary.time}</div>
+            <div className="rounded-2xl bg-slate-50 p-4">Amount: {summary.price}</div>
+          </div>
+        </div>
+        <div className={panelClasses}>
+          <h2 className="text-lg font-semibold text-slate-900">Confirm booking</h2>
+          <p className="mt-3 text-sm leading-7 text-slate-600">Your booking will be paid securely in Stripe test mode and added to your payment history for confirmation and refund review.</p>
+          <button
+            onClick={handleBooking}
+            disabled={submitting}
+            className="mt-5 rounded-full bg-gradient-to-r from-primary to-violet-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {submitting ? 'Preparing checkout...' : 'Reserve and pay'}
+          </button>
+          {message ? <p className="mt-4 text-sm text-slate-600">{message}</p> : null}
         </div>
       </div>
-      <div className={panelClasses}>
-        <h2 className="text-lg font-semibold text-slate-900">Confirm booking</h2>
-        <p className="mt-3 text-sm leading-7 text-slate-600">Your booking will be reserved instantly and added to your dashboard for reminders and updates.</p>
-        <button className="mt-5 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">Reserve appointment</button>
-      </div>
-    </div>
-  </PageShell>
-);
+    </PageShell>
+  );
+};
 
 export const JobsPage = () => (
   <PageShell
@@ -263,18 +311,73 @@ export const ApplyJobPage = () => (
   </PageShell>
 );
 
-export const CustomerDashboardPage = () => (
-  <PageShell eyebrow="Customer dashboard" title="Your appointments and favorites" description="Stay on top of bookings, saved salons, and follow-up reminders.">
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {['Upcoming haircut', 'Saved salon', 'Review due'].map((item) => (
-        <div key={item} className={panelClasses}>
-          <h3 className="text-lg font-semibold text-slate-900">{item}</h3>
-          <p className="mt-2 text-sm text-slate-600">This section is ready for live customer data and notifications.</p>
+export const CustomerDashboardPage = () => {
+  const [payments, setPayments] = useState([
+    { id: 'pay_001', label: 'Signature haircut', amount: '₹1,200', status: 'Paid' },
+    { id: 'pay_002', label: 'Beard grooming', amount: '₹650', status: 'Refunded' },
+  ]);
+
+  const handleRefund = async (appointmentId) => {
+    try {
+      const response = await api.post(`/appointments/${appointmentId}/refund`);
+      setPayments((current) => current.map((payment) => payment.id === appointmentId ? { ...payment, status: response?.data?.appointment?.paymentStatus === 'refunded' ? 'Refunded' : payment.status } : payment));
+    } catch (error) {
+      window.alert(error?.response?.data?.message || 'Refund failed');
+    }
+  };
+
+  return (
+    <PageShell eyebrow="Customer dashboard" title="Your appointments and favorites" description="Stay on top of bookings, saved salons, and follow-up reminders.">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {['Upcoming haircut', 'Saved salon', 'Review due'].map((item) => (
+          <div key={item} className={panelClasses}>
+            <h3 className="text-lg font-semibold text-slate-900">{item}</h3>
+            <p className="mt-2 text-sm text-slate-600">This section is ready for live customer data and notifications.</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-6 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+        <div className={panelClasses}>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-slate-900">Payment history</h2>
+            <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700">Stripe test mode</span>
+          </div>
+          <div className="mt-4 space-y-3">
+            {payments.map((payment) => (
+              <div key={payment.id} className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-slate-900">{payment.label}</p>
+                    <p className="mt-1 text-sm text-slate-600">{payment.amount}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-slate-900">{payment.status}</p>
+                    {payment.status === 'Paid' ? (
+                      <button onClick={() => handleRefund(payment.id)} className="mt-2 rounded-full border border-rose-200 px-3 py-1 text-sm font-semibold text-rose-600 transition hover:bg-rose-50">Refund</button>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      ))}
-    </div>
-  </PageShell>
-);
+        <div className={panelClasses}>
+          <h2 className="text-lg font-semibold text-slate-900">Booking confirmation</h2>
+          <p className="mt-3 text-sm leading-7 text-slate-600">Once you complete checkout, the appointment becomes confirmed and moves into your payment history with a simple refund option for test payments.</p>
+          <div className="mt-5 rounded-2xl bg-gradient-to-br from-primary/10 to-violet-500/10 p-4 text-sm text-slate-700">
+            <p className="font-semibold text-slate-900">Next steps</p>
+            <ul className="mt-3 list-disc space-y-2 pl-5">
+              <li>Complete checkout in Stripe test mode</li>
+              <li>Receive booking confirmation</li>
+              <li>Use refund from the history card if needed</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </PageShell>
+  );
+};
 
 export const BarberDashboardPage = () => (
   <PageShell eyebrow="Barber dashboard" title="Manage your day" description="Track bookings, availability, and client requests from a single place.">
