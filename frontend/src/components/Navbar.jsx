@@ -20,13 +20,28 @@ const Navbar = () => {
             </Link>
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
+            <Link to="/landing" className="text-gray-700 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">
+              Landing
+            </Link>
             <Link to="/salons" className="text-gray-700 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">
-              Find Salons
+              Salons
+            </Link>
+            <Link to="/barbers" className="text-gray-700 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">
+              Barbers
+            </Link>
+            <Link to="/jobs" className="text-gray-700 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">
+              Jobs
             </Link>
             {userInfo ? (
               <div className="flex items-center space-x-4">
                 <Link to="/dashboard" className="text-gray-700 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">
                   Dashboard
+                </Link>
+                <Link to="/profile" className="text-gray-700 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">
+                  Profile
+                </Link>
+                <Link to="/notifications" className="text-gray-700 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">
+                  Alerts
                 </Link>
                 <button
                   onClick={handleLogout}
