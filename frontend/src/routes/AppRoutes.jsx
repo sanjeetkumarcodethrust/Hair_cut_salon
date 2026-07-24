@@ -21,6 +21,7 @@ import {
   SettingsPage,
   NotificationsPage,
 } from '../pages/UiPages.jsx';
+import ExtraFeatures from '../pages/ExtraFeatures.jsx';
 
 const AppRoutes = () => (
   <Router>
@@ -42,6 +43,7 @@ const AppRoutes = () => (
         <Route path="profile" element={<ProfilePage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="notifications" element={<NotificationsPage />} />
+        <Route path="extras" element={<ExtraFeatures />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
         <Route path="dashboard" element={<Dashboard />} />
