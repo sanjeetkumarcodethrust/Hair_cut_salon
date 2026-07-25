@@ -1,15 +1,32 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
 import { Mail, ShieldCheck, Smartphone } from 'lucide-react';
+import api from '../services/api';
+import { setCredentials } from '../features/auth/authSlice';
 
 const Login = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const submitHandler = (e) => {
+  const submitHandler = async (e) => {
     e.preventDefault();
-    setOtpSent(true);
+    setError('');
+    setLoading(true);
+
+    try {
+      const { data } = await api.post('/auth/login', { email, password });
+      dispatch(setCredentials(data));
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Unable to sign in. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -50,13 +67,15 @@ const Login = () => {
             </label>
           </div>
 
-          <button type="submit" className="flex w-full justify-center rounded-full bg-gradient-to-r from-primary to-violet-500 px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90">
-            {otpSent ? 'OTP sent — continue' : 'Sign in'}
-          </button>
+          {error ? (
+            <div className="rounded-2xl border border-rose-200 bg-rose-50/80 p-3 text-sm text-rose-700 dark:border-rose-900/50 dark:bg-rose-500/10 dark:text-rose-300">
+              {error}
+            </div>
+          ) : null}
 
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-3 text-sm text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-500/10 dark:text-emerald-300">
-            Email verification, OTP login, and secure delivery are ready for the next backend integration.
-          </div>
+          <button type="submit" disabled={loading} className="flex w-full justify-center rounded-full bg-gradient-to-r from-primary to-violet-500 px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70">
+            {loading ? 'Signing in...' : 'Sign in'}
+          </button>
 
           <div className="text-center text-sm">
             <span className="text-slate-600 dark:text-slate-300">Don’t have an account? </span>

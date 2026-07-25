@@ -1,17 +1,41 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
 import { Mail, User, ShieldCheck } from 'lucide-react';
+import api from '../services/api';
+import { setCredentials } from '../features/auth/authSlice';
 
 const Register = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('Customer');
-  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const submitHandler = (e) => {
+  const submitHandler = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
+    setError('');
+    setLoading(true);
+
+    try {
+      const normalizedRole = role === 'SalonOwner' ? 'owner' : role.toLowerCase();
+      const { data } = await api.post('/auth/register', {
+        name,
+        email,
+        password,
+        role: normalizedRole,
+      });
+
+      dispatch(setCredentials(data));
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Unable to create your account. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -44,13 +68,15 @@ const Register = () => {
             </select>
           </div>
 
-          <button type="submit" className="flex w-full justify-center rounded-full bg-gradient-to-r from-primary to-violet-500 px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90">
-            {submitted ? 'Verification email sent' : 'Register'}
-          </button>
+          {error ? (
+            <div className="rounded-2xl border border-rose-200 bg-rose-50/80 p-3 text-sm text-rose-700 dark:border-rose-900/50 dark:bg-rose-500/10 dark:text-rose-300">
+              {error}
+            </div>
+          ) : null}
 
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-200">
-            Verification and OTP support are ready for backend integration.
-          </div>
+          <button type="submit" disabled={loading} className="flex w-full justify-center rounded-full bg-gradient-to-r from-primary to-violet-500 px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70">
+            {loading ? 'Creating account...' : 'Register'}
+          </button>
 
           <div className="text-center text-sm">
             <span className="text-slate-600 dark:text-slate-300">Already have an account? </span>
