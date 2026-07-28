@@ -1,9 +1,10 @@
 import Stripe from 'stripe';
 import Appointment from '../models/Appointment.js';
+import env from '../config/env.js';
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripeSecretKey = env.stripeSecretKey;
 const stripe = stripeSecretKey && stripeSecretKey !== 'placeholder' ? new Stripe(stripeSecretKey) : null;
-const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+const frontendUrl = env.frontendUrl;
 
 const formatAmount = (amount) => Math.round(Number(amount || 0) * 100);
 
@@ -35,9 +36,9 @@ export const createCheckoutSessionForAppointment = async (appointment, user) => 
     line_items: [
       {
         price_data: {
-          currency: 'inr',
+          currency: env.stripeCurrency,
           product_data: {
-            name: appointment.service?.name || 'Salon appointment',
+            name: appointment.service?.name || env.defaultAppointmentName,
           },
           unit_amount: formatAmount(appointment.price),
         },

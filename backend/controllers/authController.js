@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import generateToken from '../utils/generateToken.js';
 import jwt from 'jsonwebtoken';
+import env from '../config/env.js';
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -152,7 +153,7 @@ export const refreshAccessToken = async (req, res) => {
   }
 
   try {
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET);
+    const decoded = jwt.verify(refreshToken, env.jwtRefreshSecret || env.jwtSecret);
     const user = await User.findById(decoded.userId).select('-password');
 
     if (!user) {
@@ -160,14 +161,14 @@ export const refreshAccessToken = async (req, res) => {
     }
 
     // Generate a new access token
-    const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: '15m',
+    const accessToken = jwt.sign({ userId: user._id }, env.jwtSecret, {
+      expiresIn: env.accessTokenExpiresIn,
     });
 
     res.cookie('jwt', accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV !== 'development',
-      sameSite: 'strict',
+      secure: env.nodeEnv !== 'development',
+      sameSite: env.cookieSameSite,
       maxAge: 15 * 60 * 1000,
     });
 

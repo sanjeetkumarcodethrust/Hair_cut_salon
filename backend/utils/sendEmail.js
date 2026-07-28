@@ -1,11 +1,12 @@
 import nodemailer from 'nodemailer';
+import env from '../config/env.js';
 
 const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
+  host: env.emailHost,
+  port: env.emailPort,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: env.emailUser,
+    pass: env.emailPass,
   },
 });
 
@@ -100,7 +101,7 @@ const ownerNewBookingEmail = (appointment, ownerName) => ({
 export const sendEmail = async ({ to, subject, html }) => {
   try {
     await transporter.sendMail({
-      from: `"Salon App" <${process.env.EMAIL_USER}>`,
+      from: `"${env.emailFromName}" <${env.emailUser}>`,
       to,
       subject,
       html,

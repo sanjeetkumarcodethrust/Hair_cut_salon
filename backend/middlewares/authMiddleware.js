@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import env from '../config/env.js';
 
 // Protect routes
 export const protect = async (req, res, next) => {
@@ -9,7 +10,7 @@ export const protect = async (req, res, next) => {
 
   if (token) {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, env.jwtSecret);
 
       req.user = await User.findById(decoded.userId).select('-password');
 

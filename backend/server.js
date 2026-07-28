@@ -1,5 +1,4 @@
 import express from 'express';
-import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
@@ -7,6 +6,7 @@ import morgan from 'morgan';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import connectDB from './config/db.js';
+import env from './config/env.js';
 import authRoutes from './routes/authRoutes.js';
 import salonRoutes from './routes/salonRoutes.js';
 import barberRoutes from './routes/barberRoutes.js';
@@ -17,31 +17,30 @@ import jobRoutes from './routes/jobRoutes.js';
 import applicationRoutes from './routes/applicationRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 
-dotenv.config();
-
 connectDB();
 
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: 'http://localhost:5173', // Vite default port
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true,
+    origin: env.corsOrigin,
+    methods: env.corsMethods,
+    credentials: env.corsCredentials,
   },
 });
 
 // Middlewares
 app.use(helmet());
-if (process.env.NODE_ENV === 'development') {
+if (env.nodeEnv === 'development') {
   app.use(morgan('dev'));
 }
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors({
-  origin: 'http://localhost:5173',
-  credentials: true,
+  origin: env.corsOrigin,
+  credentials: env.corsCredentials,
+  methods: env.corsMethods,
 }));
 
 // Routes
@@ -69,8 +68,8 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = env.port;
 
 httpServer.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+  console.log(`Server running in ${env.nodeEnv} mode on port ${PORT}`);
 });

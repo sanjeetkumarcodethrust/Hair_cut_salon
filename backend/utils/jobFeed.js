@@ -1,19 +1,9 @@
 import { createHash } from 'crypto';
+import env from '../config/env.js';
 
-const DEFAULT_THE_MUSE_API_URL = 'https://www.themuse.com/api/public/jobs';
-const EXTERNAL_JOB_CATEGORY = 'Personal Care and Services';
-const EXTERNAL_JOB_KEYWORDS = [
-  'barber',
-  'hair',
-  'salon',
-  'beauty',
-  'stylist',
-  'cosmetology',
-  'cosmetologist',
-  'esthetician',
-  'aesthetician',
-  'spa',
-];
+const DEFAULT_THE_MUSE_API_URL = env.theMuseApiUrl;
+const EXTERNAL_JOB_CATEGORY = env.externalJobCategory;
+const EXTERNAL_JOB_KEYWORDS = env.externalJobKeywords;
 
 const MOCK_EXTERNAL_JOBS = [
   {
@@ -36,9 +26,9 @@ const MOCK_EXTERNAL_JOBS = [
       city: 'Austin',
       address: 'Austin, TX',
       logo: null,
-      website: 'https://example.com/jobs/senior-barber',
+      website: `${env.mockJobBaseUrl}/jobs/senior-barber`,
     },
-    applicationUrl: 'https://example.com/jobs/senior-barber',
+    applicationUrl: `${env.mockJobBaseUrl}/jobs/senior-barber`,
     source: 'mock',
     sortDate: '2026-07-18T09:00:00.000Z',
   },
@@ -62,9 +52,9 @@ const MOCK_EXTERNAL_JOBS = [
       city: 'New York',
       address: 'New York, NY',
       logo: null,
-      website: 'https://example.com/jobs/salon-stylist',
+      website: `${env.mockJobBaseUrl}/jobs/salon-stylist`,
     },
-    applicationUrl: 'https://example.com/jobs/salon-stylist',
+    applicationUrl: `${env.mockJobBaseUrl}/jobs/salon-stylist`,
     source: 'mock',
     sortDate: '2026-07-19T10:30:00.000Z',
   },
@@ -88,9 +78,9 @@ const MOCK_EXTERNAL_JOBS = [
       city: 'Chicago',
       address: 'Chicago, IL',
       logo: null,
-      website: 'https://example.com/jobs/barber-apprentice',
+      website: `${env.mockJobBaseUrl}/jobs/barber-apprentice`,
     },
-    applicationUrl: 'https://example.com/jobs/barber-apprentice',
+    applicationUrl: `${env.mockJobBaseUrl}/jobs/barber-apprentice`,
     source: 'mock',
     sortDate: '2026-07-20T08:15:00.000Z',
   },
@@ -481,7 +471,7 @@ const buildMockExternalVacancies = (filters) => filterVacancies(MOCK_EXTERNAL_JO
 const fetchMuseVacancies = async (filters) => {
   const apiUrl = process.env.THE_MUSE_API_URL || DEFAULT_THE_MUSE_API_URL;
   const apiKey = normalizeText(process.env.THE_MUSE_API_KEY);
-  const timeoutMs = Math.max(1000, toNumber(process.env.THE_MUSE_TIMEOUT_MS) || 5000);
+  const timeoutMs = Math.max(1000, toNumber(env.theMuseTimeoutMs) || 5000);
   const maxPages = Math.max(1, toNumber(process.env.THE_MUSE_MAX_PAGES) || 3);
   const collected = [];
 

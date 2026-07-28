@@ -1,29 +1,30 @@
 import jwt from 'jsonwebtoken';
+import env from '../config/env.js';
 
 const generateToken = (res, userId) => {
   // Generate Access Token (short-lived)
-  const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET, {
-    expiresIn: '15m', // 15 minutes
+  const accessToken = jwt.sign({ userId }, env.jwtSecret, {
+    expiresIn: env.accessTokenExpiresIn,
   });
 
   // Generate Refresh Token (long-lived)
-  const refreshToken = jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, {
-    expiresIn: '7d', // 7 days
+  const refreshToken = jwt.sign({ userId }, env.jwtRefreshSecret || env.jwtSecret, {
+    expiresIn: env.refreshTokenExpiresIn,
   });
 
   // Set Access Token Cookie
   res.cookie('jwt', accessToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV !== 'development',
-    sameSite: 'strict',
+    secure: env.nodeEnv !== 'development',
+    sameSite: env.cookieSameSite,
     maxAge: 15 * 60 * 1000, // 15 minutes
   });
 
   // Set Refresh Token Cookie
   res.cookie('jwtRefresh', refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV !== 'development',
-    sameSite: 'strict',
+    secure: env.nodeEnv !== 'development',
+    sameSite: env.cookieSameSite,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 };
