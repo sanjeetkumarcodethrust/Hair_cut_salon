@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import PageShell from '../components/PageShell';
 import api from '../services/api';
 
@@ -9,24 +10,6 @@ const quickLinks = [
   { title: 'Find salons', href: '/salons' },
   { title: 'Meet barbers', href: '/barbers' },
   { title: 'Browse jobs', href: '/jobs' },
-];
-
-const salonCards = [
-  { name: 'Luxe Cuts Studio', location: 'Downtown', rating: '4.9', info: 'Haircuts • Beard trims • Blowouts' },
-  { name: 'The Barber House', location: 'Midtown', rating: '4.8', info: 'Classic cuts • Razor designs' },
-  { name: 'Glow Salon', location: 'Riverside', rating: '4.7', info: 'Color • Styling • Bridal' },
-];
-
-const barberCards = [
-  { name: 'Asha Rivera', specialty: 'Precision fades', rating: '4.9' },
-  { name: 'Mikel Brooks', specialty: 'Luxury styling', rating: '4.8' },
-  { name: 'Jade Chen', specialty: 'Color correction', rating: '4.7' },
-];
-
-const jobCards = [
-  { title: 'Senior Stylist', salon: 'Luxe Cuts Studio', location: 'Downtown', type: 'Full-time' },
-  { title: 'Barber Assistant', salon: 'The Barber House', location: 'Midtown', type: 'Part-time' },
-  { title: 'Salon Receptionist', salon: 'Glow Salon', location: 'Riverside', type: 'Contract' },
 ];
 
 const metrics = [
@@ -76,64 +59,110 @@ export const LandingPage = () => (
   </PageShell>
 );
 
-export const SearchSalons = () => (
-  <PageShell
-    eyebrow="Discover salons"
-    title="Search salons nearby"
-    description="Use the search experience to compare salons by rating, location, and service type."
-  >
-    <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
-      <div className={panelClasses}>
-        <h2 className="text-lg font-semibold text-slate-900">Filter options</h2>
-        <div className="mt-4 space-y-3 text-sm text-slate-600">
-          <div className="rounded-2xl bg-slate-50 p-4">Location: Downtown or Midtown</div>
-          <div className="rounded-2xl bg-slate-50 p-4">Service: Haircuts, styling, color</div>
-          <div className="rounded-2xl bg-slate-50 p-4">Availability: Today or tomorrow</div>
-        </div>
-      </div>
-      <div className="space-y-4">
-        {salonCards.map((salon) => (
-          <div key={salon.name} className={panelClasses}>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900">{salon.name}</h3>
-                <p className="mt-1 text-sm text-slate-600">{salon.location}</p>
-                <p className="mt-2 text-sm text-slate-500">{salon.info}</p>
-              </div>
-              <div className="text-left sm:text-right">
-                <p className="text-sm font-semibold text-slate-900">★ {salon.rating}</p>
-                <Link to="/salons/1" className="mt-2 inline-flex text-sm font-medium text-primary">View details</Link>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </PageShell>
-);
+export const SearchSalons = () => {
+  const [salons, setSalons] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-export const SearchBarbers = () => (
-  <PageShell
-    eyebrow="Meet talented barbers"
-    title="Search barbers by specialty"
-    description="Find barbers who match your style, service, and availability."
-  >
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {barberCards.map((barber) => (
-        <div key={barber.name} className={panelClasses}>
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900">{barber.name}</h3>
-              <p className="mt-1 text-sm text-slate-600">{barber.specialty}</p>
-            </div>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">★ {barber.rating}</span>
+  useEffect(() => {
+    const fetchSalons = async () => {
+      try {
+        const response = await api.get('/salons');
+        setSalons(response.data.data || []);
+      } catch (error) {
+        console.error('Failed to fetch salons:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSalons();
+  }, []);
+
+  return (
+    <PageShell
+      eyebrow="Discover salons"
+      title="Search salons nearby"
+      description="Use the search experience to compare salons by rating, location, and service type."
+    >
+      <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
+        <div className={panelClasses}>
+          <h2 className="text-lg font-semibold text-slate-900">Filter options</h2>
+          <div className="mt-4 space-y-3 text-sm text-slate-600">
+            <div className="rounded-2xl bg-slate-50 p-4">Location: Downtown or Midtown</div>
+            <div className="rounded-2xl bg-slate-50 p-4">Service: Haircuts, styling, color</div>
+            <div className="rounded-2xl bg-slate-50 p-4">Availability: Today or tomorrow</div>
           </div>
-          <Link to="/barbers/1" className="mt-5 inline-flex text-sm font-semibold text-primary">View profile</Link>
         </div>
-      ))}
-    </div>
-  </PageShell>
-);
+        <div className="space-y-4">
+          {loading ? (
+            <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-slate-400" /></div>
+          ) : (
+            salons.map((salon) => (
+              <div key={salon._id || salon.name} className={panelClasses}>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900">{salon.name}</h3>
+                    <p className="mt-1 text-sm text-slate-600">{salon.city || salon.location}</p>
+                    <p className="mt-2 text-sm text-slate-500">{salon.address || salon.info}</p>
+                  </div>
+                  <div className="text-left sm:text-right">
+                    <p className="text-sm font-semibold text-slate-900">★ {salon.rating || 'New'}</p>
+                    <Link to={`/salons/${salon._id || 1}`} className="mt-2 inline-flex text-sm font-medium text-primary">View details</Link>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </PageShell>
+  );
+};
+
+export const SearchBarbers = () => {
+  const [barbers, setBarbers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchBarbers = async () => {
+      try {
+        const response = await api.get('/barbers');
+        setBarbers(response.data || []);
+      } catch (error) {
+        console.error('Failed to fetch barbers:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBarbers();
+  }, []);
+
+  return (
+    <PageShell
+      eyebrow="Meet talented barbers"
+      title="Search barbers by specialty"
+      description="Find barbers who match your style, service, and availability."
+    >
+      {loading ? (
+        <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-slate-400" /></div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {barbers.map((barber) => (
+            <div key={barber._id || barber.user?.name} className={panelClasses}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900">{barber.user?.name || barber.name}</h3>
+                  <p className="mt-1 text-sm text-slate-600">{barber.bio || barber.specialty || 'Professional Barber'}</p>
+                </div>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">★ {barber.rating || 'New'}</span>
+              </div>
+              <Link to={`/barbers/${barber._id || 1}`} className="mt-5 inline-flex text-sm font-semibold text-primary">View profile</Link>
+            </div>
+          ))}
+        </div>
+      )}
+    </PageShell>
+  );
+};
 
 export const SalonDetails = () => (
   <PageShell
@@ -262,30 +291,53 @@ export const BookingPage = () => {
   );
 };
 
-export const JobsPage = () => (
-  <PageShell
-    eyebrow="Careers"
-    title="Open jobs and opportunities"
-    description="Explore salon and barber roles that match your skills and ambitions."
-  >
-    <div className="space-y-4">
-      {jobCards.map((job) => (
-        <div key={job.title} className={panelClasses}>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900">{job.title}</h3>
-              <p className="mt-1 text-sm text-slate-600">{job.salon} • {job.location}</p>
+export const JobsPage = () => {
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const response = await api.get('/jobs');
+        setJobs(response.data.data || []);
+      } catch (error) {
+        console.error('Failed to fetch jobs:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchJobs();
+  }, []);
+
+  return (
+    <PageShell
+      eyebrow="Careers"
+      title="Open jobs and opportunities"
+      description="Explore salon and barber roles that match your skills and ambitions."
+    >
+      <div className="space-y-4">
+        {loading ? (
+          <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-slate-400" /></div>
+        ) : (
+          jobs.map((job) => (
+            <div key={job._id || job.title} className={panelClasses}>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900">{job.title}</h3>
+                  <p className="mt-1 text-sm text-slate-600">{job.salon?.name || job.salon} • {job.location || job.salon?.city}</p>
+                </div>
+                <div className="text-left sm:text-right">
+                  <p className="text-sm font-semibold text-slate-900">{job.jobType || job.type}</p>
+                  <Link to="/jobs/apply" className="mt-2 inline-flex text-sm font-medium text-primary">Apply now</Link>
+                </div>
+              </div>
             </div>
-            <div className="text-left sm:text-right">
-              <p className="text-sm font-semibold text-slate-900">{job.type}</p>
-              <Link to="/jobs/apply" className="mt-2 inline-flex text-sm font-medium text-primary">Apply now</Link>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  </PageShell>
-);
+          ))
+        )}
+      </div>
+    </PageShell>
+  );
+};
 
 export const ApplyJobPage = () => (
   <PageShell
