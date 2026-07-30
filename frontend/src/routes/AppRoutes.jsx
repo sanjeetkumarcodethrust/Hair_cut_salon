@@ -1,5 +1,7 @@
-﻿import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout.jsx';
+import CutMateLayout from '../layouts/CutMateLayout.jsx';
+import CutMateDashboard from '../pages/CutMateDashboard.jsx';
 import Home from '../pages/Home.jsx';
 import Login from '../pages/Login.jsx';
 import Register from '../pages/Register.jsx';
@@ -26,8 +28,9 @@ import ExtraFeatures from '../pages/ExtraFeatures.jsx';
 const AppRoutes = () => (
   <Router>
     <Routes>
-      <Route path="/" element={<MainLayout />}>
-        <Route index element={<Home />} />
+      <Route path="/" element={<CutMateLayout />}>
+        <Route index element={<CutMateDashboard />} />
+        <Route path="old-home" element={<Home />} />
         <Route path="landing" element={<LandingPage />} />
         <Route path="salons" element={<SearchSalons />} />
         <Route path="salons/:id" element={<SalonDetails />} />
@@ -44,9 +47,11 @@ const AppRoutes = () => (
         <Route path="settings" element={<SettingsPage />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="extras" element={<ExtraFeatures />} />
-        <Route path="login" element={<Login />} />
-        <Route path="register" element={<Register />} />
         <Route path="dashboard" element={<Dashboard />} />
+      </Route>
+      <Route element={<MainLayout />}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
       </Route>
     </Routes>
   </Router>
