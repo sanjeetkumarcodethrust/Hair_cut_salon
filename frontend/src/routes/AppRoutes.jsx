@@ -4,6 +4,8 @@ import CutMateLayout from '../layouts/CutMateLayout.jsx';
 import CutMateDashboard from '../pages/CutMateDashboard.jsx';
 import Home from '../pages/Home.jsx';
 import Login from '../pages/Login.jsx';
+import PaymentSuccess from '../pages/PaymentSuccess.jsx';
+import PaymentCancel from '../pages/PaymentCancel.jsx';
 import Register from '../pages/Register.jsx';
 import Dashboard from '../pages/Dashboard.jsx';
 import {
@@ -53,6 +55,9 @@ const AppRoutes = () => (
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Route>
+      {/* Standalone payment pages — no layout wrapper */}
+      <Route path="/payments/success" element={<PaymentSuccess />} />
+      <Route path="/payments/cancel" element={<PaymentCancel />} />
     </Routes>
   </Router>
 );

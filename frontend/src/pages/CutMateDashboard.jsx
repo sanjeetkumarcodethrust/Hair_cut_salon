@@ -22,14 +22,14 @@ const CutMateDashboard = () => {
                   Book in seconds, Shine everyday ✨
                 </p>
                 <div className="flex flex-wrap items-center gap-4">
-                  <button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-full font-semibold flex items-center gap-2 transition">
+                  <Link to="/bookings/new" className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-full font-semibold flex items-center gap-2 transition">
                     <Calendar className="w-5 h-5" />
                     Book an Appointment
-                  </button>
-                  <button className="bg-transparent border border-white/20 hover:bg-white/5 text-white px-6 py-3 rounded-full font-semibold flex items-center gap-2 transition">
+                  </Link>
+                  <Link to="/salons" className="bg-transparent border border-white/20 hover:bg-white/5 text-white px-6 py-3 rounded-full font-semibold flex items-center gap-2 transition">
                     <Sparkles className="w-5 h-5 text-amber-500" />
                     Explore Salons
-                  </button>
+                  </Link>
                 </div>
                 
                 <div className="flex flex-wrap items-center gap-6 mt-10 text-xs text-slate-400 font-medium">
@@ -185,9 +185,9 @@ const CutMateDashboard = () => {
                <p className="text-amber-500 font-semibold text-[11px] mb-1">Summer Style Sale</p>
                <h3 className="text-2xl font-bold text-white mb-1">Get up to 40% OFF</h3>
                <p className="text-slate-300 text-xs mb-5">on top services</p>
-               <button className="bg-purple-600 hover:bg-purple-700 text-white text-xs px-5 py-2.5 rounded-full font-semibold transition w-fit">
+               <Link to="/bookings/new" className="bg-purple-600 hover:bg-purple-700 text-white text-xs px-5 py-2.5 rounded-full font-semibold transition inline-block">
                  Book Now
-               </button>
+               </Link>
              </div>
              <img src="/assets/promo_barber.jpg" alt="Promo" className="absolute right-0 top-0 bottom-0 h-full w-1/2 object-cover opacity-80 mix-blend-screen" style={{ maskImage: 'linear-gradient(to right, transparent, black)' }} />
           </section>

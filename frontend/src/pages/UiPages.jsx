@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import PageShell from '../components/PageShell';
@@ -222,72 +222,286 @@ export const BarberProfile = () => (
 );
 
 export const BookingPage = () => {
+  const [step, setStep] = useState(1); // 1: service, 2: datetime, 3: confirm
+  const [salons, setSalons] = useState([]);
+  const [loadingSalons, setLoadingSalons] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
-  const summary = useMemo(() => ({
-    salon: 'Luxe Cuts Studio',
-    service: 'Signature haircut',
-    time: 'Friday • 4:30 PM',
-    price: '₹1,200',
-  }), []);
+
+  const services = [
+    { name: 'Haircut & Styling', price: 199, duration: 30, icon: '✂️' },
+    { name: 'Beard Grooming', price: 149, duration: 20, icon: '🪒' },
+    { name: 'Hair Color', price: 699, duration: 90, icon: '🎨' },
+    { name: 'Hair Spa', price: 299, duration: 45, icon: '💆' },
+    { name: 'Skin Treatment', price: 499, duration: 60, icon: '✨' },
+  ];
+
+  const times = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
+
+  const [form, setForm] = useState({
+    service: null,
+    salonId: '',
+    date: new Date().toISOString().split('T')[0],
+    time: '',
+    notes: '',
+  });
+
+  useEffect(() => {
+    api.get('/salons').then(r => setSalons(r.data.data || [])).catch(() => {}).finally(() => setLoadingSalons(false));
+  }, []);
 
   const handleBooking = async () => {
+    setSubmitting(true);
+    setMessage('');
     try {
-      setSubmitting(true);
-      setMessage('');
       const response = await api.post('/appointments', {
-        salon: '68a1234567890abcd1234ef',
-        barber: '68a1234567890abcd1234ef',
-        service: { name: 'Signature haircut', price: 1200, duration: 45 },
-        date: '2026-07-25',
-        time: '16:30',
-        price: 1200,
-        notes: 'Premium booking with Stripe test payment',
+        salon: form.salonId || salons[0]?._id || '000000000000000000000001',
+        service: { name: form.service.name, price: form.service.price, duration: form.service.duration },
+        date: form.date,
+        time: form.time,
+        price: form.service.price,
+        notes: form.notes || 'Booked from CutMate app',
       });
-
       const paymentUrl = response?.data?.payment?.url;
       if (paymentUrl) {
         window.location.assign(paymentUrl);
       } else {
-        setMessage('Booking created. Payment confirmation will appear in your history.');
+        setMessage('🎉 Booking confirmed! Check your dashboard for details.');
       }
     } catch (error) {
-      setMessage(error?.response?.data?.message || 'Booking failed');
+      setMessage(error?.response?.data?.message || 'Booking failed. Please try again.');
     } finally {
       setSubmitting(false);
     }
   };
 
+  const darkPanel = 'rounded-2xl border border-white/10 bg-white/5 p-5';
+
   return (
-    <PageShell
-      eyebrow="Book appointment"
-      title="Schedule your visit"
-      description="Choose your preferred salon, service, and time slot to confirm your booking."
-    >
-      <div className="grid gap-6 lg:grid-cols-[1fr_0.8fr]">
-        <div className={panelClasses}>
-          <h2 className="text-lg font-semibold text-slate-900">Booking details</h2>
-          <div className="mt-4 space-y-3 text-sm text-slate-600">
-            <div className="rounded-2xl bg-slate-50 p-4">Salon: {summary.salon}</div>
-            <div className="rounded-2xl bg-slate-50 p-4">Service: {summary.service}</div>
-            <div className="rounded-2xl bg-slate-50 p-4">Time: {summary.time}</div>
-            <div className="rounded-2xl bg-slate-50 p-4">Amount: {summary.price}</div>
+    <div className="min-h-screen bg-[#0a0a0a] text-white p-6 md:p-10">
+      <div className="max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <p className="text-purple-400 text-sm font-semibold mb-2">Book Appointment</p>
+          <h1 className="text-3xl font-bold text-white">Schedule your visit</h1>
+          <p className="text-slate-400 text-sm mt-2">Choose your service, time, and pay securely online.</p>
+        </div>
+
+        {/* Steps indicator */}
+        <div className="flex items-center gap-4 mb-10">
+          {[{ n: 1, l: 'Service' }, { n: 2, l: 'Date & Time' }, { n: 3, l: 'Confirm' }].map((s, i) => (
+            <React.Fragment key={s.n}>
+              <button
+                onClick={() => step > s.n && setStep(s.n)}
+                className={`flex items-center gap-2 text-sm font-semibold transition ${
+                  step === s.n ? 'text-white' : step > s.n ? 'text-purple-400 hover:text-purple-300' : 'text-slate-600'
+                }`}
+              >
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border ${
+                  step === s.n ? 'bg-purple-600 border-purple-600 text-white' :
+                  step > s.n ? 'bg-purple-900/50 border-purple-500 text-purple-300' :
+                  'bg-transparent border-white/20 text-slate-500'
+                }`}>
+                  {step > s.n ? '✓' : s.n}
+                </div>
+                {s.l}
+              </button>
+              {i < 2 && <div className={`flex-1 h-px ${step > s.n ? 'bg-purple-600/40' : 'bg-white/10'}`} />}
+            </React.Fragment>
+          ))}
+        </div>
+
+        {/* Step 1: Service Selection */}
+        {step === 1 && (
+          <div>
+            <h2 className="text-lg font-semibold text-white mb-4">Choose a service</h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {services.map(srv => (
+                <button
+                  key={srv.name}
+                  onClick={() => setForm(f => ({ ...f, service: srv }))}
+                  className={`text-left rounded-2xl p-4 border transition flex items-center gap-4 ${
+                    form.service?.name === srv.name
+                      ? 'border-purple-500 bg-purple-900/20 ring-1 ring-purple-500'
+                      : 'border-white/10 bg-white/5 hover:border-white/20'
+                  }`}
+                >
+                  <span className="text-2xl">{srv.icon}</span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-white text-sm">{srv.name}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{srv.duration} min · ₹{srv.price}</p>
+                  </div>
+                  {form.service?.name === srv.name && (
+                    <div className="w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center text-[10px] text-white">✓</div>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Salon selector */}
+            <div className="mt-6">
+              <h2 className="text-lg font-semibold text-white mb-3">Choose a salon</h2>
+              <div className={`${darkPanel}`}>
+                {loadingSalons ? (
+                  <div className="flex items-center gap-2 text-slate-400 text-sm"><Loader2 className="w-4 h-4 animate-spin" />Loading salons...</div>
+                ) : (
+                  <select
+                    className="w-full bg-transparent text-white text-sm focus:outline-none"
+                    value={form.salonId}
+                    onChange={e => setForm(f => ({ ...f, salonId: e.target.value }))}
+                  >
+                    <option value="" className="bg-[#0a0a0a]">Select a salon...</option>
+                    {salons.map(s => (
+                      <option key={s._id} value={s._id} className="bg-[#0a0a0a]">
+                        {s.name} — {s.city || s.address}
+                      </option>
+                    ))}
+                    {salons.length === 0 && <option value="demo" className="bg-[#0a0a0a]">Demo Salon (Test mode)</option>}
+                  </select>
+                )}
+              </div>
+            </div>
+
+            <button
+              disabled={!form.service}
+              onClick={() => setStep(2)}
+              className="mt-8 w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white py-3.5 rounded-full font-semibold transition"
+            >
+              Continue to Date & Time →
+            </button>
           </div>
-        </div>
-        <div className={panelClasses}>
-          <h2 className="text-lg font-semibold text-slate-900">Confirm booking</h2>
-          <p className="mt-3 text-sm leading-7 text-slate-600">Your booking will be paid securely in Stripe test mode and added to your payment history for confirmation and refund review.</p>
-          <button
-            onClick={handleBooking}
-            disabled={submitting}
-            className="mt-5 rounded-full bg-gradient-to-r from-primary to-violet-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {submitting ? 'Preparing checkout...' : 'Reserve and pay'}
-          </button>
-          {message ? <p className="mt-4 text-sm text-slate-600">{message}</p> : null}
-        </div>
+        )}
+
+        {/* Step 2: Date & Time */}
+        {step === 2 && (
+          <div>
+            <h2 className="text-lg font-semibold text-white mb-4">Choose date & time</h2>
+            <div className={`${darkPanel} mb-4`}>
+              <label className="text-xs text-slate-400 block mb-2 font-medium">Select Date</label>
+              <input
+                type="date"
+                min={new Date().toISOString().split('T')[0]}
+                value={form.date}
+                onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+                className="w-full bg-transparent text-white text-sm focus:outline-none appearance-none"
+                style={{ colorScheme: 'dark' }}
+              />
+            </div>
+
+            <h3 className="text-sm font-semibold text-slate-300 mb-3">Available Times</h3>
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-6">
+              {times.map(t => (
+                <button
+                  key={t}
+                  onClick={() => setForm(f => ({ ...f, time: t }))}
+                  className={`py-2.5 text-sm rounded-xl border font-medium transition ${
+                    form.time === t
+                      ? 'bg-purple-600 border-purple-600 text-white'
+                      : 'border-white/10 bg-white/5 text-slate-300 hover:border-white/20'
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+
+            <div className={`${darkPanel} mb-6`}>
+              <label className="text-xs text-slate-400 block mb-2 font-medium">Notes (optional)</label>
+              <textarea
+                className="w-full bg-transparent text-white text-sm focus:outline-none resize-none"
+                rows={3}
+                placeholder="Any special requests..."
+                value={form.notes}
+                onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button onClick={() => setStep(1)} className="flex-1 border border-white/20 hover:bg-white/5 text-white py-3.5 rounded-full font-semibold transition">← Back</button>
+              <button
+                disabled={!form.time || !form.date}
+                onClick={() => setStep(3)}
+                className="flex-[2] bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white py-3.5 rounded-full font-semibold transition"
+              >
+                Review & Pay →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Confirm & Pay */}
+        {step === 3 && (
+          <div>
+            <h2 className="text-lg font-semibold text-white mb-4">Review & confirm</h2>
+            <div className={`${darkPanel} mb-4 space-y-4`}>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-400">Service</span>
+                <span className="text-white font-semibold">{form.service?.name} {form.service?.icon}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-400">Duration</span>
+                <span className="text-white">{form.service?.duration} min</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-400">Date</span>
+                <span className="text-white">{new Date(form.date).toLocaleDateString('en-IN', { dateStyle: 'long' })}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-400">Time</span>
+                <span className="text-white">{form.time}</span>
+              </div>
+              {form.notes && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-400">Notes</span>
+                  <span className="text-white text-right max-w-[60%]">{form.notes}</span>
+                </div>
+              )}
+              <div className="border-t border-white/10 pt-4 flex justify-between">
+                <span className="text-slate-300 font-semibold">Total</span>
+                <span className="text-purple-400 text-xl font-bold">₹{form.service?.price}</span>
+              </div>
+            </div>
+
+            <div className={`${darkPanel} mb-6 bg-purple-900/10 border-purple-500/20`}>
+              <div className="flex items-start gap-3">
+                <span className="text-purple-400 text-lg">🔒</span>
+                <div>
+                  <p className="text-sm font-semibold text-white">Secure payment via Stripe</p>
+                  <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                    You'll be redirected to Stripe's secure checkout. Your card details are never stored on our servers.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {message && (
+              <div className={`rounded-2xl p-4 mb-4 text-sm font-medium ${
+                message.includes('confirmed') || message.includes('🎉')
+                  ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+                  : 'bg-red-500/10 border border-red-500/30 text-red-400'
+              }`}>
+                {message}
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button onClick={() => setStep(2)} className="flex-1 border border-white/20 hover:bg-white/5 text-white py-3.5 rounded-full font-semibold transition">← Back</button>
+              <button
+                onClick={handleBooking}
+                disabled={submitting}
+                className="flex-[2] bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed text-white py-3.5 rounded-full font-bold transition shadow-lg shadow-purple-900/30"
+              >
+                {submitting ? (
+                  <span className="flex items-center justify-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />Redirecting to payment...</span>
+                ) : (
+                  `Pay ₹${form.service?.price} & Confirm`
+                )}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-    </PageShell>
+    </div>
   );
 };
 
