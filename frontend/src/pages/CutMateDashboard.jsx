@@ -102,13 +102,18 @@ const CutMateDashboard = () => {
             </div>
             <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
               {[
-                { name: "The Men's Den", loc: "Bandra, Mumbai", rating: "4.8", price: "199", time: "30 min" },
-                { name: "Looks Salon", loc: "Andheri, Mumbai", rating: "4.9", price: "249", time: "45 min" },
-                { name: "Headturners", loc: "Powai, Mumbai", rating: "4.7", price: "199", time: "30 min" },
-                { name: "The Barber House", loc: "Lower Parel, Mumbai", rating: "4.8", price: "149", time: "25 min" },
+                { name: "The Men's Den", loc: "Bandra, Mumbai", rating: "4.8", price: "199", time: "30 min", img: "/salon1.jpg" },
+                { name: "Looks Salon", loc: "Andheri, Mumbai", rating: "4.9", price: "249", time: "45 min", img: "/salon2.jpg" },
+                { name: "Headturners", loc: "Powai, Mumbai", rating: "4.7", price: "199", time: "30 min", img: "/salon3.jpg" },
+                { name: "The Barber House", loc: "Lower Parel, Mumbai", rating: "4.8", price: "149", time: "25 min", img: "/salon4.jpg" },
               ].map((s, i) => (
                 <div key={i} className="min-w-[220px] bg-white/5 border border-white/10 rounded-2xl p-3 flex-shrink-0 group hover:border-white/20 transition cursor-pointer">
                   <div className="h-32 bg-slate-800 rounded-xl mb-3 overflow-hidden relative">
+                    <img
+                      src={s.img}
+                      alt={s.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                     <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-pink-600 rounded text-[10px] font-bold text-white">
                       20% OFF
