@@ -684,18 +684,88 @@ export const AdminDashboardPage = () => (
   </PageShell>
 );
 
-export const ProfilePage = () => (
-  <PageShell eyebrow="Profile" title="Your public profile" description="Manage your personal details and share a polished profile with clients or salons.">
-    <div className={panelClasses}>
-      <h2 className="text-lg font-semibold text-slate-900">Profile overview</h2>
-      <div className="mt-4 space-y-3 text-sm text-slate-600">
-        <div className="rounded-2xl bg-slate-50 p-4">Name: Jordan Lee</div>
-        <div className="rounded-2xl bg-slate-50 p-4">Email: jordan@example.com</div>
-        <div className="rounded-2xl bg-slate-50 p-4">Role: Customer</div>
+export const ProfilePage = () => {
+  const userInfo = (() => {
+    try {
+      const raw = localStorage.getItem('userInfo');
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  })();
+
+  if (!userInfo) {
+    return (
+      <PageShell eyebrow="Profile" title="Your profile" description="Sign in to view and manage your personal details.">
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-violet-500/20 text-5xl shadow-inner">
+            👤
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Not signed in</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 max-w-xs">
+            Please login or create an account to view your profile.
+          </p>
+          <div className="flex gap-4">
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/30 hover:opacity-90 transition"
+            >
+              Login
+            </Link>
+            <Link
+              to="/register"
+              className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-3 text-sm font-semibold text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition"
+            >
+              Register
+            </Link>
+          </div>
+        </div>
+      </PageShell>
+    );
+  }
+
+  const initials = (userInfo.name || 'U')
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
+  const fields = [
+    { label: '👤 Full Name', value: userInfo.name || '—' },
+    { label: '📧 Email', value: userInfo.email || '—' },
+    { label: '🎭 Role', value: userInfo.role ? userInfo.role.charAt(0).toUpperCase() + userInfo.role.slice(1) : 'Customer' },
+    { label: '📱 Phone', value: userInfo.phone || 'Not provided' },
+  ];
+
+  return (
+    <PageShell eyebrow="Profile" title="Your profile" description="Manage your personal details.">
+      <div className={panelClasses}>
+        {/* Avatar + Name */}
+        <div className="flex items-center gap-5 mb-8">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-primary to-violet-500 text-2xl font-bold text-white shadow-lg shadow-primary/30 flex-shrink-0">
+            {initials}
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">{userInfo.name || 'User'}</h2>
+            <span className="mt-1 inline-block rounded-full bg-primary/10 px-3 py-0.5 text-xs font-semibold text-primary">
+              {userInfo.role ? userInfo.role.charAt(0).toUpperCase() + userInfo.role.slice(1) : 'Customer'}
+            </span>
+          </div>
+        </div>
+
+        {/* Info fields */}
+        <div className="space-y-3">
+          {fields.map(({ label, value }) => (
+            <div key={label} className="flex items-center justify-between rounded-2xl bg-slate-50 dark:bg-slate-800/60 px-4 py-3">
+              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">{label}</span>
+              <span className="text-sm font-semibold text-slate-800 dark:text-white">{value}</span>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
-  </PageShell>
-);
+    </PageShell>
+  );
+};
+
 
 export const SettingsPage = () => (
   <PageShell eyebrow="Settings" title="Preferences and account settings" description="Adjust notifications, privacy, and account details for your experience.">
