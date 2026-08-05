@@ -64,11 +64,17 @@ const fetchDashboard = async (signal) => {
   const response = await fetch('/api/dashboard/overview', {
     credentials: 'include',
     signal,
+    headers: {
+      'Content-Type': 'application/json',
+    },
   });
 
-  const payload = await response.json();
+  const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      throw new Error('You are not authenticated. Please sign in to view the dashboard.');
+    }
     throw new Error(payload.message || 'Failed to load dashboard');
   }
 
