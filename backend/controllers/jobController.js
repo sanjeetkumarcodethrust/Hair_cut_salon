@@ -38,7 +38,7 @@ export const createJob = async (req, res) => {
       skills,
       experience,
       salary,
-      location,
+      location: 'Pune, Maharashtra',
       jobType,
       deadline,
       status: 'open',
@@ -84,10 +84,17 @@ export const updateJob = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to edit this job' });
     }
 
-    const updated = await Job.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    })
+    const updated = await Job.findByIdAndUpdate(
+      req.params.id,
+      {
+        ...req.body,
+        location: 'Pune, Maharashtra',
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    )
       .populate('salon', 'name city')
       .populate('createdBy', 'name email');
 

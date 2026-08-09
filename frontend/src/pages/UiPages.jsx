@@ -87,7 +87,7 @@ export const SearchSalons = () => {
         <div className={panelClasses}>
           <h2 className="text-lg font-semibold text-slate-900">Filter options</h2>
           <div className="mt-4 space-y-3 text-sm text-slate-600">
-            <div className="rounded-2xl bg-slate-50 p-4">Location: Downtown or Midtown</div>
+            <div className="rounded-2xl bg-slate-50 p-4">Location: Pune only</div>
             <div className="rounded-2xl bg-slate-50 p-4">Service: Haircuts, styling, color</div>
             <div className="rounded-2xl bg-slate-50 p-4">Availability: Today or tomorrow</div>
           </div>

@@ -5,18 +5,15 @@ import Salon from '../models/Salon.js';
 // @access  Public
 export const getSalons = async (req, res) => {
   try {
-    const { keyword, city, state, page = 1, limit = 10 } = req.query;
-    
+    const { keyword, page = 1, limit = 10 } = req.query;
+
     // Build query
-    const query = {};
+    const query = {
+      city: { $regex: 'Pune', $options: 'i' },
+      state: { $regex: 'Maharashtra', $options: 'i' },
+    };
     if (keyword) {
       query.name = { $regex: keyword, $options: 'i' };
-    }
-    if (city) {
-      query.city = { $regex: city, $options: 'i' };
-    }
-    if (state) {
-      query.state = { $regex: state, $options: 'i' };
     }
 
     // Pagination setup
@@ -70,6 +67,9 @@ export const createSalon = async (req, res) => {
     const newSalon = new Salon({
       ...req.body,
       owner: req.user._id,
+      city: 'Pune',
+      state: 'Maharashtra',
+      address: 'Pune, Maharashtra',
     });
 
     const savedSalon = await newSalon.save();
@@ -95,10 +95,19 @@ export const updateSalon = async (req, res) => {
       return res.status(403).json({ message: 'User not authorized to update this salon' });
     }
 
-    salon = await Salon.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    salon = await Salon.findByIdAndUpdate(
+      req.params.id,
+      {
+        ...req.body,
+        city: 'Pune',
+        state: 'Maharashtra',
+        address: 'Pune, Maharashtra',
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     res.status(200).json(salon);
   } catch (error) {

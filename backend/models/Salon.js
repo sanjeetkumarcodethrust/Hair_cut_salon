@@ -41,10 +41,12 @@ const salonSchema = new mongoose.Schema(
     city: {
       type: String,
       required: [true, 'Please add a city'],
+      default: 'Pune',
     },
     state: {
       type: String,
       required: [true, 'Please add a state'],
+      default: 'Maharashtra',
     },
     location: {
       // GeoJSON Point for Map/Distance searches
