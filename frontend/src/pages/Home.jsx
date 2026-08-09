@@ -66,40 +66,6 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-slate-200/70 bg-gradient-to-br from-primary/10 via-white/80 to-violet-500/10 p-5 shadow-inner dark:border-slate-800 dark:from-primary/15 dark:via-slate-950/80 dark:to-violet-500/15">
-              <div className="rounded-[1.5rem] border border-white/60 bg-white/70 p-4 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/70">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Featured right now</p>
-                    <p className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">Luxe Cuts Studio</p>
-                  </div>
-                  <div className="rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">
-                    4.9 ★
-                  </div>
-                </div>
-
-                <div className="mt-5 rounded-[1.25rem] bg-gradient-to-br from-slate-900 to-slate-700 p-5 text-white">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15">
-                      <Scissors className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-300">Signature haircut</p>
-                      <p className="text-lg font-semibold">Today • 4:30 PM</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4 space-y-3">
-                  {['Luxury styling', 'Expert barbers', 'Flexible reminders'].map((item) => (
-                    <div key={item} className="flex items-center justify-between rounded-2xl border border-slate-200/70 bg-slate-50/80 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-300">
-                      <span>{item}</span>
-                      <Star className="h-4 w-4 text-amber-400" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
           </div>
         </motion.section>
 
