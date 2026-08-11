@@ -101,12 +101,7 @@ const CutMateDashboard = () => {
               <button className="text-sm font-semibold text-purple-400 hover:text-purple-300">View all</button>
             </div>
             <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
-              {[
-                { name: "The Men's Den", loc: "Bandra, Mumbai", rating: "4.8", price: "199", time: "30 min", img: "/salon1.jpg" },
-                { name: "Looks Salon", loc: "Andheri, Mumbai", rating: "4.9", price: "249", time: "45 min", img: "/salon2.jpg" },
-                { name: "Headturners", loc: "Powai, Mumbai", rating: "4.7", price: "199", time: "30 min", img: "/salon3.jpg" },
-                { name: "The Barber House", loc: "Lower Parel, Mumbai", rating: "4.8", price: "149", time: "25 min", img: "/salon4.jpg" },
-              ].map((s, i) => (
+              {[].map((s, i) => (
                 <div key={i} className="min-w-[220px] bg-white/5 border border-white/10 rounded-2xl p-3 flex-shrink-0 group hover:border-white/20 transition cursor-pointer">
                   <div className="h-32 bg-slate-800 rounded-xl mb-3 overflow-hidden relative">
                     <img
@@ -168,13 +163,7 @@ const CutMateDashboard = () => {
               <button className="text-sm font-semibold text-purple-400 hover:text-purple-300">View all</button>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-              {[
-                { name: "Haircut & Styling", p: "199" },
-                { name: "Beard Grooming", p: "149" },
-                { name: "Hair Color", p: "699" },
-                { name: "Hair Spa", p: "299" },
-                { name: "Skin Treatment", p: "499" }
-              ].map((srv, i) => (
+              {[].map((srv, i) => (
                 <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col items-center justify-center text-center hover:bg-white/10 transition cursor-pointer">
                   <Scissors className="w-6 h-6 text-amber-500 mb-2" />
                   <span className="text-[10px] font-medium text-white mb-1 leading-tight">{srv.name}</span>

@@ -6,17 +6,9 @@ import api from '../services/api';
 
 const panelClasses = 'rounded-3xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/70';
 
-const quickLinks = [
-  { title: 'Find salons', href: '/salons' },
-  { title: 'Meet barbers', href: '/barbers' },
-  { title: 'Browse jobs', href: '/jobs' },
-];
+const quickLinks = [];
 
-const metrics = [
-  { label: 'Upcoming bookings', value: '12' },
-  { label: 'Saved favorites', value: '7' },
-  { label: 'Reviews submitted', value: '4' },
-];
+const metrics = [];
 
 export const LandingPage = () => (
   <PageShell
@@ -228,13 +220,7 @@ export const BookingPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
 
-  const services = [
-    { name: 'Haircut & Styling', price: 199, duration: 30, icon: '✂️' },
-    { name: 'Beard Grooming', price: 149, duration: 20, icon: '🪒' },
-    { name: 'Hair Color', price: 699, duration: 90, icon: '🎨' },
-    { name: 'Hair Spa', price: 299, duration: 45, icon: '💆' },
-    { name: 'Skin Treatment', price: 499, duration: 60, icon: '✨' },
-  ];
+  const services = [];
 
   const times = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
 
@@ -578,10 +564,7 @@ export const ApplyJobPage = () => (
 );
 
 export const CustomerDashboardPage = () => {
-  const [payments, setPayments] = useState([
-    { id: 'pay_001', label: 'Signature haircut', amount: '₹1,200', status: 'Paid' },
-    { id: 'pay_002', label: 'Beard grooming', amount: '₹650', status: 'Refunded' },
-  ]);
+  const [payments, setPayments] = useState([]);
 
   const handleRefund = async (appointmentId) => {
     try {
