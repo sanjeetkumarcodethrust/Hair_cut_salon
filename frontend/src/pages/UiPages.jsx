@@ -643,6 +643,11 @@ export const BarberDashboardPage = () => (
 
 export const OwnerDashboardPage = () => (
   <PageShell eyebrow="Owner dashboard" title="Run your salon operations" description="Monitor staff activity, revenue, and incoming bookings without leaving the platform.">
+    <div className="mb-6 flex justify-end">
+      <Link to="/salons/new" className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">
+        + Add New Salon
+      </Link>
+    </div>
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {['Revenue summary', 'Staff roster', 'Pending bookings'].map((item) => (
         <div key={item} className={panelClasses}>
@@ -656,6 +661,11 @@ export const OwnerDashboardPage = () => (
 
 export const AdminDashboardPage = () => (
   <PageShell eyebrow="Admin dashboard" title="Platform oversight" description="Review users, salons, barbers, and reports from a central administration view.">
+    <div className="mb-6 flex justify-end">
+      <Link to="/salons/new" className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">
+        + Add New Salon
+      </Link>
+    </div>
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {['User management', 'Salon approvals', 'Reports center'].map((item) => (
         <div key={item} className={panelClasses}>

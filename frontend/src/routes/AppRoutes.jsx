@@ -8,6 +8,7 @@ import PaymentSuccess from '../pages/PaymentSuccess.jsx';
 import PaymentCancel from '../pages/PaymentCancel.jsx';
 import Register from '../pages/Register.jsx';
 import Dashboard from '../pages/Dashboard.jsx';
+import AddSalon from '../pages/AddSalon.jsx';
 import {
   LandingPage,
   SearchSalons,
@@ -35,6 +36,7 @@ const AppRoutes = () => (
         <Route path="old-home" element={<Home />} />
         <Route path="landing" element={<LandingPage />} />
         <Route path="salons" element={<SearchSalons />} />
+        <Route path="salons/new" element={<AddSalon />} />
         <Route path="salons/:id" element={<SalonDetails />} />
         <Route path="barbers" element={<SearchBarbers />} />
         <Route path="barbers/:id" element={<BarberProfile />} />
