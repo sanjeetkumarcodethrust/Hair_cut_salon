@@ -235,9 +235,7 @@ const CutMateDashboard = () => {
                <div className="flex items-center gap-2">
                  <p className="text-lg font-bold text-white leading-tight"></p>
                  <div className="flex -space-x-1.5">
-                   <div className="w-5 h-5 rounded-full bg-slate-600 border border-black" />
-                   <div className="w-5 h-5 rounded-full bg-slate-500 border border-black" />
-                   <div className="w-5 h-5 rounded-full bg-slate-400 border border-black" />
+                   {/*  */}
                  </div>
                </div>
              </div>
