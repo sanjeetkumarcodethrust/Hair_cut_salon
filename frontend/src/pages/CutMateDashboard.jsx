@@ -231,9 +231,9 @@ const CutMateDashboard = () => {
                 <img src="/assets/barber_portrait.jpg" alt="Barber" className="w-full h-full object-contain object-bottom opacity-90" style={{ maskImage: 'linear-gradient(to top, black 80%, transparent)' }} />
              </div>
              <div className="absolute right-4 bottom-4 bg-[#0a0a0a]/90 backdrop-blur-md border border-white/10 p-2.5 rounded-xl text-center z-30 hidden sm:block shadow-xl">
-               <p className="text-[10px] text-slate-400 font-medium mb-0.5">Active Barbers</p>
+               <p className="text-[10px] text-slate-400 font-medium mb-0.5"></p>
                <div className="flex items-center gap-2">
-                 <p className="text-lg font-bold text-white leading-tight">12K+</p>
+                 <p className="text-lg font-bold text-white leading-tight"></p>
                  <div className="flex -space-x-1.5">
                    <div className="w-5 h-5 rounded-full bg-slate-600 border border-black" />
                    <div className="w-5 h-5 rounded-full bg-slate-500 border border-black" />
