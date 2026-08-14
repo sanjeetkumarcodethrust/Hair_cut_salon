@@ -72,6 +72,9 @@ const CutMateDashboard = () => {
                 <select className="bg-transparent text-sm font-medium text-white focus:outline-none appearance-none mt-1 w-full">
                   <option className="bg-[#0a0a0a]">Mumbai, India</option>
                   <option className="bg-[#0a0a0a]">Delhi, India</option>
+                   <option className="bg-[#0a0a0a]">Pune, India</option>
+                    <option className="bg-[#0a0a0a]">Bihar, India</option>
+                     <option className="bg-[#0a0a0a]">Uttar Pradesh, India</option>
                 </select>
               </div>
               <div className="bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-2 flex flex-col justify-center">
