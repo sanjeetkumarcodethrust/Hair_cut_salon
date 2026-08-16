@@ -220,7 +220,12 @@ export const BookingPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
 
-  const services = [];
+  const services = [
+    { name: 'Classic Haircut', duration: 30, price: 200, icon: '✂️' },
+    { name: 'Beard Trim', duration: 15, price: 100, icon: '🧔' },
+    { name: 'Hair Color', duration: 60, price: 800, icon: '🎨' },
+    { name: 'Facial', duration: 45, price: 500, icon: '💆' },
+  ];
 
   const times = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
 
