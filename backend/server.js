@@ -16,9 +16,6 @@ import favoriteRoutes from './routes/favoriteRoutes.js';
 import jobRoutes from './routes/jobRoutes.js';
 import applicationRoutes from './routes/applicationRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
-
-connectDB();
-
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -59,6 +56,14 @@ app.get('/', (req, res) => {
   res.send('API is running...');
 });
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Salon API is running'
+  });
+});
+
 // Socket.io connection
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
@@ -70,6 +75,8 @@ io.on('connection', (socket) => {
 
 const PORT = env.port;
 
-httpServer.listen(PORT, () => {
-  console.log(`Server running in ${env.nodeEnv} mode on port ${PORT}`);
+connectDB().then(() => {
+  httpServer.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
 });
