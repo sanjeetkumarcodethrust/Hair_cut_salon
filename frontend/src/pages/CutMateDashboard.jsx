@@ -51,11 +51,6 @@ const CutMateDashboard = () => {
                   <p className="text-sm font-semibold text-white"></p>
                   <p className="text-sm font-bold text-white mb-2"></p>
                   <div className="flex items-center gap-2">
-                    <div className="flex -space-x-2">
-                      <div className="w-6 h-6 rounded-full bg-slate-700 border border-black" />
-                      <div className="w-6 h-6 rounded-full bg-slate-600 border border-black" />
-                      <div className="w-6 h-6 rounded-full bg-slate-500 border border-black" />
-                    </div>
                     <span className="text-[10px] text-slate-300"></span>
                   </div>
                 </div>
