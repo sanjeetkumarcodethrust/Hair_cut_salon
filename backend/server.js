@@ -16,6 +16,7 @@ import favoriteRoutes from './routes/favoriteRoutes.js';
 import jobRoutes from './routes/jobRoutes.js';
 import applicationRoutes from './routes/applicationRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
+import { notFound, errorHandler } from './middlewares/errorMiddleware.js';
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -63,6 +64,10 @@ app.get('/api/health', (req, res) => {
     message: 'Salon API is running'
   });
 });
+
+// Centralized Error Handling — must be after all routes
+app.use(notFound);
+app.use(errorHandler);
 
 // Socket.io connection
 io.on('connection', (socket) => {
