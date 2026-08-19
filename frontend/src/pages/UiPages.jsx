@@ -54,20 +54,39 @@ export const LandingPage = () => (
 export const SearchSalons = () => {
   const [salons, setSalons] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [search, setSearch] = useState('');
+  const [city, setCity] = useState('');
+  const [service, setService] = useState('');
+  const [minRating, setMinRating] = useState('');
+
+  const fetchSalons = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = {};
+      if (search) params.search = search;
+      if (city) params.city = city;
+      if (service) params.service = service;
+      if (minRating) params.minRating = minRating;
+      const response = await api.get('/salons', { params });
+      setSalons(response.data.data || []);
+    } catch (err) {
+      console.error('Failed to fetch salons:', err);
+      setError('Failed to load salons. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchSalons = async () => {
-      try {
-        const response = await api.get('/salons');
-        setSalons(response.data.data || []);
-      } catch (error) {
-        console.error('Failed to fetch salons:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchSalons();
   }, []);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    fetchSalons();
+  };
 
   return (
     <PageShell
@@ -75,40 +94,80 @@ export const SearchSalons = () => {
       title="Search salons nearby"
       description="Use the search experience to compare salons by rating, location, and service type."
     >
-      <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
-        <div className={panelClasses}>
-          <h2 className="text-lg font-semibold text-slate-900">Filter options</h2>
-          <div className="mt-4 space-y-3 text-sm text-slate-600">
-            <div className="rounded-2xl bg-slate-50 p-4">Location: Pune only</div>
-            <div className="rounded-2xl bg-slate-50 p-4">Service: Haircuts, styling, color</div>
-            <div className="rounded-2xl bg-slate-50 p-4">Availability: Today or tomorrow</div>
-          </div>
+      {/* Filters */}
+      <form onSubmit={handleSearch} className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <input
+          type="text"
+          placeholder="Search by name…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+        <input
+          type="text"
+          placeholder="City…"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+        <input
+          type="text"
+          placeholder="Service (e.g. haircut)…"
+          value={service}
+          onChange={(e) => setService(e.target.value)}
+          className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+        <select
+          value={minRating}
+          onChange={(e) => setMinRating(e.target.value)}
+          className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          <option value="">Any rating</option>
+          <option value="3">3+ stars</option>
+          <option value="4">4+ stars</option>
+          <option value="4.5">4.5+ stars</option>
+        </select>
+        <button
+          type="submit"
+          className="sm:col-span-2 lg:col-span-4 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition"
+        >
+          Search
+        </button>
+      </form>
+
+      {/* Results */}
+      {loading ? (
+        <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-slate-400" /></div>
+      ) : error ? (
+        <div className="rounded-2xl bg-red-50 p-6 text-center text-sm text-red-600">{error}</div>
+      ) : salons.length === 0 ? (
+        <div className="rounded-2xl bg-slate-50 p-10 text-center">
+          <p className="text-slate-500 text-sm font-medium">No salons found matching your search.</p>
+          <p className="mt-1 text-slate-400 text-xs">Try adjusting your filters or search term.</p>
         </div>
+      ) : (
         <div className="space-y-4">
-          {loading ? (
-            <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-slate-400" /></div>
-          ) : (
-            salons.map((salon) => (
-              <div key={salon._id || salon.name} className={panelClasses}>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-slate-900">{salon.name}</h3>
-                    <p className="mt-1 text-sm text-slate-600">{salon.city || salon.location}</p>
-                    <p className="mt-2 text-sm text-slate-500">{salon.address || salon.info}</p>
-                  </div>
-                  <div className="text-left sm:text-right">
-                    <p className="text-sm font-semibold text-slate-900">★ {salon.rating || 'New'}</p>
-                    <Link to={`/salons/${salon._id || 1}`} className="mt-2 inline-flex text-sm font-medium text-primary">View details</Link>
-                  </div>
+          {salons.map((salon) => (
+            <div key={salon._id} className={panelClasses}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900">{salon.name}</h3>
+                  <p className="mt-1 text-sm text-slate-600">{salon.city}{salon.state ? `, ${salon.state}` : ''}</p>
+                  <p className="mt-2 text-sm text-slate-500">{salon.address}</p>
+                </div>
+                <div className="text-left sm:text-right">
+                  <p className="text-sm font-semibold text-slate-900">★ {salon.rating > 0 ? salon.rating : 'New'}</p>
+                  <Link to={`/salons/${salon._id}`} className="mt-2 inline-flex text-sm font-medium text-primary">View details</Link>
                 </div>
               </div>
-            ))
-          )}
+            </div>
+          ))}
         </div>
-      </div>
+      )}
     </PageShell>
   );
 };
+
 
 export const SearchBarbers = () => {
   const [barbers, setBarbers] = useState([]);

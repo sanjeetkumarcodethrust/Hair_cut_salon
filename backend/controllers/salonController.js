@@ -1,28 +1,55 @@
 import Salon from '../models/Salon.js';
 
-// @desc    Get all salons
-// @route   GET /api/salons
+// @desc    Get all salons with search/filter/pagination
+// @route   GET /api/salons?search=&city=&service=&minRating=&page=&limit=
 // @access  Public
 export const getSalons = async (req, res) => {
   try {
-    const { keyword, page = 1, limit = 10 } = req.query;
+    const {
+      search,
+      keyword,    // alias kept for backward compat
+      city,
+      service,
+      minRating,
+      page = 1,
+      limit = 10,
+    } = req.query;
 
-    // Build query
-    const query = {
-      city: { $regex: 'Pune', $options: 'i' },
-      state: { $regex: 'Maharashtra', $options: 'i' },
-    };
-    if (keyword) {
-      query.name = { $regex: keyword, $options: 'i' };
+    const searchTerm = search || keyword;
+
+    // Build query dynamically — no hardcoded city/state
+    const query = {};
+
+    if (searchTerm) {
+      query.name = { $regex: searchTerm, $options: 'i' };
     }
 
-    // Pagination setup
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
+    if (city) {
+      query.city = { $regex: city.trim(), $options: 'i' };
+    }
+
+    if (service) {
+      // Match salons that have a service whose name contains the search term
+      query['services.name'] = { $regex: service.trim(), $options: 'i' };
+    }
+
+    if (minRating) {
+      const rating = parseFloat(minRating);
+      if (!isNaN(rating)) {
+        query.rating = { $gte: rating };
+      }
+    }
+
+    // Pagination
+    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+    const limitNum = Math.min(parseInt(limit, 10) || 10, 50); // cap at 50
     const startIndex = (pageNum - 1) * limitNum;
 
     const total = await Salon.countDocuments(query);
-    const salons = await Salon.find(query).skip(startIndex).limit(limitNum);
+    const salons = await Salon.find(query)
+      .skip(startIndex)
+      .limit(limitNum)
+      .sort({ rating: -1, createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -33,7 +60,7 @@ export const getSalons = async (req, res) => {
       data: salons,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -43,119 +70,109 @@ export const getSalons = async (req, res) => {
 export const getSalon = async (req, res) => {
   try {
     const salon = await Salon.findById(req.params.id).populate('owner', 'name email');
-    if (salon) {
-      res.status(200).json(salon);
-    } else {
-      res.status(404).json({ message: 'Salon not found' });
+
+    if (!salon) {
+      return res.status(404).json({ success: false, message: 'Salon not found' });
     }
+
+    res.status(200).json({ success: true, data: salon });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 // @desc    Create new salon
 // @route   POST /api/salons
-// @access  Private/SalonOwner, Admin
+// @access  Private/Owner, Admin
 export const createSalon = async (req, res) => {
   try {
     // Check if owner already has a salon (optional business rule)
     const existingSalon = await Salon.findOne({ owner: req.user._id });
     if (existingSalon && req.user.role !== 'admin') {
-      return res.status(400).json({ message: 'Owner already has a salon registered' });
+      return res.status(409).json({ success: false, message: 'Owner already has a salon registered' });
     }
 
     const newSalon = new Salon({
       ...req.body,
       owner: req.user._id,
-      city: 'Pune',
-      state: 'Maharashtra',
-      address: 'Pune, Maharashtra',
     });
 
     const savedSalon = await newSalon.save();
-    res.status(201).json(savedSalon);
+    res.status(201).json({ success: true, data: savedSalon });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
 // @desc    Update salon
 // @route   PUT /api/salons/:id
-// @access  Private/SalonOwner, Admin
+// @access  Private/Owner, Admin
 export const updateSalon = async (req, res) => {
   try {
-    let salon = await Salon.findById(req.params.id);
+    const salon = await Salon.findById(req.params.id);
 
     if (!salon) {
-      return res.status(404).json({ message: 'Salon not found' });
+      return res.status(404).json({ success: false, message: 'Salon not found' });
     }
 
-    // Make sure user is salon owner
+    // Make sure user is the salon owner or admin
     if (salon.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'User not authorized to update this salon' });
+      return res.status(403).json({ success: false, message: 'Not authorized to update this salon' });
     }
 
-    salon = await Salon.findByIdAndUpdate(
+    const updated = await Salon.findByIdAndUpdate(
       req.params.id,
-      {
-        ...req.body,
-        city: 'Pune',
-        state: 'Maharashtra',
-        address: 'Pune, Maharashtra',
-      },
-      {
-        new: true,
-        runValidators: true,
-      }
+      { ...req.body },
+      { new: true, runValidators: true }
     );
 
-    res.status(200).json(salon);
+    res.status(200).json({ success: true, data: updated });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
 // @desc    Delete salon
 // @route   DELETE /api/salons/:id
-// @access  Private/SalonOwner, Admin
+// @access  Private/Owner, Admin
 export const deleteSalon = async (req, res) => {
   try {
     const salon = await Salon.findById(req.params.id);
 
     if (!salon) {
-      return res.status(404).json({ message: 'Salon not found' });
+      return res.status(404).json({ success: false, message: 'Salon not found' });
     }
 
-    // Make sure user is salon owner
+    // Make sure user is the salon owner or admin
     if (salon.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'User not authorized to delete this salon' });
+      return res.status(403).json({ success: false, message: 'Not authorized to delete this salon' });
     }
 
     await Salon.findByIdAndDelete(req.params.id);
 
-    res.status(200).json({ message: 'Salon removed successfully' });
+    res.status(200).json({ success: true, message: 'Salon removed successfully' });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 // @desc    Get salons within a radius
-// @route   GET /api/salons/nearby
+// @route   GET /api/salons/nearby?lat=&lng=&distance=
 // @access  Public
 export const getNearbySalons = async (req, res) => {
   try {
-    const { lat, lng, distance = 10 } = req.query; // distance in kilometers
+    const { lat, lng, distance = 10 } = req.query; // distance in km
 
     if (!lat || !lng) {
-      return res.status(400).json({ message: 'Please provide latitude and longitude' });
+      return res.status(400).json({ success: false, message: 'Please provide latitude and longitude' });
     }
 
-    // Convert distance to radians. Divide distance by radius of Earth (6371 km)
-    const radius = distance / 6371;
+    // Convert distance to radians (Earth radius = 6371 km)
+    const radius = parseFloat(distance) / 6371;
 
     const salons = await Salon.find({
       location: {
-        $geoWithin: { $centerSphere: [[lng, lat], radius] },
+        $geoWithin: { $centerSphere: [[parseFloat(lng), parseFloat(lat)], radius] },
       },
     });
 
@@ -165,6 +182,6 @@ export const getNearbySalons = async (req, res) => {
       data: salons,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
