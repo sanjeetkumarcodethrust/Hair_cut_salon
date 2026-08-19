@@ -172,20 +172,41 @@ export const SearchSalons = () => {
 export const SearchBarbers = () => {
   const [barbers, setBarbers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [search, setSearch] = useState('');
+  const [specialization, setSpecialization] = useState('');
+  const [city, setCity] = useState('');
+  const [minRating, setMinRating] = useState('');
+  const [availableOn, setAvailableOn] = useState('');
+
+  const fetchBarbers = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = {};
+      if (search) params.search = search;
+      if (specialization) params.specialization = specialization;
+      if (city) params.city = city;
+      if (minRating) params.minRating = minRating;
+      if (availableOn) params.availableOn = availableOn;
+      const response = await api.get('/barbers', { params });
+      setBarbers(response.data.data || []);
+    } catch (err) {
+      console.error('Failed to fetch barbers:', err);
+      setError('Failed to load barbers. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchBarbers = async () => {
-      try {
-        const response = await api.get('/barbers');
-        setBarbers(response.data || []);
-      } catch (error) {
-        console.error('Failed to fetch barbers:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchBarbers();
   }, []);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    fetchBarbers();
+  };
 
   return (
     <PageShell
@@ -193,20 +214,86 @@ export const SearchBarbers = () => {
       title="Search barbers by specialty"
       description="Find barbers who match your style, service, and availability."
     >
+      {/* Filters */}
+      <form onSubmit={handleSearch} className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <input
+          type="text"
+          placeholder="Search by name…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+        <input
+          type="text"
+          placeholder="Specialization (e.g. fades)…"
+          value={specialization}
+          onChange={(e) => setSpecialization(e.target.value)}
+          className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+        <input
+          type="text"
+          placeholder="City…"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+        <select
+          value={minRating}
+          onChange={(e) => setMinRating(e.target.value)}
+          className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          <option value="">Any rating</option>
+          <option value="3">3+ stars</option>
+          <option value="4">4+ stars</option>
+          <option value="4.5">4.5+ stars</option>
+        </select>
+        <select
+          value={availableOn}
+          onChange={(e) => setAvailableOn(e.target.value)}
+          className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          <option value="">Any day</option>
+          {['monday','tuesday','wednesday','thursday','friday','saturday','sunday'].map(d => (
+            <option key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>
+          ))}
+        </select>
+        <button
+          type="submit"
+          className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition"
+        >
+          Search
+        </button>
+      </form>
+
+      {/* Results */}
       {loading ? (
         <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-slate-400" /></div>
+      ) : error ? (
+        <div className="rounded-2xl bg-red-50 p-6 text-center text-sm text-red-600">{error}</div>
+      ) : barbers.length === 0 ? (
+        <div className="rounded-2xl bg-slate-50 p-10 text-center">
+          <p className="text-slate-500 text-sm font-medium">No barbers found matching your search.</p>
+          <p className="mt-1 text-slate-400 text-xs">Try adjusting your filters or search term.</p>
+        </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {barbers.map((barber) => (
-            <div key={barber._id || barber.user?.name} className={panelClasses}>
+            <div key={barber._id} className={panelClasses}>
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold text-slate-900">{barber.user?.name || barber.name}</h3>
-                  <p className="mt-1 text-sm text-slate-600">{barber.bio || barber.specialty || 'Professional Barber'}</p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    {barber.specialization?.join(', ') || barber.bio || 'Professional Barber'}
+                  </p>
+                  {barber.salonId?.name && (
+                    <p className="mt-1 text-xs text-slate-400">{barber.salonId.name} · {barber.salonId.city}</p>
+                  )}
                 </div>
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">★ {barber.rating || 'New'}</span>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
+                  ★ {barber.rating > 0 ? barber.rating : 'New'}
+                </span>
               </div>
-              <Link to={`/barbers/${barber._id || 1}`} className="mt-5 inline-flex text-sm font-semibold text-primary">View profile</Link>
+              <Link to={`/barbers/${barber._id}`} className="mt-5 inline-flex text-sm font-semibold text-primary">View profile</Link>
             </div>
           ))}
         </div>
