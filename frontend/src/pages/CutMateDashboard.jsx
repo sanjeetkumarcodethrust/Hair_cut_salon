@@ -1,8 +1,49 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Star, Users, MapPin, Search as SearchIcon, ShieldCheck, CreditCard, Droplets, Sparkles, PhoneCall, Scissors, Wallet, User } from 'lucide-react';
+import { Calendar, Star, MapPin, ShieldCheck, Droplets, Sparkles, Scissors, Wallet, User, Loader2 } from 'lucide-react';
+import api from '../services/api';
 
 const CutMateDashboard = () => {
+  const [salons, setSalons] = useState([]);
+  const [loadingSalons, setLoadingSalons] = useState(true);
+  const [salonError, setSalonError] = useState('');
+  const [filters, setFilters] = useState({ search: '', location: '', service: '', minRating: '' });
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
+
+  const fetchSalons = async (nextPage = page, nextFilters = filters) => {
+    setLoadingSalons(true);
+    setSalonError('');
+    try {
+      const response = await api.get('/salons', {
+        params: { ...nextFilters, page: nextPage, limit: 6 },
+      });
+      const result = response.data || {};
+      setSalons(Array.isArray(result.data) ? result.data : []);
+      setPage(Number(result.page) || nextPage);
+      setPages(Math.max(Number(result.pages) || 1, 1));
+    } catch (error) {
+      console.error('Failed to fetch salons:', error);
+      setSalons([]);
+      setSalonError('We could not load salons right now. Please try again.');
+    } finally {
+      setLoadingSalons(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSalons(1, filters);
+  }, []);
+
+  const handleSalonSearch = (event) => {
+    event.preventDefault();
+    fetchSalons(1, filters);
+  };
+
+  const updateFilter = (name, value) => {
+    setFilters((current) => ({ ...current, [name]: value }));
+  };
+
   return (
     <div className="p-6 md:p-8 bg-[#0a0a0a] min-h-full">
       <div className="grid xl:grid-cols-[1.4fr_1fr] gap-8">
@@ -61,71 +102,74 @@ const CutMateDashboard = () => {
           {/* Search Widget */}
           <section className="bg-white/5 border border-white/10 rounded-3xl p-6">
             <h3 className="text-lg font-semibold text-white mb-4">Find the best salon for you</h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <form onSubmit={handleSalonSearch} className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div className="bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-2 flex flex-col justify-center">
-                <span className="text-[10px] text-slate-500">Location</span>
-                <select className="bg-transparent text-sm font-medium text-white focus:outline-none appearance-none mt-1 w-full">
-                  <option className="bg-[#0a0a0a]">Mumbai, India</option>
-                  <option className="bg-[#0a0a0a]">Delhi, India</option>
-                   <option className="bg-[#0a0a0a]">Pune, India</option>
-                    <option className="bg-[#0a0a0a]">Bihar, India</option>
-                     <option className="bg-[#0a0a0a]">Uttar Pradesh, India</option>
-                </select>
+                <label htmlFor="salon-search" className="text-[10px] text-slate-500">Salon name</label>
+                <input id="salon-search" value={filters.search} onChange={(event) => updateFilter('search', event.target.value)} placeholder="Search salons" className="mt-1 w-full bg-transparent text-sm font-medium text-white placeholder:text-slate-600 focus:outline-none" />
               </div>
               <div className="bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-2 flex flex-col justify-center">
-                <span className="text-[10px] text-slate-500">Service</span>
-                <select className="bg-transparent text-sm font-medium text-white focus:outline-none appearance-none mt-1 w-full">
-                  <option className="bg-[#0a0a0a]">Haircut & Styling</option>
-                  <option className="bg-[#0a0a0a]">Beard Grooming</option>
-                </select>
+                <label htmlFor="salon-location" className="text-[10px] text-slate-500">Location</label>
+                <input id="salon-location" value={filters.location} onChange={(event) => updateFilter('location', event.target.value)} placeholder="City or area" className="mt-1 w-full bg-transparent text-sm font-medium text-white placeholder:text-slate-600 focus:outline-none" />
               </div>
               <div className="bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-2 flex flex-col justify-center">
-                <span className="text-[10px] text-slate-500">Date</span>
-                <select className="bg-transparent text-sm font-medium text-white focus:outline-none appearance-none mt-1 w-full">
-                  <option className="bg-[#0a0a0a]">Today</option>
-                  <option className="bg-[#0a0a0a]">Tomorrow</option>
+                <label htmlFor="salon-service" className="text-[10px] text-slate-500">Service</label>
+                <input id="salon-service" value={filters.service} onChange={(event) => updateFilter('service', event.target.value)} placeholder="Haircut, beard..." className="mt-1 w-full bg-transparent text-sm font-medium text-white placeholder:text-slate-600 focus:outline-none" />
+              </div>
+              <div className="bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-2 flex flex-col justify-center">
+                <label htmlFor="salon-rating" className="text-[10px] text-slate-500">Rating</label>
+                <select id="salon-rating" value={filters.minRating} onChange={(event) => updateFilter('minRating', event.target.value)} className="mt-1 w-full appearance-none bg-transparent text-sm font-medium text-white focus:outline-none">
+                  <option value="" className="bg-[#0a0a0a]">Any rating</option>
+                  <option value="3" className="bg-[#0a0a0a]">3+ stars</option>
+                  <option value="4" className="bg-[#0a0a0a]">4+ stars</option>
+                  <option value="4.5" className="bg-[#0a0a0a]">4.5+ stars</option>
                 </select>
               </div>
               <button className="bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold transition py-3 text-sm">
                 Search
               </button>
-            </div>
+            </form>
           </section>
 
           {/* Trending Salons */}
           <section>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-white">Trending Salons Near You</h3>
-              <button className="text-sm font-semibold text-purple-400 hover:text-purple-300">View all</button>
+              <Link to="/salons" className="text-sm font-semibold text-purple-400 hover:text-purple-300">View all</Link>
             </div>
             <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
-              {[].map((s, i) => (
-                <div key={i} className="min-w-[220px] bg-white/5 border border-white/10 rounded-2xl p-3 flex-shrink-0 group hover:border-white/20 transition cursor-pointer">
+              {loadingSalons ? (
+                <div className="flex w-full items-center justify-center gap-2 py-12 text-sm text-slate-400"><Loader2 className="h-5 w-5 animate-spin" />Loading salons...</div>
+              ) : salonError ? (
+                <div className="w-full rounded-2xl border border-red-400/20 bg-red-400/10 p-6 text-center text-sm text-red-300">{salonError}</div>
+              ) : salons.length === 0 ? (
+                <div className="w-full rounded-2xl border border-white/10 bg-white/5 p-8 text-center"><p className="text-sm font-medium text-slate-300">No salons found.</p><p className="mt-1 text-xs text-slate-500">Try another name, location, or service.</p></div>
+              ) : salons.map((salon) => (
+                <Link to={`/salons/${salon._id}`} key={salon._id} className="min-w-[220px] bg-white/5 border border-white/10 rounded-2xl p-3 flex-shrink-0 group hover:border-white/20 transition">
                   <div className="h-32 bg-slate-800 rounded-xl mb-3 overflow-hidden relative">
-                    <img
-                      src={s.img}
-                      alt={s.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
+                    {salon.images?.[0] ? <img src={salon.images[0]} alt={salon.name || 'Salon'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" /> : <div className="flex h-full items-center justify-center text-slate-600"><Scissors className="h-8 w-8" /></div>}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                    <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-pink-600 rounded text-[10px] font-bold text-white">
-                      20% OFF
-                    </div>
                   </div>
                   <div className="flex items-center justify-between mb-1">
-                    <h4 className="font-semibold text-white text-sm truncate">{s.name}</h4>
+                    <h4 className="font-semibold text-white text-sm truncate">{salon.name || 'Unnamed salon'}</h4>
                     <div className="flex items-center gap-1 text-[11px] font-medium text-amber-500">
-                      <Star className="w-3 h-3 fill-current" /> {s.rating}
+                      <Star className="w-3 h-3 fill-current" /> {salon.rating > 0 ? salon.rating : 'New'}
                     </div>
                   </div>
-                  <p className="text-xs text-slate-400 mb-3 truncate">{s.loc}</p>
+                  <p className="text-xs text-slate-400 mb-3 truncate">{salon.city || salon.address || 'Location unavailable'}</p>
                   <div className="flex items-center justify-between text-[11px] text-slate-400 font-medium">
-                    <span>Starts at ₹{s.price}</span>
-                    <span className="flex items-center gap-1"><Calendar className="w-3 h-3"/> {s.time}</span>
+                    <span>{salon.services?.length || 0} services</span>
+                    <span className="flex items-center gap-1"><MapPin className="w-3 h-3"/> View</span>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
+            {pages > 1 && (
+              <div className="mt-3 flex items-center justify-end gap-3 text-xs text-slate-400">
+                <button type="button" disabled={page <= 1 || loadingSalons} onClick={() => fetchSalons(page - 1)} className="rounded-lg border border-white/10 px-3 py-2 disabled:opacity-40">Previous</button>
+                <span>Page {page} of {pages}</span>
+                <button type="button" disabled={page >= pages || loadingSalons} onClick={() => fetchSalons(page + 1)} className="rounded-lg border border-white/10 px-3 py-2 disabled:opacity-40">Next</button>
+              </div>
+            )}
           </section>
 
           {/* Why Choose CutMate */}

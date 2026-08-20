@@ -9,6 +9,7 @@ export const getSalons = async (req, res) => {
       search,
       keyword,    // alias kept for backward compat
       city,
+      location,
       service,
       minRating,
       page = 1,
@@ -26,6 +27,15 @@ export const getSalons = async (req, res) => {
 
     if (city) {
       query.city = { $regex: city.trim(), $options: 'i' };
+    }
+
+    if (location) {
+      const locationRegex = { $regex: location.trim(), $options: 'i' };
+      query.$or = [
+        { address: locationRegex },
+        { city: locationRegex },
+        { state: locationRegex },
+      ];
     }
 
     if (service) {
