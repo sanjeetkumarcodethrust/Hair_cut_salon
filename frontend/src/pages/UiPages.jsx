@@ -175,22 +175,32 @@ export const SearchBarbers = () => {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
   const [specialization, setSpecialization] = useState('');
+  const [salon, setSalon] = useState('');
   const [city, setCity] = useState('');
   const [minRating, setMinRating] = useState('');
   const [availableOn, setAvailableOn] = useState('');
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
 
-  const fetchBarbers = async () => {
+  const fetchBarbers = async (nextPage = page) => {
     setLoading(true);
     setError(null);
     try {
       const params = {};
       if (search) params.search = search;
       if (specialization) params.specialization = specialization;
+      if (salon) params.salon = salon;
       if (city) params.city = city;
+      if (city) params.location = city;
       if (minRating) params.minRating = minRating;
       if (availableOn) params.availableOn = availableOn;
+      params.page = nextPage;
+      params.limit = 9;
       const response = await api.get('/barbers', { params });
-      setBarbers(response.data.data || []);
+      const result = response.data || {};
+      setBarbers(Array.isArray(result.data) ? result.data : []);
+      setPage(Number(result.page) || nextPage);
+      setPages(Math.max(Number(result.pages) || 1, 1));
     } catch (err) {
       console.error('Failed to fetch barbers:', err);
       setError('Failed to load barbers. Please try again.');
@@ -205,7 +215,7 @@ export const SearchBarbers = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    fetchBarbers();
+    fetchBarbers(1);
   };
 
   return (
@@ -232,7 +242,14 @@ export const SearchBarbers = () => {
         />
         <input
           type="text"
-          placeholder="City…"
+          placeholder="Salon name…"
+          value={salon}
+          onChange={(e) => setSalon(e.target.value)}
+          className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+        <input
+          type="text"
+          placeholder="Location or city…"
           value={city}
           onChange={(e) => setCity(e.target.value)}
           className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary"
@@ -296,6 +313,13 @@ export const SearchBarbers = () => {
               <Link to={`/barbers/${barber._id}`} className="mt-5 inline-flex text-sm font-semibold text-primary">View profile</Link>
             </div>
           ))}
+        </div>
+      )}
+      {!loading && !error && pages > 1 && (
+        <div className="mt-6 flex items-center justify-center gap-3 text-sm text-slate-600">
+          <button type="button" disabled={page <= 1} onClick={() => fetchBarbers(page - 1)} className="rounded-xl border border-slate-200 px-4 py-2 disabled:opacity-40">Previous</button>
+          <span>Page {page} of {pages}</span>
+          <button type="button" disabled={page >= pages} onClick={() => fetchBarbers(page + 1)} className="rounded-xl border border-slate-200 px-4 py-2 disabled:opacity-40">Next</button>
         </div>
       )}
     </PageShell>
