@@ -17,7 +17,7 @@ export const createCheckoutSessionForAppointment = async (appointment, user) => 
     return { url: null, sessionId: appointment.stripePaymentIntentId || null, paymentStatus: appointment.paymentStatus };
   }
 
-  if (!stripe) {
+  if (env.paymentMode === 'test' || !stripe) {
     appointment.paymentStatus = 'paid';
     appointment.status = 'confirmed';
     appointment.stripePaymentIntentId = `mock_${appointment._id.toString()}`;
@@ -88,9 +88,13 @@ export const confirmPayment = async (req, res) => {
       return res.status(404).json({ message: 'Appointment not found' });
     }
 
-    let paymentConfirmed = true;
+    let paymentConfirmed = false;
 
-    if (stripe && sessionId) {
+    if (sessionId && sessionId.startsWith('mock_')) {
+      // In test mode or when using mock payments
+      paymentConfirmed = true;
+    } else if (stripe && sessionId) {
+      // Real Stripe session
       const session = await stripe.checkout.sessions.retrieve(sessionId);
       paymentConfirmed = session.payment_status === 'paid';
     }

@@ -28,6 +28,39 @@ export const createAppointment = async (req, res) => {
   try {
     const { salon, barber, service, date, time, price, notes } = req.body;
 
+    // Validate salon
+    const salonExists = await Salon.findById(salon);
+    if (!salonExists) {
+      return res.status(404).json({ message: 'Salon not found' });
+    }
+
+    // Validate barber
+    if (barber) {
+      const { default: BarberProfile } = await import('../models/BarberProfile.js');
+      const barberExists = await BarberProfile.findById(barber);
+      if (!barberExists) {
+        return res.status(404).json({ message: 'Barber not found' });
+      }
+
+      // Check for duplicate booking
+      const appointmentDate = new Date(date);
+      const startOfDay = new Date(appointmentDate);
+      startOfDay.setUTCHours(0, 0, 0, 0);
+      const endOfDay = new Date(appointmentDate);
+      endOfDay.setUTCHours(23, 59, 59, 999);
+
+      const existingAppointment = await Appointment.findOne({
+        barber,
+        date: { $gte: startOfDay, $lte: endOfDay },
+        time,
+        status: { $ne: 'cancelled' },
+      });
+
+      if (existingAppointment) {
+        return res.status(400).json({ message: 'This time slot is already booked for this barber.' });
+      }
+    }
+
     const appointment = await Appointment.create({
       customer: req.user._id,
       salon,

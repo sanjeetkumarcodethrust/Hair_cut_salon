@@ -39,6 +39,7 @@ export const env = {
   cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET || '',
   stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
   stripeCurrency: process.env.STRIPE_CURRENCY || 'inr',
+  paymentMode: process.env.PAYMENT_MODE || 'test',
   defaultAppointmentName: process.env.DEFAULT_APPOINTMENT_NAME || 'Salon appointment',
   theMuseApiUrl: process.env.THE_MUSE_API_URL || 'https://www.themuse.com/api/public/jobs',
   externalJobCategory: process.env.EXTERNAL_JOB_CATEGORY || 'Personal Care and Services',
