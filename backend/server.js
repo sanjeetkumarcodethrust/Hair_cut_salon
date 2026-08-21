@@ -80,8 +80,8 @@ io.on('connection', (socket) => {
 
 const PORT = env.port;
 
-connectDB().then(() => {
-  httpServer.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
+connectDB();
+
+httpServer.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
