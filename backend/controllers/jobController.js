@@ -38,7 +38,7 @@ export const createJob = async (req, res) => {
       skills,
       experience,
       salary,
-      location: 'Pune, Maharashtra',
+      location: location || 'Location not specified',
       jobType,
       deadline,
       status: 'open',
@@ -86,10 +86,7 @@ export const updateJob = async (req, res) => {
 
     const updated = await Job.findByIdAndUpdate(
       req.params.id,
-      {
-        ...req.body,
-        location: 'Pune, Maharashtra',
-      },
+      { ...req.body },
       {
         new: true,
         runValidators: true,

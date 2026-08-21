@@ -27,6 +27,11 @@ import {
   NotificationsPage,
 } from '../pages/UiPages.jsx';
 import ExtraFeatures from '../pages/ExtraFeatures.jsx';
+import JobsListPage from '../pages/JobsListPage.jsx';
+import JobDetailPage from '../pages/JobDetailPage.jsx';
+import PostJobPage from '../pages/PostJobPage.jsx';
+import OwnerJobsPage from '../pages/OwnerJobsPage.jsx';
+import BarberApplicationsPage from '../pages/BarberApplicationsPage.jsx';
 
 const AppRoutes = () => (
   <Router>
@@ -41,8 +46,11 @@ const AppRoutes = () => (
         <Route path="barbers" element={<SearchBarbers />} />
         <Route path="barbers/:id" element={<BarberProfile />} />
         <Route path="bookings/new" element={<BookingPage />} />
-        <Route path="jobs" element={<JobsPage />} />
-        <Route path="jobs/apply" element={<ApplyJobPage />} />
+        <Route path="jobs" element={<JobsListPage />} />
+        <Route path="jobs/post" element={<PostJobPage />} />
+        <Route path="jobs/:id" element={<JobDetailPage />} />
+        <Route path="owner-jobs" element={<OwnerJobsPage />} />
+        <Route path="my-applications" element={<BarberApplicationsPage />} />
         <Route path="customer-dashboard" element={<CustomerDashboardPage />} />
         <Route path="barber-dashboard" element={<BarberDashboardPage />} />
         <Route path="owner-dashboard" element={<OwnerDashboardPage />} />
