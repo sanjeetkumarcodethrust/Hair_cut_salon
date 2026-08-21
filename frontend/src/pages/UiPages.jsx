@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import PageShell from '../components/PageShell';
 import api from '../services/api';
-
+import { SkeletonCard, ErrorState } from '../components/UIStates';
 const panelClasses = 'rounded-3xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/70';
 
 const quickLinks = [];
@@ -137,9 +137,13 @@ export const SearchSalons = () => {
 
       {/* Results */}
       {loading ? (
-        <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-slate-400" /></div>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       ) : error ? (
-        <div className="rounded-2xl bg-red-50 p-6 text-center text-sm text-red-600">{error}</div>
+        <ErrorState message={error} onRetry={fetchSalons} />
       ) : salons.length === 0 ? (
         <div className="rounded-2xl bg-slate-50 p-10 text-center">
           <p className="text-slate-500 text-sm font-medium">No salons found matching your search.</p>
@@ -284,9 +288,13 @@ export const SearchBarbers = () => {
 
       {/* Results */}
       {loading ? (
-        <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-slate-400" /></div>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       ) : error ? (
-        <div className="rounded-2xl bg-red-50 p-6 text-center text-sm text-red-600">{error}</div>
+        <ErrorState message={error} onRetry={() => fetchBarbers(page)} />
       ) : barbers.length === 0 ? (
         <div className="rounded-2xl bg-slate-50 p-10 text-center">
           <p className="text-slate-500 text-sm font-medium">No barbers found matching your search.</p>
@@ -407,8 +415,19 @@ export const BookingPage = () => {
     notes: '',
   });
 
+  const [fetchError, setFetchError] = useState(null);
+
+  const fetchSalons = () => {
+    setLoadingSalons(true);
+    setFetchError(null);
+    api.get('/salons')
+      .then(r => setSalons(r.data.data || []))
+      .catch(err => setFetchError(err.customMessage || 'Failed to load salons.'))
+      .finally(() => setLoadingSalons(false));
+  };
+
   useEffect(() => {
-    api.get('/salons').then(r => setSalons(r.data.data || [])).catch(() => {}).finally(() => setLoadingSalons(false));
+    fetchSalons();
   }, []);
 
   const handleBooking = async () => {
@@ -430,7 +449,7 @@ export const BookingPage = () => {
         setMessage('🎉 Booking confirmed! Check your dashboard for details.');
       }
     } catch (error) {
-      setMessage(error?.response?.data?.message || 'Booking failed. Please try again.');
+      setMessage(error?.customMessage || 'Booking failed. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -504,7 +523,12 @@ export const BookingPage = () => {
               <h2 className="text-lg font-semibold text-white mb-3">Choose a salon</h2>
               <div className={`${darkPanel}`}>
                 {loadingSalons ? (
-                  <div className="flex items-center gap-2 text-slate-400 text-sm"><Loader2 className="w-4 h-4 animate-spin" />Loading salons...</div>
+                  <div className="h-10 w-full animate-pulse bg-white/10 rounded-xl" />
+                ) : fetchError ? (
+                  <div className="flex items-center justify-between text-red-400 text-sm">
+                    <span>{fetchError}</span>
+                    <button onClick={fetchSalons} className="px-3 py-1 bg-white/5 hover:bg-white/10 rounded text-xs">Retry</button>
+                  </div>
                 ) : (
                   <select
                     className="w-full bg-transparent text-white text-sm focus:outline-none"
@@ -669,18 +693,23 @@ export const BookingPage = () => {
 export const JobsPage = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchJobs = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.get('/jobs');
+      setJobs(response.data.data || []);
+    } catch (err) {
+      console.error('Failed to fetch jobs:', err);
+      setError(err.customMessage || 'Failed to load jobs. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        const response = await api.get('/jobs');
-        setJobs(response.data.data || []);
-      } catch (error) {
-        console.error('Failed to fetch jobs:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchJobs();
   }, []);
 
@@ -692,7 +721,16 @@ export const JobsPage = () => {
     >
       <div className="space-y-4">
         {loading ? (
-          <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-slate-400" /></div>
+          <div className="space-y-4">
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        ) : error ? (
+          <ErrorState message={error} onRetry={fetchJobs} />
+        ) : jobs.length === 0 ? (
+          <div className="rounded-2xl bg-slate-50 p-10 text-center">
+            <p className="text-slate-500 text-sm font-medium">No open jobs found at the moment.</p>
+          </div>
         ) : (
           jobs.map((job) => (
             <div key={job._id || job.title} className={panelClasses}>
