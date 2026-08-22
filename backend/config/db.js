@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import env from './env.js';
 
+export const isDatabaseConnected = () => mongoose.connection.readyState === 1;
+
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(env.mongoUri);

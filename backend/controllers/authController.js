@@ -2,6 +2,7 @@ import User from '../models/User.js';
 import generateToken from '../utils/generateToken.js';
 import jwt from 'jsonwebtoken';
 import env from '../config/env.js';
+import { isDatabaseConnected } from '../config/db.js';
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -50,6 +51,13 @@ export const registerUser = async (req, res) => {
 // @access  Public
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
+
+  if (!isDatabaseConnected()) {
+    return res.status(503).json({
+      success: false,
+      message: 'Authentication service is unavailable. Check the backend database connection.',
+    });
+  }
 
   try {
     const user = await User.findOne({ email }).select('+password');
