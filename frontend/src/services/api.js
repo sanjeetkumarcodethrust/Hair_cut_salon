@@ -1,9 +1,9 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const apiBaseURL =
-  import.meta.env.VITE_API_URL ||
-  (import.meta.env.DEV ? '/api' : '/api');
+const apiBaseURL = import.meta.env.DEV
+  ? '/api'
+  : import.meta.env.VITE_API_URL || '/api';
 
 const api = axios.create({
   baseURL: apiBaseURL,
