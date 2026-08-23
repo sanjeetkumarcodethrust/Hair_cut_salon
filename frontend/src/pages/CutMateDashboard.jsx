@@ -3,6 +3,33 @@ import { Link } from 'react-router-dom';
 import { Calendar, Star, MapPin, ShieldCheck, Droplets, Sparkles, Scissors, Wallet, User, Loader2 } from 'lucide-react';
 import api from '../services/api';
 
+const fallbackSalons = [
+  {
+    _id: 'fallback-1',
+    name: 'Lakme Salon Marunji',
+    city: 'Pune',
+    address: 'Laxmi Chowk, Marunji Village',
+    rating: 4.8,
+    services: [{}, {}],
+  },
+  {
+    _id: 'fallback-2',
+    name: 'Style Studio Unisex Salon',
+    city: 'Pune',
+    address: 'Near Life Republic, Marunji Road',
+    rating: 4.6,
+    services: [{}, {}],
+  },
+  {
+    _id: 'fallback-3',
+    name: 'The Grooming Room',
+    city: 'Pune',
+    address: 'Hinjewadi - Marunji Link Road',
+    rating: 4.7,
+    services: [{}],
+  },
+];
+
 const CutMateDashboard = () => {
   const [salons, setSalons] = useState([]);
   const [loadingSalons, setLoadingSalons] = useState(true);
@@ -24,8 +51,8 @@ const CutMateDashboard = () => {
       setPages(Math.max(Number(result.pages) || 1, 1));
     } catch (error) {
       console.error('Failed to fetch salons:', error);
-      setSalons([]);
-      setSalonError('We could not load salons right now. Please try again.');
+      setSalons(fallbackSalons);
+      setSalonError('The backend is not reachable, so we are showing sample salons instead.');
     } finally {
       setLoadingSalons(false);
     }
