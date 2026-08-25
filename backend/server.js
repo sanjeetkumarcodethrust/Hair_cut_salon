@@ -17,6 +17,7 @@ import jobRoutes from './routes/jobRoutes.js';
 import applicationRoutes from './routes/applicationRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import { notFound, errorHandler } from './middlewares/errorMiddleware.js';
+import { isDatabaseConnected } from './config/db.js';
 const app = express();
 const httpServer = createServer(app);
 const allowedOrigins = new Set((env.corsOrigin || []).filter(Boolean));
@@ -59,6 +60,33 @@ app.use(cors({
   methods: env.corsMethods,
 }));
 
+// Basic route
+app.get('/', (req, res) => {
+  res.send('API is running...');
+});
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  const databaseConnected = isDatabaseConnected();
+  res.status(databaseConnected ? 200 : 503).json({
+    success: true,
+    message: databaseConnected ? 'Salon API is ready' : 'Salon API is running without database access',
+    database: databaseConnected ? 'connected' : 'disconnected',
+  });
+});
+
+// Avoid letting Mongoose buffer requests while the database is unavailable.
+app.use('/api', (req, res, next) => {
+  if (isDatabaseConnected()) {
+    return next();
+  }
+
+  return res.status(503).json({
+    success: false,
+    message: 'Database is unavailable. Check the MongoDB connection settings.',
+  });
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/salons', salonRoutes);
@@ -69,19 +97,6 @@ app.use('/api/favorites', favoriteRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-
-// Basic route
-app.get('/', (req, res) => {
-  res.send('API is running...');
-});
-
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Salon API is running'
-  });
-});
 
 // Centralized Error Handling — must be after all routes
 app.use(notFound);
