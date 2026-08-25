@@ -19,6 +19,18 @@ import dashboardRoutes from './routes/dashboardRoutes.js';
 import { notFound, errorHandler } from './middlewares/errorMiddleware.js';
 const app = express();
 const httpServer = createServer(app);
+const allowedOrigins = new Set((env.corsOrigin || []).filter(Boolean));
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+  if (allowedOrigins.has(origin)) return true;
+  try {
+    const { hostname } = new URL(origin);
+    return hostname.endsWith('.vercel.app') || hostname === 'localhost' || hostname === '127.0.0.1';
+  } catch {
+    return false;
+  }
+};
+
 const io = new Server(httpServer, {
   cors: {
     origin: env.corsOrigin,
@@ -36,7 +48,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors({
-  origin: env.corsOrigin,
+  origin: (origin, callback) => {
+    if (isAllowedOrigin(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error(`CORS not allowed for origin: ${origin}`));
+  },
   credentials: env.corsCredentials,
   methods: env.corsMethods,
 }));
