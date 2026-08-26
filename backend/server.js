@@ -111,7 +111,7 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = env.port;
+const PORT = 5000;
 
 connectDB();
 
