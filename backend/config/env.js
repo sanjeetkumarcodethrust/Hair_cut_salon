@@ -21,7 +21,10 @@ export const env = {
   mongoUri: (process.env.MONGO_URI || process.env.MONGODB_URI || '').trim(),
   mongoDnsServers: parseList(process.env.MONGO_DNS_SERVERS || '1.1.1.1,8.8.8.8', ['1.1.1.1', '8.8.8.8']),
   frontendUrl: process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:5173',
-  corsOrigin: parseList(process.env.CORS_ORIGIN || process.env.CLIENT_URL || process.env.FRONTEND_URL || 'http://localhost:5173', ['http://localhost:5173']),
+  corsOrigin: parseList(
+    process.env.CORS_ORIGIN || process.env.CLIENT_URL || process.env.FRONTEND_URL || 'https://hairbar.vercel.app,http://localhost:300,http://localhost:3000,http://localhost:5173',
+    ['https://hairbar.vercel.app', 'http://localhost:300', 'http://localhost:3000', 'http://localhost:5173']
+  ),
   corsMethods: parseList(process.env.CORS_METHODS || 'GET,POST,PUT,PATCH,DELETE,OPTIONS', ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']),
   corsCredentials: process.env.CORS_CREDENTIALS !== 'false',
   jwtSecret: process.env.JWT_SECRET || '',
