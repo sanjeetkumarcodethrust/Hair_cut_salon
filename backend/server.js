@@ -33,17 +33,25 @@ const allowedOrigins = new Set(
   [
     ...(env.corsOrigin || []),
     env.frontendUrl,
+    'https://hairbar.vercel.app',
   ]
     .map(normalizeOrigin)
     .filter(Boolean)
 );
+
 const isAllowedOrigin = (origin) => {
   if (!origin) return true;
+  if (allowedOrigins.has('*') || (env.corsOrigin && env.corsOrigin.includes('*'))) return true;
   const normalizedOrigin = normalizeOrigin(origin);
   if (allowedOrigins.has(normalizedOrigin)) return true;
   try {
     const { hostname } = new URL(normalizedOrigin);
-    return hostname.endsWith('.vercel.app') || hostname === 'localhost' || hostname === '127.0.0.1';
+    return (
+      hostname.endsWith('.vercel.app') ||
+      hostname.endsWith('.onrender.com') ||
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1'
+    );
   } catch {
     return false;
   }
@@ -53,28 +61,45 @@ const corsOptions = {
   origin: (origin, callback) => {
     if (isAllowedOrigin(origin)) {
       callback(null, true);
-      return;
+    } else {
+      callback(null, false);
     }
-    callback(new Error(`CORS not allowed for origin: ${origin}`));
   },
   credentials: env.corsCredentials,
   methods: env.corsMethods,
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    'Access-Control-Request-Method',
+    'Access-Control-Request-Headers',
+  ],
+  exposedHeaders: ['Set-Cookie'],
+  maxAge: 86400,
 };
 
 const io = new Server(httpServer, {
   cors: corsOptions,
 });
 
-// Middlewares
-app.use(helmet());
+// Enable CORS middleware first before helmet & route handlers
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
+// Security & Logger Middlewares
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
 if (env.nodeEnv === 'development') {
   app.use(morgan('dev'));
 }
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 
 // Basic route
 app.get('/', (req, res) => {

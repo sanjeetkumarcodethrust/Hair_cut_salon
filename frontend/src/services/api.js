@@ -6,8 +6,10 @@ const runtimeApiUrl =
     ? window.__API_URL__
     : '';
 
-const apiBaseURL = runtimeApiUrl
-  || (import.meta.env.DEV ? '/api' : 'https://hair-cut-salon-1.onrender.com/api');
+const apiBaseURL =
+  runtimeApiUrl ||
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? '/api' : 'https://hair-cut-salon-1.onrender.com/api');
 
 const api = axios.create({
   baseURL: apiBaseURL,
