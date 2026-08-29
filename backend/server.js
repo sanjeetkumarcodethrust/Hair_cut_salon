@@ -152,9 +152,26 @@ io.on('connection', (socket) => {
   });
 });
 
+process.on('uncaughtException', (err) => {
+  console.error('[Uncaught Exception]:', err.message || err);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[Unhandled Rejection]:', reason);
+});
+
 const PORT = env.port;
 
 connectDB();
+
+httpServer.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(`[Error] Port ${PORT} is already in use by another process.`);
+    console.error(`[Fix] Kill the process using port ${PORT} or specify PORT=${PORT + 1} in backend/.env.`);
+  } else {
+    console.error('[Error] Server failed to start:', error.message);
+  }
+});
 
 httpServer.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

@@ -54,7 +54,11 @@ const connectDB = async () => {
       throw new Error('MONGO_URI is missing from backend/.env');
     }
 
-    dns.setServers(env.mongoDnsServers);
+    try {
+      dns.setServers(env.mongoDnsServers);
+    } catch (dnsErr) {
+      console.warn(`[MongoDB] Custom DNS servers warning: ${dnsErr.message}`);
+    }
     const uriDetails = describeMongoUri(env.mongoUri);
     if (!uriDetails) {
       throw new Error('MONGO_URI is not a valid URL. Check backend/.env.');
