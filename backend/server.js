@@ -20,24 +20,49 @@ import { notFound, errorHandler } from './middlewares/errorMiddleware.js';
 import { isDatabaseConnected } from './config/db.js';
 const app = express();
 const httpServer = createServer(app);
-const allowedOrigins = new Set((env.corsOrigin || []).filter(Boolean));
+const normalizeOrigin = (value) => {
+  if (!value) return '';
+  try {
+    return new URL(value).origin;
+  } catch {
+    return String(value).trim().replace(/\/+$/, '');
+  }
+};
+
+const allowedOrigins = new Set(
+  [
+    ...(env.corsOrigin || []),
+    env.frontendUrl,
+  ]
+    .map(normalizeOrigin)
+    .filter(Boolean)
+);
 const isAllowedOrigin = (origin) => {
   if (!origin) return true;
-  if (allowedOrigins.has(origin)) return true;
+  const normalizedOrigin = normalizeOrigin(origin);
+  if (allowedOrigins.has(normalizedOrigin)) return true;
   try {
-    const { hostname } = new URL(origin);
+    const { hostname } = new URL(normalizedOrigin);
     return hostname.endsWith('.vercel.app') || hostname === 'localhost' || hostname === '127.0.0.1';
   } catch {
     return false;
   }
 };
 
-const io = new Server(httpServer, {
-  cors: {
-    origin: env.corsOrigin,
-    methods: env.corsMethods,
-    credentials: env.corsCredentials,
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (isAllowedOrigin(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error(`CORS not allowed for origin: ${origin}`));
   },
+  credentials: env.corsCredentials,
+  methods: env.corsMethods,
+};
+
+const io = new Server(httpServer, {
+  cors: corsOptions,
 });
 
 // Middlewares
@@ -48,17 +73,8 @@ if (env.nodeEnv === 'development') {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(cors({
-  origin: (origin, callback) => {
-    if (isAllowedOrigin(origin)) {
-      callback(null, true);
-      return;
-    }
-    callback(new Error(`CORS not allowed for origin: ${origin}`));
-  },
-  credentials: env.corsCredentials,
-  methods: env.corsMethods,
-}));
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // Basic route
 app.get('/', (req, res) => {
@@ -111,7 +127,7 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = 5000;
+const PORT = env.port;
 
 connectDB();
 
