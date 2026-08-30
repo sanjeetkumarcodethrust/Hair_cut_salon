@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, User, ShieldCheck } from 'lucide-react';
+import { Mail, User, ShieldCheck, Lock, UserCheck } from 'lucide-react';
 import api from '../services/api';
 import { setCredentials } from '../features/auth/authSlice';
 
@@ -58,14 +58,18 @@ const Register = () => {
               <Mail className="h-4 w-4" />
               <input name="email" type="email" required className="w-full border-none bg-transparent outline-none" placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} />
             </label>
-            <label className="rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-3 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-300">
+            <label className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-3 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-300">
+              <Lock className="h-4 w-4 shrink-0 text-slate-400" />
               <input name="password" type="password" required className="w-full border-none bg-transparent outline-none" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
             </label>
-            <select name="role" value={role} onChange={(e) => setRole(e.target.value)} className="w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-3 text-sm text-slate-600 outline-none dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-300">
-              <option value="Customer">Customer</option>
-              <option value="Barber">Barber</option>
-              <option value="SalonOwner">Salon Owner</option>
-            </select>
+            <label className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-3 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-300">
+              <UserCheck className="h-4 w-4 shrink-0 text-slate-400" />
+              <select name="role" value={role} onChange={(e) => setRole(e.target.value)} className="w-full cursor-pointer border-none bg-transparent outline-none dark:bg-slate-900 dark:text-slate-200">
+                <option value="Customer">Customer</option>
+                <option value="Barber">Barber</option>
+                <option value="SalonOwner">Salon Owner</option>
+              </select>
+            </label>
           </div>
 
           {error ? (
