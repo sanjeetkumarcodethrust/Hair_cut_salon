@@ -50,7 +50,7 @@ const CutMateDashboard = () => {
       setPage(Number(result.page) || nextPage);
       setPages(Math.max(Number(result.pages) || 1, 1));
     } catch (error) {
-      console.error('Failed to fetch salons:', error);
+      console.warn('Backend unavailable, showing fallback salons.');
       setSalons(fallbackSalons);
       setSalonError('The backend is not reachable, so we are showing sample salons instead.');
     } finally {
