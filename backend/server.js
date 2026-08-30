@@ -86,7 +86,7 @@ const io = new Server(httpServer, {
 
 // Enable CORS middleware first before helmet & route handlers
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 
 // Security & Logger Middlewares
 app.use(
