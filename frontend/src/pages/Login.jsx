@@ -1,9 +1,15 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, ShieldCheck, Smartphone } from 'lucide-react';
+import { Mail, ShieldCheck, Smartphone, UserCheck } from 'lucide-react';
 import api from '../services/api';
 import { setCredentials } from '../features/auth/authSlice';
+
+const demoAccounts = [
+  { label: 'Customer Demo', email: 'customer@demo.com', password: 'password123', name: 'Demo Customer', role: 'customer' },
+  { label: 'Owner Demo', email: 'owner@marunji.com', password: 'password123', name: 'Marunji Owner', role: 'owner' },
+  { label: 'Barber Demo', email: 'barber@demo.com', password: 'password123', name: 'Demo Barber', role: 'barber' },
+];
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -13,20 +19,50 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const submitHandler = async (e) => {
-    e.preventDefault();
+  const handleLogin = async (loginEmail, loginPassword, demoMeta = null) => {
     setError('');
     setLoading(true);
 
     try {
-      const { data } = await api.post('/auth/login', { email, password });
+      const { data } = await api.post('/auth/login', { email: loginEmail, password: loginPassword });
       dispatch(setCredentials(data));
       navigate('/dashboard');
     } catch (err) {
-      setError(err?.response?.data?.message || 'Unable to sign in. Please try again.');
+      if (err?.response?.status === 401) {
+        if (demoMeta) {
+          try {
+            const regRes = await api.post('/auth/register', {
+              name: demoMeta.name,
+              email: demoMeta.email,
+              password: demoMeta.password,
+              role: demoMeta.role,
+            });
+            dispatch(setCredentials(regRes.data));
+            navigate('/dashboard');
+            return;
+          } catch (regErr) {
+            setError(regErr?.response?.data?.message || 'Unable to register demo account.');
+            return;
+          }
+        }
+        setError('Invalid email or password. If you do not have an account yet, please click Register below.');
+      } else {
+        setError(err?.response?.data?.message || err?.customMessage || 'Unable to sign in. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const submitHandler = (e) => {
+    e.preventDefault();
+    handleLogin(email, password);
+  };
+
+  const handleDemoLogin = (account) => {
+    setEmail(account.email);
+    setPassword(account.password);
+    handleLogin(account.email, account.password, account);
   };
 
   return (
@@ -39,6 +75,26 @@ const Login = () => {
           <h2 className="mt-5 text-3xl font-semibold text-slate-900 dark:text-white">Sign in securely</h2>
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Use your email or verify with a one-time passcode.</p>
         </div>
+
+        {/* Demo Quick Login Options */}
+        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/60 p-3.5 dark:border-slate-800 dark:bg-slate-950/40">
+          <div className="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <span className="flex items-center gap-1.5"><UserCheck className="h-3.5 w-3.5 text-primary" /> Quick Demo Login</span>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {demoAccounts.map((acc) => (
+              <button
+                key={acc.label}
+                type="button"
+                onClick={() => handleDemoLogin(acc)}
+                className="rounded-xl border border-primary/20 bg-primary/10 px-2 py-2 text-xs font-semibold text-primary transition hover:bg-primary hover:text-white dark:border-primary/30 dark:bg-primary/20"
+              >
+                {acc.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <form className="space-y-4" onSubmit={submitHandler}>
           <div className="space-y-3">
             <label className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-3 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-300">
