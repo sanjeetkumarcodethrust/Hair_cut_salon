@@ -26,14 +26,17 @@ api.interceptors.response.use(
     let customMessage = 'An unexpected error occurred.';
 
     if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
-      customMessage = 'Unable to connect to the salon service. Please try again.';
+      customMessage = 'Unable to connect to backend server. Please verify the server is running.';
       toast.error(customMessage, { id: 'network-error' });
     } else if (error.code === 'ECONNABORTED') {
       customMessage = 'Request timed out. Please try again.';
       toast.error(customMessage, { id: 'timeout-error' });
     } else if (error.response) {
       const { status, data } = error.response;
-      if (status === 401) {
+      if (status === 503) {
+        customMessage = 'Backend service is currently unavailable or suspended.';
+        toast.error(customMessage, { id: 'service-unavailable' });
+      } else if (status === 401) {
         customMessage = 'Your session has expired. Please log in again.';
       } else if (status === 403) {
         customMessage = 'You do not have permission to perform this action.';

@@ -73,7 +73,7 @@ export const SearchSalons = () => {
       setSalons(response.data.data || []);
     } catch (err) {
       console.error('Failed to fetch salons:', err);
-      setError('Failed to load salons. Please try again.');
+      setError(err.customMessage || 'Failed to load salons. Please make sure the backend server is running.');
     } finally {
       setLoading(false);
     }
