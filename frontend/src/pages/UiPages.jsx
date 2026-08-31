@@ -476,7 +476,7 @@ export const BookingPage = () => {
   const handleBooking = async () => {
     if (!userInfo?.token) {
       setMessage('🔒 Please sign in first to complete your booking.');
-      navigate('/login');
+      navigate('/register');
       return;
     }
 
