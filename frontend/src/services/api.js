@@ -20,6 +20,24 @@ const api = axios.create({
   timeout: 45000,
 });
 
+api.interceptors.request.use(
+  (config) => {
+    try {
+      const userInfoStr = localStorage.getItem('userInfo');
+      if (userInfoStr) {
+        const userInfo = JSON.parse(userInfoStr);
+        if (userInfo && userInfo.token) {
+          config.headers.Authorization = `Bearer ${userInfo.token}`;
+        }
+      }
+    } catch {
+      // Ignore JSON parse errors
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {

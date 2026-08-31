@@ -5,10 +5,14 @@ import env from '../config/env.js';
 // @desc  Verify JWT from HttpOnly cookie and attach user to request
 // @alias authenticateUser (exported below)
 export const protect = async (req, res, next) => {
-  const token = req.cookies.jwt;
+  let token = req.cookies?.jwt;
+
+  if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
 
   if (!token) {
-    return res.status(401).json({ success: false, message: 'Not authorized, no token' });
+    return res.status(401).json({ success: false, message: 'Not authorized, no token. Please sign in.' });
   }
 
   try {

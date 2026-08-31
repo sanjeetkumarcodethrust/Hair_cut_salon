@@ -29,7 +29,7 @@ export const registerUser = async (req, res) => {
     });
 
     if (user) {
-      generateToken(res, user._id);
+      const token = generateToken(res, user._id);
       res.status(201).json({
         success: true,
         _id: user._id,
@@ -37,6 +37,7 @@ export const registerUser = async (req, res) => {
         email: user.email,
         role: user.role,
         profileImage: user.profileImage,
+        token,
       });
     } else {
       res.status(400).json({ success: false, message: 'Invalid user data' });
@@ -63,7 +64,7 @@ export const loginUser = async (req, res) => {
     const user = await User.findOne({ email }).select('+password');
 
     if (user && (await user.matchPassword(password))) {
-      generateToken(res, user._id);
+      const token = generateToken(res, user._id);
       res.json({
         success: true,
         _id: user._id,
@@ -71,6 +72,7 @@ export const loginUser = async (req, res) => {
         email: user.email,
         role: user.role,
         profileImage: user.profileImage,
+        token,
       });
     } else {
       res.status(401).json({ success: false, message: 'Invalid email or password' });

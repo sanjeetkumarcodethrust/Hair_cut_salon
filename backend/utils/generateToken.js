@@ -27,6 +27,8 @@ const generateToken = (res, userId) => {
     sameSite: env.cookieSameSite,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
+
+  return accessToken;
 };
 
 export default generateToken;
