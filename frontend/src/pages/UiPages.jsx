@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { Loader2 } from 'lucide-react';
 import PageShell from '../components/PageShell';
 import api from '../services/api';
@@ -432,6 +433,8 @@ export const BarberProfile = () => (
 );
 
 export const BookingPage = () => {
+  const navigate = useNavigate();
+  const { userInfo } = useSelector((state) => state.auth);
   const [step, setStep] = useState(1); // 1: service, 2: datetime, 3: confirm
   const [salons, setSalons] = useState([]);
   const [loadingSalons, setLoadingSalons] = useState(true);
@@ -471,6 +474,12 @@ export const BookingPage = () => {
   }, []);
 
   const handleBooking = async () => {
+    if (!userInfo?.token) {
+      setMessage('🔒 Please sign in first to complete your booking.');
+      navigate('/login');
+      return;
+    }
+
     setSubmitting(true);
     setMessage('');
     try {
