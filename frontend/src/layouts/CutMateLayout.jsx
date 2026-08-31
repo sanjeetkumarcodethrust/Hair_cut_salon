@@ -1,4 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from '../features/auth/authSlice';
 import {
   Scissors,
   Home,
@@ -12,7 +14,8 @@ import {
   MoreHorizontal,
   Search,
   Bell,
-  MapPin
+  MapPin,
+  LogOut,
 } from 'lucide-react';
 
 const SidebarItem = ({ icon: Icon, label, href, active }) => (
@@ -31,6 +34,12 @@ const SidebarItem = ({ icon: Icon, label, href, active }) => (
 
 const CutMateLayout = () => {
   const location = useLocation();
+  const dispatch = useDispatch();
+  const { userInfo } = useSelector((state) => state.auth);
+
+  const handleLogout = () => {
+    dispatch(logout());
+  };
 
   const navItems = [
     { icon: Home, label: 'Home', href: '/' },
@@ -107,7 +116,7 @@ const CutMateLayout = () => {
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-4">
             <button className="text-slate-400 hover:text-white transition">
               <Heart className="w-5 h-5" />
             </button>
@@ -115,9 +124,33 @@ const CutMateLayout = () => {
               <Bell className="w-5 h-5" />
               <span className="absolute top-0 right-0 w-2 h-2 bg-pink-500 rounded-full border border-[#0a0a0a]" />
             </button>
-            <Link to="/login" className="px-5 py-2 rounded-full border border-white/10 text-sm font-medium hover:bg-white/5 transition">
-              Login / Signup
-            </Link>
+
+            {userInfo ? (
+              <div className="flex items-center gap-3">
+                <Link to="/profile" className="flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 p-1 pr-3 hover:bg-white/10 transition">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center font-bold text-xs text-slate-950">
+                    {userInfo.name ? userInfo.name.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                  <div className="text-left leading-tight">
+                    <p className="text-xs font-semibold text-white">{userInfo.name || 'User'}</p>
+                    <p className="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">
+                      {userInfo.role === 'owner' ? 'Salon Owner' : userInfo.role === 'barber' ? 'Barber' : 'Customer'}
+                    </p>
+                  </div>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  title="Logout"
+                  className="p-2 rounded-full border border-rose-500/20 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <Link to="/login" className="px-5 py-2 rounded-full border border-white/10 text-sm font-medium hover:bg-white/5 transition">
+                Login / Signup
+              </Link>
+            )}
           </div>
         </header>
 
