@@ -18,8 +18,8 @@ import { protect, authorize } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-// Book appointment (customer)
-router.post('/', protect, authorize('customer'), createAppointment);
+// Book appointment
+router.post('/', protect, createAppointment);
 
 // Payments
 router.post('/checkout', protect, authorize('customer'), createCheckoutSession);
