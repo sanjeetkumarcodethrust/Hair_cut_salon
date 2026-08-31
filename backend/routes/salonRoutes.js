@@ -20,7 +20,7 @@ router.get('/nearby', getNearbySalons);
 router
   .route('/')
   .get(getSalons)
-  .post(protect, authorize('owner', 'admin'), createSalon);
+  .post(protect, createSalon);
 
 router
   .route('/:id')

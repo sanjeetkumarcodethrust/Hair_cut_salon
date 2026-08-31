@@ -124,6 +124,16 @@ export const SearchSalons = () => {
       title="Search salons nearby"
       description="Use the search experience to compare salons by rating, location, and service type."
     >
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Directory</span>
+        <Link
+          to="/salons/new"
+          className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-primary to-violet-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:opacity-90"
+        >
+          + Add New Salon
+        </Link>
+      </div>
+
       {/* Filters */}
       <form onSubmit={handleSearch} className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <input

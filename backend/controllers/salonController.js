@@ -96,19 +96,15 @@ export const getSalon = async (req, res) => {
 // @access  Private/Owner, Admin
 export const createSalon = async (req, res) => {
   try {
-    // Check if owner already has a salon (optional business rule)
-    const existingSalon = await Salon.findOne({ owner: req.user._id });
-    if (existingSalon && req.user.role !== 'admin') {
-      return res.status(409).json({ success: false, message: 'Owner already has a salon registered' });
-    }
-
     const newSalon = new Salon({
       ...req.body,
+      city: req.body.city || 'Pune',
+      state: req.body.state || 'Maharashtra',
       owner: req.user._id,
     });
 
     const savedSalon = await newSalon.save();
-    res.status(201).json({ success: true, data: savedSalon });
+    res.status(201).json({ success: true, data: savedSalon, _id: savedSalon._id });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }

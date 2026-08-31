@@ -30,12 +30,21 @@ const AddSalon = () => {
 
     try {
       const response = await api.post('/salons', formData);
-      setMessage('🎉 Salon registered successfully!');
+      const salonId = response.data?._id || response.data?.data?._id;
+      setMessage('🎉 Salon registered successfully! Redirecting...');
       setTimeout(() => {
-        navigate(`/salons/${response.data._id}`);
-      }, 2000);
+        if (salonId) {
+          navigate(`/salons/${salonId}`);
+        } else {
+          navigate('/salons');
+        }
+      }, 1500);
     } catch (err) {
-      setError(err?.response?.data?.message || 'Failed to register salon. Please try again.');
+      if (err?.response?.status === 401) {
+        setError('🔒 Please sign in first to register your salon.');
+      } else {
+        setError(err?.response?.data?.message || err?.customMessage || 'Failed to register salon. Please try again.');
+      }
     } finally {
       setSubmitting(false);
     }
