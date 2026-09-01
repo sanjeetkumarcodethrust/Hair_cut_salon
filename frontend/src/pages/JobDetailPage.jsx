@@ -150,7 +150,7 @@ export default function JobDetailPage() {
               {/* Resume Upload */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Resume (PDF) <span className="text-slate-400 text-xs font-normal">(optional)</span>
+                  Resume (PDF) <span className="text-purple-600 bg-purple-50 border border-purple-200/60 text-xs font-semibold px-2 py-0.5 rounded-md ml-1.5">(optional)</span>
                 </label>
                 <div
                   onClick={() => fileRef.current?.click()}
@@ -167,7 +167,7 @@ export default function JobDetailPage() {
               {/* Experience Field */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Years of Experience <span className="text-slate-400 text-xs font-normal">(in barbering / hair styling)</span>
+                  Years of Experience <span className="text-slate-500 text-xs font-normal">(in barbering / hair styling)</span>
                 </label>
                 <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
                   <input
@@ -201,7 +201,7 @@ export default function JobDetailPage() {
               {/* Cover Letter Field */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Cover Letter / Proposal <span className="text-slate-400 text-xs font-normal">(optional)</span>
+                  Cover Letter / Proposal <span className="text-purple-600 bg-purple-50 border border-purple-200/60 text-xs font-semibold px-2 py-0.5 rounded-md ml-1.5">(optional)</span>
                 </label>
                 <textarea
                   value={coverLetter}

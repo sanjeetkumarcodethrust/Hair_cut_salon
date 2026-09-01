@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2, Plus, X } from "lucide-react";
 import api from "../services/api";
@@ -156,7 +156,9 @@ export default function PostJobPage() {
 
           {/* Deadline */}
           <div>
-            <label className={labelClass}>Application Deadline (optional)</label>
+            <label className={labelClass}>
+              Application Deadline <span className="text-purple-600 bg-purple-50 border border-purple-200/60 text-xs font-semibold px-2 py-0.5 rounded-md ml-1.5">(optional)</span>
+            </label>
             <input type="date" value={form.deadline} min={new Date().toISOString().split("T")[0]} onChange={(e) => set("deadline", e.target.value)} className={inputClass} />
           </div>
 
