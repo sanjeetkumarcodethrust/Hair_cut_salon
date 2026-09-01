@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Briefcase, MapPin, Clock, IndianRupee, Search } from "lucide-react";
 import api from "../services/api";
@@ -136,7 +136,7 @@ export default function JobsListPage() {
               placeholder="Search title, skills..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-slate-400 shadow-sm"
             />
           </div>
           <input
@@ -144,15 +144,15 @@ export default function JobsListPage() {
             placeholder="Location or city..."
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            className="rounded-xl border border-slate-200 bg-white text-slate-900 font-medium px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-slate-400 shadow-sm"
           />
           <select
             value={jobType}
             onChange={(e) => setJobType(e.target.value)}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            className="rounded-xl border border-slate-200 bg-white text-slate-900 font-medium px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
           >
             {JOB_TYPES.map((t) => (
-              <option key={t} value={t}>
+              <option key={t} value={t} className="bg-white text-slate-900">
                 {t ? t.charAt(0).toUpperCase() + t.slice(1) : "All types"}
               </option>
             ))}

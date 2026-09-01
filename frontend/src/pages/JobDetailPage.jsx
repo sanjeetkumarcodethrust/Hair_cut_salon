@@ -149,15 +149,15 @@ export default function JobDetailPage() {
 
               {/* Resume Upload */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-semibold text-slate-900 mb-2">
                   Resume (PDF) <span className="text-purple-600 bg-purple-50 border border-purple-200/60 text-xs font-semibold px-2 py-0.5 rounded-md ml-1.5">(optional)</span>
                 </label>
                 <div
                   onClick={() => fileRef.current?.click()}
-                  className="flex items-center gap-3 cursor-pointer rounded-xl border-2 border-dashed border-slate-200 px-4 py-4 hover:border-primary transition bg-slate-50/50"
+                  className="flex items-center gap-3 cursor-pointer rounded-xl border-2 border-dashed border-slate-300 px-4 py-4 hover:border-primary transition bg-slate-50 hover:bg-slate-100/80"
                 >
-                  <Upload className="w-5 h-5 text-slate-400" />
-                  <span className="text-sm text-slate-600 font-medium">
+                  <Upload className="w-5 h-5 text-slate-500" />
+                  <span className="text-sm text-slate-900 font-medium">
                     {resumeFile ? resumeFile.name : "Click to upload your resume (PDF, max 5MB)"}
                   </span>
                 </div>
@@ -166,7 +166,7 @@ export default function JobDetailPage() {
 
               {/* Experience Field */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-semibold text-slate-900 mb-2">
                   Years of Experience <span className="text-slate-500 text-xs font-normal">(in barbering / hair styling)</span>
                 </label>
                 <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
@@ -177,7 +177,7 @@ export default function JobDetailPage() {
                     value={experience}
                     onChange={(e) => setExperience(e.target.value)}
                     placeholder="e.g. 3"
-                    className="w-full sm:w-36 rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full sm:w-36 rounded-xl border border-slate-300 bg-white text-slate-900 font-semibold px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-slate-400 shadow-sm"
                   />
                   <div className="flex flex-wrap gap-2">
                     {[1, 2, 3, 5, 8].map((years) => (
@@ -185,10 +185,10 @@ export default function JobDetailPage() {
                         key={years}
                         type="button"
                         onClick={() => setExperience(String(years))}
-                        className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition ${
+                        className={`px-3.5 py-2 text-xs font-bold rounded-xl border transition ${
                           String(experience) === String(years)
-                            ? "bg-slate-900 text-white border-slate-900"
-                            : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                            ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                            : "bg-slate-100 text-slate-800 border-slate-200 hover:bg-slate-200"
                         }`}
                       >
                         {years} {years === 1 ? 'Year' : 'Years'}
@@ -200,7 +200,7 @@ export default function JobDetailPage() {
 
               {/* Cover Letter Field */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-semibold text-slate-900 mb-2">
                   Cover Letter / Proposal <span className="text-purple-600 bg-purple-50 border border-purple-200/60 text-xs font-semibold px-2 py-0.5 rounded-md ml-1.5">(optional)</span>
                 </label>
                 <textarea
@@ -209,7 +209,7 @@ export default function JobDetailPage() {
                   rows={5}
                   maxLength={1000}
                   placeholder="Introduce yourself, mention your key haircut/beard styling skills, specializations, availability, and why you would be a great fit for this salon..."
-                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                  className="w-full rounded-xl border border-slate-300 bg-white text-slate-900 font-medium px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none placeholder:text-slate-400 shadow-sm"
                 />
                 <div className="mt-1 flex items-center justify-between text-xs text-slate-400">
                   <span>Explain why you are the ideal barber candidate</span>

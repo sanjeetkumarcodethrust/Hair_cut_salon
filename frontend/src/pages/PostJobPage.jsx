@@ -5,8 +5,8 @@ import api from "../services/api";
 import toast from "react-hot-toast";
 
 const JOB_TYPES = ["full-time", "part-time", "freelance", "internship"];
-const inputClass = "w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
-const labelClass = "block text-sm font-medium text-slate-700 mb-1.5";
+const inputClass = "w-full rounded-xl border border-slate-200 bg-white text-slate-900 font-medium px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-slate-400";
+const labelClass = "block text-sm font-semibold text-slate-900 mb-1.5";
 
 export default function PostJobPage() {
   const navigate = useNavigate();
