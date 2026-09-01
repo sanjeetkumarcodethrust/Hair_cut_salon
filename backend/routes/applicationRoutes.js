@@ -13,14 +13,14 @@ import { uploadResume } from '../middlewares/uploadMiddleware.js';
 const router = express.Router();
 
 // ─── Barber routes ─────────────────────────────────────────────────────────────
-// Apply for a job (with PDF resume upload)
-router.post('/:jobId/apply', protect, authorize('barber'), uploadResume.single('resume'), applyForJob);
+// Apply for a job (with optional PDF resume upload)
+router.post('/:jobId/apply', protect, authorize('barber', 'customer'), uploadResume.single('resume'), applyForJob);
 
 // Track my applications
-router.get('/my', protect, authorize('barber'), getMyApplications);
+router.get('/my', protect, authorize('barber', 'customer'), getMyApplications);
 
 // Withdraw an application
-router.delete('/:id', protect, authorize('barber'), withdrawApplication);
+router.delete('/:id', protect, authorize('barber', 'customer'), withdrawApplication);
 
 // ─── Shared routes ─────────────────────────────────────────────────────────────
 // Get single application (barber can see own; owner can see for their job)

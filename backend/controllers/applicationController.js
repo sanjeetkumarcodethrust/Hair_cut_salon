@@ -33,31 +33,46 @@ export const applyForJob = async (req, res) => {
       return res.status(400).json({ message: 'You have already applied for this job' });
     }
 
-    // Resume must be uploaded via multer
-    if (!req.file) {
-      return res.status(400).json({ message: 'Please upload your resume (PDF)' });
+    let resumeData = { url: '', publicId: '', originalName: '' };
+
+    if (req.file) {
+      try {
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: 'salon_app/resumes',
+          resource_type: 'raw',
+          use_filename: true,
+        });
+        resumeData = {
+          url: result.secure_url,
+          publicId: result.public_id,
+          originalName: req.file.originalname,
+        };
+      } catch (cErr) {
+        console.warn('Cloudinary upload warning:', cErr.message);
+        resumeData = {
+          url: `/uploads/${req.file.filename}`,
+          publicId: req.file.filename,
+          originalName: req.file.originalname,
+        };
+      } finally {
+        if (req.file?.path && fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+      }
     }
 
-    // Upload resume to Cloudinary (raw for PDFs)
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: 'salon_app/resumes',
-      resource_type: 'raw',
-      use_filename: true,
-    });
-
-    // Remove local temp file
-    fs.unlinkSync(req.file.path);
+    // Upgrade customer role to barber if applying for a barber job
+    if (req.user.role === 'customer') {
+      req.user.role = 'barber';
+      await req.user.save();
+    }
 
     const application = await Application.create({
       jobId,
       barberId: req.user._id,
-      resume: {
-        url: result.secure_url,
-        publicId: result.public_id,
-        originalName: req.file.originalname,
-      },
-      experience: Number(experience),
-      coverLetter,
+      resume: resumeData,
+      experience: Number(experience) || 0,
+      coverLetter: coverLetter || '',
     });
 
     res.status(201).json({
@@ -65,7 +80,6 @@ export const applyForJob = async (req, res) => {
       data: application,
     });
   } catch (error) {
-    // Clean up temp file on error
     if (req.file?.path && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
     res.status(400).json({ message: error.message });
   }

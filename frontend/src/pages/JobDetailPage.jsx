@@ -38,11 +38,12 @@ export default function JobDetailPage() {
 
   const handleApply = async (e) => {
     e.preventDefault();
-    if (!resumeFile) { toast.error("Please upload your resume (PDF)."); return; }
     setSubmitting(true);
     try {
       const fd = new FormData();
-      fd.append("resume", resumeFile);
+      if (resumeFile) {
+        fd.append("resume", resumeFile);
+      }
       fd.append("experience", experience || 0);
       fd.append("coverLetter", coverLetter || "");
       await api.post(`/applications/${id}/apply`, fd, {
@@ -148,7 +149,9 @@ export default function JobDetailPage() {
 
               {/* Resume Upload */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Resume (PDF) *</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Resume (PDF) <span className="text-slate-400 text-xs font-normal">(optional)</span>
+                </label>
                 <div
                   onClick={() => fileRef.current?.click()}
                   className="flex items-center gap-3 cursor-pointer rounded-xl border-2 border-dashed border-slate-200 px-4 py-4 hover:border-primary transition bg-slate-50/50"

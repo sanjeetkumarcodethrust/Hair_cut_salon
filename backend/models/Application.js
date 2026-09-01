@@ -13,9 +13,9 @@ const applicationSchema = new mongoose.Schema(
       required: true,
     },
     resume: {
-      url: { type: String, required: [true, 'Please upload a resume'] },
-      publicId: { type: String }, // Cloudinary public_id for deletion
-      originalName: { type: String },
+      url: { type: String, default: '' },
+      publicId: { type: String, default: '' },
+      originalName: { type: String, default: '' },
     },
     experience: {
       type: Number,
