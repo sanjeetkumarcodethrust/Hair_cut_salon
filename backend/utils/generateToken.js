@@ -17,7 +17,7 @@ const generateToken = (res, userId) => {
     httpOnly: true,
     secure: env.nodeEnv !== 'development',
     sameSite: env.cookieSameSite,
-    maxAge: 15 * 60 * 1000, // 15 minutes
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
   // Set Refresh Token Cookie
@@ -25,7 +25,7 @@ const generateToken = (res, userId) => {
     httpOnly: true,
     secure: env.nodeEnv !== 'development',
     sameSite: env.cookieSameSite,
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
   return accessToken;

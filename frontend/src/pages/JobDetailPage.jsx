@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { MapPin, Briefcase, Clock, IndianRupee, Users, ChevronLeft, Loader2, Upload, X } from "lucide-react";
+import { useSelector } from "react-redux";
+import { MapPin, Briefcase, Clock, IndianRupee, Users, ChevronLeft, Loader2, Upload, X, LogIn } from "lucide-react";
 import api from "../services/api";
 import { ErrorState } from "../components/UIStates";
 import toast from "react-hot-toast";
@@ -10,6 +11,7 @@ const Skeleton = ({ className }) => <div className={`animate-pulse rounded-2xl b
 export default function JobDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { userInfo } = useSelector((state) => state.auth);
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -36,8 +38,22 @@ export default function JobDetailPage() {
     fetch();
   }, [id]);
 
+  const handleOpenApply = () => {
+    if (!userInfo) {
+      toast.error("Please log in to apply for job vacancies.");
+      navigate("/login");
+      return;
+    }
+    setShowApply(true);
+  };
+
   const handleApply = async (e) => {
     e.preventDefault();
+    if (!userInfo) {
+      toast.error("Please log in to submit your job application.");
+      navigate("/login");
+      return;
+    }
     setSubmitting(true);
     try {
       const fd = new FormData();
@@ -53,7 +69,12 @@ export default function JobDetailPage() {
       setShowApply(false);
       navigate("/my-applications");
     } catch (err) {
-      toast.error(err.response?.data?.message || err.customMessage || "Application failed.");
+      if (err.response?.status === 401) {
+        toast.error("Your session has expired. Please log in again.");
+        navigate("/login");
+      } else {
+        toast.error(err.response?.data?.message || err.customMessage || "Application failed.");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -127,10 +148,11 @@ export default function JobDetailPage() {
 
           {job.status === "open" && !showApply && (
             <button
-              onClick={() => setShowApply(true)}
-              className="mt-8 w-full rounded-xl bg-slate-900 py-3.5 text-sm font-semibold text-white hover:bg-slate-700 transition"
+              onClick={handleOpenApply}
+              className="mt-8 w-full rounded-xl bg-slate-900 py-3.5 text-sm font-semibold text-white hover:bg-slate-700 transition flex items-center justify-center gap-2 shadow-sm"
             >
-              Apply for this Position
+              {!userInfo ? <LogIn className="w-4 h-4 text-amber-400" /> : null}
+              {userInfo ? "Apply for this Position" : "Log In to Apply for this Position"}
             </button>
           )}
 
