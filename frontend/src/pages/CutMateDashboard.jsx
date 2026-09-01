@@ -286,12 +286,12 @@ const CutMateDashboard = () => {
                </div>
 
                <div className="flex flex-wrap gap-3">
-                 <button className="bg-purple-600 hover:bg-purple-700 text-white text-xs px-5 py-2.5 rounded-full font-semibold transition">
+                 <Link to="/jobs" className="bg-purple-600 hover:bg-purple-700 text-white text-xs px-5 py-2.5 rounded-full font-semibold transition inline-flex items-center justify-center">
                    Join as Barber
-                 </button>
-                 <button className="bg-transparent border border-white/20 hover:bg-white/5 text-white text-xs px-5 py-2.5 rounded-full font-semibold transition">
+                 </Link>
+                 <Link to="/jobs" className="bg-transparent border border-white/20 hover:bg-white/5 text-white text-xs px-5 py-2.5 rounded-full font-semibold transition inline-flex items-center justify-center">
                    Learn More
-                 </button>
+                 </Link>
                </div>
              </div>
              

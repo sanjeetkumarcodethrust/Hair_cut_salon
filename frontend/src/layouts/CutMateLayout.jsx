@@ -77,21 +77,18 @@ const CutMateLayout = () => {
         </nav>
 
         {/* Become a Barber Banner */}
-        <div className="mt-10 rounded-2xl bg-gradient-to-br from-indigo-900 to-purple-900 p-4 relative overflow-hidden">
+        <Link
+          to="/jobs"
+          className="mt-10 rounded-2xl bg-gradient-to-br from-indigo-900 to-purple-900 p-4 relative overflow-hidden block group hover:from-indigo-800 hover:to-purple-800 transition"
+        >
           <div className="relative z-10">
-            <h4 className="text-sm font-semibold mb-1">Become a Barber</h4>
-            <p className="text-xs text-indigo-200 mb-3">Join thousands of barbers</p>
+            <h4 className="text-sm font-semibold mb-1 text-white">Become a Barber</h4>
+            <p className="text-xs text-indigo-200 mb-3">Join top salons & apply for job opportunities</p>
             <div className="flex items-center gap-2">
-              <div className="flex -space-x-2">
-                <div className="w-6 h-6 rounded-full bg-slate-300 border border-indigo-900" />
-                <div className="w-6 h-6 rounded-full bg-slate-400 border border-indigo-900" />
-                <div className="w-6 h-6 rounded-full bg-slate-500 border border-indigo-900" />
-              </div>
-              <span className="text-xs font-semibold">+5K</span>
+              <span className="text-xs font-semibold text-amber-400 group-hover:underline">Explore Barber Vacancies →</span>
             </div>
           </div>
-          <button className="absolute top-3 right-3 text-indigo-300 hover:text-white">✕</button>
-        </div>
+        </Link>
       </aside>
 
       {/* Main Content Area */}
