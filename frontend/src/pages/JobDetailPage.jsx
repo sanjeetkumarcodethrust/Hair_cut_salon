@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MapPin, Briefcase, Clock, IndianRupee, Users, ChevronLeft, Loader2, Upload, X } from "lucide-react";
 import api from "../services/api";
@@ -43,13 +43,14 @@ export default function JobDetailPage() {
     try {
       const fd = new FormData();
       fd.append("resume", resumeFile);
-      fd.append("experience", experience);
-      fd.append("coverLetter", coverLetter);
+      fd.append("experience", experience || 0);
+      fd.append("coverLetter", coverLetter || "");
       await api.post(`/applications/${id}/apply`, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success("Application submitted successfully!");
       setShowApply(false);
+      navigate("/my-applications");
     } catch (err) {
       toast.error(err.response?.data?.message || err.customMessage || "Application failed.");
     } finally {
@@ -136,7 +137,10 @@ export default function JobDetailPage() {
           {showApply && (
             <form onSubmit={handleApply} className="mt-8 space-y-5 border-t border-slate-100 pt-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-900">Submit Application</h2>
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900">Submit Barber Application</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Fill out your experience, cover letter, and attach your resume.</p>
+                </div>
                 <button type="button" onClick={() => setShowApply(false)} className="text-slate-400 hover:text-slate-700">
                   <X className="w-5 h-5" />
                 </button>
@@ -147,42 +151,67 @@ export default function JobDetailPage() {
                 <label className="block text-sm font-medium text-slate-700 mb-2">Resume (PDF) *</label>
                 <div
                   onClick={() => fileRef.current?.click()}
-                  className="flex items-center gap-3 cursor-pointer rounded-xl border-2 border-dashed border-slate-200 px-4 py-4 hover:border-primary transition"
+                  className="flex items-center gap-3 cursor-pointer rounded-xl border-2 border-dashed border-slate-200 px-4 py-4 hover:border-primary transition bg-slate-50/50"
                 >
                   <Upload className="w-5 h-5 text-slate-400" />
-                  <span className="text-sm text-slate-500">
+                  <span className="text-sm text-slate-600 font-medium">
                     {resumeFile ? resumeFile.name : "Click to upload your resume (PDF, max 5MB)"}
                   </span>
                 </div>
                 <input ref={fileRef} type="file" accept=".pdf" className="hidden" onChange={(e) => setResumeFile(e.target.files[0])} />
               </div>
 
-              {/* Experience */}
+              {/* Experience Field */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Years of Experience</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="50"
-                  value={experience}
-                  onChange={(e) => setExperience(e.target.value)}
-                  placeholder="e.g. 3"
-                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Years of Experience <span className="text-slate-400 text-xs font-normal">(in barbering / hair styling)</span>
+                </label>
+                <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                  <input
+                    type="number"
+                    min="0"
+                    max="50"
+                    value={experience}
+                    onChange={(e) => setExperience(e.target.value)}
+                    placeholder="e.g. 3"
+                    className="w-full sm:w-36 rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    {[1, 2, 3, 5, 8].map((years) => (
+                      <button
+                        key={years}
+                        type="button"
+                        onClick={() => setExperience(String(years))}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition ${
+                          String(experience) === String(years)
+                            ? "bg-slate-900 text-white border-slate-900"
+                            : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                        }`}
+                      >
+                        {years} {years === 1 ? 'Year' : 'Years'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
-              {/* Cover Letter */}
+              {/* Cover Letter Field */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Cover Letter (optional)</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Cover Letter / Proposal <span className="text-slate-400 text-xs font-normal">(optional)</span>
+                </label>
                 <textarea
                   value={coverLetter}
                   onChange={(e) => setCoverLetter(e.target.value)}
                   rows={5}
                   maxLength={1000}
-                  placeholder="Tell the employer why you are a great fit..."
+                  placeholder="Introduce yourself, mention your key haircut/beard styling skills, specializations, availability, and why you would be a great fit for this salon..."
                   className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                 />
-                <p className="mt-1 text-xs text-slate-400 text-right">{coverLetter.length}/1000</p>
+                <div className="mt-1 flex items-center justify-between text-xs text-slate-400">
+                  <span>Explain why you are the ideal barber candidate</span>
+                  <span>{coverLetter.length}/1000</span>
+                </div>
               </div>
 
               <div className="flex gap-3 pt-2">
@@ -190,7 +219,7 @@ export default function JobDetailPage() {
                   Cancel
                 </button>
                 <button type="submit" disabled={submitting} className="flex-[2] rounded-xl bg-slate-900 py-3 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-60 transition">
-                  {submitting ? <span className="flex items-center justify-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />Submitting...</span> : "Submit Application"}
+                  {submitting ? <span className="flex items-center justify-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />Submitting Application...</span> : "Submit Application"}
                 </button>
               </div>
             </form>

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Briefcase, MapPin, Clock, ChevronRight } from "lucide-react";
 import api from "../services/api";
@@ -77,8 +77,12 @@ export default function BarberApplicationsPage() {
                       {app.jobId?.jobType && (
                         <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" />{app.jobId.jobType}</span>
                       )}
+                      {app.experience !== undefined && app.experience !== null && (
+                        <span className="flex items-center gap-1 font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
+                          <Clock className="w-3 h-3 text-slate-500" /> {app.experience} {app.experience === 1 ? 'year' : 'years'} experience
+                        </span>
+                      )}
                       <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
                         Applied {new Date(app.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                       </span>
                     </div>
@@ -89,9 +93,9 @@ export default function BarberApplicationsPage() {
                 </div>
 
                 {app.coverLetter && (
-                  <div className="mt-4 rounded-xl bg-slate-50 px-4 py-3">
-                    <p className="text-xs font-medium text-slate-500 mb-1">Your Cover Letter</p>
-                    <p className="text-sm text-slate-700 line-clamp-3">{app.coverLetter}</p>
+                  <div className="mt-4 rounded-xl bg-slate-50 border border-slate-100 p-3.5">
+                    <p className="text-xs font-semibold text-slate-500 mb-1">Your Submitted Cover Letter:</p>
+                    <p className="text-sm text-slate-700 whitespace-pre-line">{app.coverLetter}</p>
                   </div>
                 )}
 
