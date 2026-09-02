@@ -27,24 +27,37 @@ const seedSalons = async () => {
       {
         owner: owner._id,
         name: 'Lakme Salon Marunji',
-        description: 'Premium hair cutting and styling services.',
+        description: 'Premium hair cutting, styling, and luxury grooming services.',
         address: 'Laxmi Chowk, Marunji Village',
         city: 'Pune',
         state: 'Maharashtra',
         phone: '9876543211',
+        rating: 4.8,
+        totalReviews: 124,
+        images: [
+          'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=800&q=80',
+        ],
         services: [
           { name: 'Men Haircut', description: 'Classic men haircut', price: 200, duration: 30 },
           { name: 'Women Haircut', description: 'Stylish women haircut', price: 500, duration: 45 },
+          { name: 'Hair Spa', description: 'Nourishing hair spa treatment', price: 800, duration: 60 },
         ],
       },
       {
         owner: owner._id,
         name: 'Style Studio Unisex Salon',
-        description: 'Best unisex salon in Laxmi Chowk for all hair needs.',
+        description: 'Best unisex salon in Laxmi Chowk for modern styling and hair color.',
         address: 'Near Life Republic, Marunji Road',
         city: 'Pune',
         state: 'Maharashtra',
         phone: '9876543212',
+        rating: 4.6,
+        totalReviews: 98,
+        images: [
+          'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&w=800&q=80',
+        ],
         services: [
           { name: 'Haircut', description: 'Basic Haircut', price: 150, duration: 30 },
           { name: 'Hair Coloring', description: 'Global hair color', price: 1500, duration: 120 },
@@ -53,13 +66,77 @@ const seedSalons = async () => {
       {
         owner: owner._id,
         name: 'The Grooming Room',
-        description: 'Specialized in hair cuts and beard grooming.',
+        description: 'Specialized in precision hair cuts, hot towel shaves, and beard grooming.',
         address: 'Hinjewadi - Marunji Link Road, Laxmi Chowk',
         city: 'Pune',
         state: 'Maharashtra',
         phone: '9876543213',
+        rating: 4.7,
+        totalReviews: 85,
+        images: [
+          'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=800&q=80',
+        ],
         services: [
           { name: 'Haircut & Beard', description: 'Combo styling', price: 300, duration: 45 },
+          { name: 'Beard Trimming', description: 'Precision shape up', price: 150, duration: 20 },
+        ],
+      },
+      {
+        owner: owner._id,
+        name: 'Urban Cuts & Shave Lounge',
+        description: 'Trendy barbershop offering modern fade cuts, beard design, and facial care.',
+        address: 'Phase 1, Hinjewadi IT Park',
+        city: 'Pune',
+        state: 'Maharashtra',
+        phone: '9876543214',
+        rating: 4.9,
+        totalReviews: 142,
+        images: [
+          'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=800&q=80',
+        ],
+        services: [
+          { name: 'Fade Haircut', description: 'Skin fade with sharp outline', price: 250, duration: 35 },
+          { name: 'Charcoal Facial', description: 'Deep cleansing facial', price: 600, duration: 40 },
+        ],
+      },
+      {
+        owner: owner._id,
+        name: 'Vogue Hair & Beauty Spa',
+        description: 'Luxury styling lounge specializing in hair keratin, treatments, and bridal makeups.',
+        address: 'Bhakti Plaza, Marunji Road',
+        city: 'Pune',
+        state: 'Maharashtra',
+        phone: '9876543215',
+        rating: 4.8,
+        totalReviews: 110,
+        images: [
+          'https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=80',
+        ],
+        services: [
+          { name: 'Keratin Treatment', description: 'Smooth hair shine', price: 2500, duration: 150 },
+          { name: 'Head Massage', description: 'Relaxing hot oil massage', price: 350, duration: 30 },
+        ],
+      },
+      {
+        owner: owner._id,
+        name: 'Classic Gentlemen Barber Shop',
+        description: 'Authentic vintage barbershop experience with premium grooming products.',
+        address: 'Near Laxmi Chowk Bus Stop, Marunji',
+        city: 'Pune',
+        state: 'Maharashtra',
+        phone: '9876543216',
+        rating: 4.7,
+        totalReviews: 76,
+        images: [
+          'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80',
+        ],
+        services: [
+          { name: 'Classic Haircut', description: 'Traditional scissor cut', price: 180, duration: 30 },
+          { name: 'Royal Hot Towel Shave', description: 'Luxury shave experience', price: 200, duration: 25 },
         ],
       },
     ]);
@@ -107,7 +184,7 @@ const seedSalons = async () => {
     ];
 
     await Job.insertMany(jobs);
-    console.log('Salons and Barber Jobs seeded successfully!');
+    console.log('Salons with photos and Barber Jobs seeded successfully!');
     process.exit();
   } catch (error) {
     console.error('Error seeding data:', error);

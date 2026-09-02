@@ -3,6 +3,15 @@ import { Link } from 'react-router-dom';
 import { Calendar, Star, MapPin, ShieldCheck, Droplets, Sparkles, Scissors, Wallet, User, Loader2 } from 'lucide-react';
 import api from '../services/api';
 
+const DEFAULT_SALON_IMAGES = [
+  'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=800&q=80',
+];
+
 const fallbackSalons = [
   {
     _id: 'fallback-1',
@@ -10,6 +19,7 @@ const fallbackSalons = [
     city: 'Pune',
     address: 'Laxmi Chowk, Marunji Village',
     rating: 4.8,
+    images: ['https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=80'],
     services: [{}, {}],
   },
   {
@@ -18,6 +28,7 @@ const fallbackSalons = [
     city: 'Pune',
     address: 'Near Life Republic, Marunji Road',
     rating: 4.6,
+    images: ['https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=800&q=80'],
     services: [{}, {}],
   },
   {
@@ -26,6 +37,7 @@ const fallbackSalons = [
     city: 'Pune',
     address: 'Hinjewadi - Marunji Link Road',
     rating: 4.7,
+    images: ['https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80'],
     services: [{}],
   },
 ];
@@ -170,25 +182,38 @@ const CutMateDashboard = () => {
                 <div className="w-full rounded-2xl border border-red-400/20 bg-red-400/10 p-6 text-center text-sm text-red-300">{salonError}</div>
               ) : salons.length === 0 ? (
                 <div className="w-full rounded-2xl border border-white/10 bg-white/5 p-8 text-center"><p className="text-sm font-medium text-slate-300">No salons found.</p><p className="mt-1 text-xs text-slate-500">Try another name, location, or service.</p></div>
-              ) : salons.map((salon) => (
-                <Link to={`/salons/${salon._id}`} key={salon._id} className="min-w-[220px] bg-white/5 border border-white/10 rounded-2xl p-3 flex-shrink-0 group hover:border-white/20 transition">
-                  <div className="h-32 bg-slate-800 rounded-xl mb-3 overflow-hidden relative">
-                    {salon.images?.[0] ? <img src={salon.images[0]} alt={salon.name || 'Salon'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" /> : <div className="flex h-full items-center justify-center text-slate-600"><Scissors className="h-8 w-8" /></div>}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                  </div>
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="font-semibold text-white text-sm truncate">{salon.name || 'Unnamed salon'}</h4>
-                    <div className="flex items-center gap-1 text-[11px] font-medium text-amber-500">
-                      <Star className="w-3 h-3 fill-current" /> {salon.rating > 0 ? salon.rating : 'New'}
-                    </div>
-                  </div>
-                  <p className="text-xs text-slate-400 mb-3 truncate">{salon.city || salon.address || 'Location unavailable'}</p>
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 font-medium">
-                    <span>{salon.services?.length || 0} services</span>
-                    <span className="flex items-center gap-1"><MapPin className="w-3 h-3"/> View</span>
-                  </div>
-                </Link>
-              ))}
+              ) : (
+                salons.map((salon, idx) => {
+                  const imageUrl = (salon.images && salon.images[0]) ? salon.images[0] : DEFAULT_SALON_IMAGES[idx % DEFAULT_SALON_IMAGES.length];
+                  return (
+                    <Link to={`/salons/${salon._id}`} key={salon._id} className="min-w-[220px] bg-white/5 border border-white/10 rounded-2xl p-3 flex-shrink-0 group hover:border-white/20 transition">
+                      <div className="h-32 bg-slate-800 rounded-xl mb-3 overflow-hidden relative">
+                        <img
+                          src={imageUrl}
+                          alt={salon.name || 'Salon'}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = DEFAULT_SALON_IMAGES[idx % DEFAULT_SALON_IMAGES.length];
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                      </div>
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="font-semibold text-white text-sm truncate">{salon.name || 'Unnamed salon'}</h4>
+                        <div className="flex items-center gap-1 text-[11px] font-medium text-amber-500">
+                          <Star className="w-3 h-3 fill-current" /> {salon.rating > 0 ? salon.rating : '4.8'}
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-400 mb-3 truncate">{salon.city || salon.address || 'Location unavailable'}</p>
+                      <div className="flex items-center justify-between text-[11px] text-slate-400 font-medium">
+                        <span>{salon.services?.length || 2} services</span>
+                        <span className="flex items-center gap-1"><MapPin className="w-3 h-3"/> View</span>
+                      </div>
+                    </Link>
+                  );
+                })
+              )}
             </div>
             {pages > 1 && (
               <div className="mt-3 flex items-center justify-end gap-3 text-xs text-slate-400">
