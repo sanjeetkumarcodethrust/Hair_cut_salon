@@ -175,40 +175,42 @@ const CutMateDashboard = () => {
               <h3 className="text-lg font-semibold text-white">Trending Salons Near You</h3>
               <Link to="/salons" className="text-sm font-semibold text-purple-400 hover:text-purple-300">View all</Link>
             </div>
-            <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {loadingSalons ? (
-                <div className="flex w-full items-center justify-center gap-2 py-12 text-sm text-slate-400"><Loader2 className="h-5 w-5 animate-spin" />Loading salons...</div>
+                <div className="col-span-full flex items-center justify-center gap-2 py-12 text-sm text-slate-400"><Loader2 className="h-5 w-5 animate-spin" />Loading salons...</div>
               ) : salonError ? (
-                <div className="w-full rounded-2xl border border-red-400/20 bg-red-400/10 p-6 text-center text-sm text-red-300">{salonError}</div>
+                <div className="col-span-full rounded-2xl border border-red-400/20 bg-red-400/10 p-6 text-center text-sm text-red-300">{salonError}</div>
               ) : salons.length === 0 ? (
-                <div className="w-full rounded-2xl border border-white/10 bg-white/5 p-8 text-center"><p className="text-sm font-medium text-slate-300">No salons found.</p><p className="mt-1 text-xs text-slate-500">Try another name, location, or service.</p></div>
+                <div className="col-span-full rounded-2xl border border-white/10 bg-white/5 p-8 text-center"><p className="text-sm font-medium text-slate-300">No salons found.</p><p className="mt-1 text-xs text-slate-500">Try another name, location, or service.</p></div>
               ) : (
                 salons.map((salon, idx) => {
                   const imageUrl = (salon.images && salon.images[0]) ? salon.images[0] : DEFAULT_SALON_IMAGES[idx % DEFAULT_SALON_IMAGES.length];
                   return (
-                    <Link to={`/salons/${salon._id}`} key={salon._id} className="min-w-[220px] bg-white/5 border border-white/10 rounded-2xl p-3 flex-shrink-0 group hover:border-white/20 transition">
-                      <div className="h-32 bg-slate-800 rounded-xl mb-3 overflow-hidden relative">
-                        <img
-                          src={imageUrl}
-                          alt={salon.name || 'Salon'}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = DEFAULT_SALON_IMAGES[idx % DEFAULT_SALON_IMAGES.length];
-                          }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                      </div>
-                      <div className="flex items-center justify-between mb-1">
-                        <h4 className="font-semibold text-white text-sm truncate">{salon.name || 'Unnamed salon'}</h4>
-                        <div className="flex items-center gap-1 text-[11px] font-medium text-amber-500">
-                          <Star className="w-3 h-3 fill-current" /> {salon.rating > 0 ? salon.rating : '4.8'}
+                    <Link to={`/salons/${salon._id}`} key={salon._id} className="bg-white/5 border border-white/10 rounded-2xl p-3 group hover:border-white/20 transition flex flex-col justify-between">
+                      <div>
+                        <div className="h-36 bg-slate-800 rounded-xl mb-3 overflow-hidden relative">
+                          <img
+                            src={imageUrl}
+                            alt={salon.name || 'Salon'}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = DEFAULT_SALON_IMAGES[idx % DEFAULT_SALON_IMAGES.length];
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                         </div>
+                        <div className="flex items-center justify-between mb-1">
+                          <h4 className="font-semibold text-white text-sm truncate">{salon.name || 'Unnamed salon'}</h4>
+                          <div className="flex items-center gap-1 text-[11px] font-medium text-amber-500 flex-shrink-0">
+                            <Star className="w-3 h-3 fill-current" /> {salon.rating > 0 ? salon.rating : '4.8'}
+                          </div>
+                        </div>
+                        <p className="text-xs text-slate-400 mb-3 truncate">{salon.city || salon.address || 'Location unavailable'}</p>
                       </div>
-                      <p className="text-xs text-slate-400 mb-3 truncate">{salon.city || salon.address || 'Location unavailable'}</p>
-                      <div className="flex items-center justify-between text-[11px] text-slate-400 font-medium">
+                      <div className="flex items-center justify-between text-[11px] text-slate-400 font-medium border-t border-white/5 pt-2">
                         <span>{salon.services?.length || 2} services</span>
-                        <span className="flex items-center gap-1"><MapPin className="w-3 h-3"/> View</span>
+                        <span className="flex items-center gap-1 text-purple-400 font-semibold"><MapPin className="w-3 h-3"/> View</span>
                       </div>
                     </Link>
                   );
