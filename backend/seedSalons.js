@@ -27,6 +27,7 @@ const seedSalons = async () => {
       {
         owner: owner._id,
         name: 'Lakme Salon Marunji',
+        location: { type: 'Point', coordinates: [73.7381, 18.5991] },
         description: 'Premium hair cutting, styling, and luxury grooming services.',
         address: 'Laxmi Chowk, Marunji Village',
         city: 'Pune',
@@ -47,6 +48,8 @@ const seedSalons = async () => {
       {
         owner: owner._id,
         name: 'Style Studio Unisex Salon',
+        activeOffer: { title: '10% OFF Color', isActive: true, discountValue: '10%' },
+        location: { type: 'Point', coordinates: [73.7402, 18.5975] },
         description: 'Best unisex salon in Laxmi Chowk for modern styling and hair color.',
         address: 'Near Life Republic, Marunji Road',
         city: 'Pune',
@@ -66,6 +69,7 @@ const seedSalons = async () => {
       {
         owner: owner._id,
         name: 'The Grooming Room',
+        location: { type: 'Point', coordinates: [73.7431, 18.6010] },
         description: 'Specialized in precision hair cuts, hot towel shaves, and beard grooming.',
         address: 'Hinjewadi - Marunji Link Road, Laxmi Chowk',
         city: 'Pune',
@@ -85,6 +89,8 @@ const seedSalons = async () => {
       {
         owner: owner._id,
         name: 'Urban Cuts & Shave Lounge',
+        activeOffer: { title: '20% OFF Fade', isActive: true, discountValue: '20%' },
+        location: { type: 'Point', coordinates: [73.7350, 18.5950] },
         description: 'Trendy barbershop offering modern fade cuts, beard design, and facial care.',
         address: 'Phase 1, Hinjewadi IT Park',
         city: 'Pune',
@@ -104,6 +110,7 @@ const seedSalons = async () => {
       {
         owner: owner._id,
         name: 'Vogue Hair & Beauty Spa',
+        location: { type: 'Point', coordinates: [73.7420, 18.5980] },
         description: 'Luxury styling lounge specializing in hair keratin, treatments, and bridal makeups.',
         address: 'Bhakti Plaza, Marunji Road',
         city: 'Pune',
@@ -123,6 +130,7 @@ const seedSalons = async () => {
       {
         owner: owner._id,
         name: 'Classic Gentlemen Barber Shop',
+        location: { type: 'Point', coordinates: [73.7390, 18.5960] },
         description: 'Authentic vintage barbershop experience with premium grooming products.',
         address: 'Near Laxmi Chowk Bus Stop, Marunji',
         city: 'Pune',

@@ -40,6 +40,18 @@ const barberProfileSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    status: {
+      type: String,
+      enum: ['active', 'inactive', 'onLeave', 'offline'],
+      default: 'active'
+    },
+    breaks: [
+      {
+        day: String,
+        start: String, // e.g. "14:00"
+        end: String    // e.g. "15:00"
+      }
+    ],
     availability: {
       monday: { start: String, end: String, isWorking: { type: Boolean, default: false } },
       tuesday: { start: String, end: String, isWorking: { type: Boolean, default: false } },

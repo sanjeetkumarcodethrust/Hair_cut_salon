@@ -1,5 +1,7 @@
 import express from 'express';
 import {
+  createInstantBooking,
+  createScheduledBooking,
   createAppointment,
   getMyAppointments,
   getAppointment,
@@ -20,6 +22,8 @@ const router = express.Router();
 
 // Book appointment
 router.post('/', protect, createAppointment);
+router.post('/instant', protect, createInstantBooking);
+router.post('/scheduled', protect, createScheduledBooking);
 
 // Payments
 router.post('/checkout', protect, authorize('customer'), createCheckoutSession);

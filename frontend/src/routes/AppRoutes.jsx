@@ -32,6 +32,8 @@ import JobDetailPage from '../pages/JobDetailPage.jsx';
 import PostJobPage from '../pages/PostJobPage.jsx';
 import OwnerJobsPage from '../pages/OwnerJobsPage.jsx';
 import BarberApplicationsPage from '../pages/BarberApplicationsPage.jsx';
+import BookingHistory from '../pages/BookingHistory.jsx';
+import BookingDetails from '../pages/BookingDetails.jsx';
 
 const AppRoutes = () => (
   <Router>
@@ -46,6 +48,8 @@ const AppRoutes = () => (
         <Route path="barbers" element={<SearchBarbers />} />
         <Route path="barbers/:id" element={<BarberProfile />} />
         <Route path="bookings/new" element={<BookingPage />} />
+        <Route path="bookings" element={<BookingHistory />} />
+        <Route path="bookings/:id" element={<BookingDetails />} />
         <Route path="jobs" element={<JobsListPage />} />
         <Route path="jobs/post" element={<PostJobPage />} />
         <Route path="jobs/:id" element={<JobDetailPage />} />
@@ -65,7 +69,7 @@ const AppRoutes = () => (
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Route>
-      {/* Standalone payment pages — no layout wrapper */}
+      {/* Standalone payment pages - no layout wrapper */}
       <Route path="/payments/success" element={<PaymentSuccess />} />
       <Route path="/payments/cancel" element={<PaymentCancel />} />
     </Routes>

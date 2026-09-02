@@ -16,6 +16,14 @@ const serviceSchema = new mongoose.Schema({
   duration: {
     type: Number, // in minutes
     required: true,
+  },
+  category: {
+    type: String,
+    default: 'Other'
+  },
+  isActive: {
+    type: Boolean,
+    default: true
   }
 });
 
@@ -87,6 +95,15 @@ const salonSchema = new mongoose.Schema(
     totalReviews: {
       type: Number,
       default: 0,
+    },
+    activeOffer: {
+      title: String,
+      isActive: {
+        type: Boolean,
+        default: false
+      },
+      discountValue: String,
+      validUntil: Date
     },
   },
   {

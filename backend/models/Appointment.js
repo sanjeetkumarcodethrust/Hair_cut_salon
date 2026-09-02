@@ -11,6 +11,16 @@ const appointmentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'BarberProfile',
     },
+    chair: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Chair',
+    },
+    startTime: {
+      type: Date,
+    },
+    endTime: {
+      type: Date,
+    },
     salon: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Salon',
@@ -31,6 +41,19 @@ const appointmentSchema = new mongoose.Schema(
     },
     price: {
       type: Number,
+      required: true,
+    },
+    bookingType: {
+      type: String,
+      enum: ['instant', 'scheduled'],
+      default: 'instant',
+    },
+    snapshots: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {}
+    },
+    serviceId: {
+      type: mongoose.Schema.Types.ObjectId,
       required: true,
     },
     status: {
@@ -64,5 +87,11 @@ const appointmentSchema = new mongoose.Schema(
   }
 );
 
+
+appointmentSchema.index({ salon: 1, status: 1, startTime: 1, endTime: 1 });
+appointmentSchema.index({ customer: 1, date: -1 });
+appointmentSchema.index({ barber: 1, status: 1, startTime: 1 });
+
 const Appointment = mongoose.model('Appointment', appointmentSchema);
+
 export default Appointment;

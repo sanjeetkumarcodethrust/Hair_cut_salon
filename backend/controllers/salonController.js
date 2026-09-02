@@ -1,4 +1,6 @@
+import { calculateRelevance } from '../services/relevanceService.js';
 import Salon from '../models/Salon.js';
+import Review from '../models/Review.js';
 
 // @desc    Get all salons with search/filter/pagination
 // @route   GET /api/salons?search=&city=&service=&minRating=&page=&limit=
@@ -74,26 +76,69 @@ export const getSalons = async (req, res) => {
   }
 };
 
-// @desc    Get single salon
-// @route   GET /api/salons/:id
+// @desc    Get single salon with profile data (distance, reviews)
+// @route   GET /api/salons/:id?latitude=&longitude=
 // @access  Public
 export const getSalon = async (req, res) => {
   try {
-    const salon = await Salon.findById(req.params.id).populate('owner', 'name email');
+    const { latitude, longitude } = req.query;
+    
+    // Use lean() for easier manipulation if needed, or just convert to object later.
+    const salonDoc = await Salon.findById(req.params.id).populate('owner', 'name email');
 
-    if (!salon) {
-      return res.status(404).json({ success: false, message: 'Salon not found' });
+    if (!salonDoc) {
+      return res.status(404).json({ success: false, message: 'Shop not found' });
     }
+    
+    const salon = salonDoc.toObject();
+
+    // 1. Calculate Starting Price
+    let startingPrice = null;
+    if (salon.services && salon.services.length > 0) {
+      startingPrice = Math.min(...salon.services.map(s => s.price));
+    }
+    salon.startingPrice = startingPrice;
+    salon.currency = 'INR';
+
+    // 2. Calculate Distance if user location provided
+    if (latitude && longitude && salon.location?.coordinates) {
+      const lat1 = parseFloat(latitude);
+      const lon1 = parseFloat(longitude);
+      const lon2 = salon.location.coordinates[0];
+      const lat2 = salon.location.coordinates[1];
+      
+      // Haversine formula
+      const R = 6371e3; // metres
+      const phi1 = lat1 * Math.PI/180; // φ, λ in radians
+      const phi2 = lat2 * Math.PI/180;
+      const deltaPhi = (lat2-lat1) * Math.PI/180;
+      const deltaLambda = (lon2-lon1) * Math.PI/180;
+
+      const a = Math.sin(deltaPhi/2) * Math.sin(deltaPhi/2) +
+                Math.cos(phi1) * Math.cos(phi2) *
+                Math.sin(deltaLambda/2) * Math.sin(deltaLambda/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+      salon.distanceMeters = R * c; // in metres
+    }
+
+    // 3. Fetch Preview Reviews (e.g. latest 5)
+    const reviews = await Review.find({ salon: salon._id })
+      .populate('customer', 'name profilePic')
+      .sort({ createdAt: -1 })
+      .limit(5);
+      
+    salon.reviewsPreview = reviews;
 
     res.status(200).json({ success: true, data: salon });
   } catch (error) {
+    if (error.kind === 'ObjectId') {
+       return res.status(404).json({ success: false, message: 'Shop not found' });
+    }
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// @desc    Create new salon
-// @route   POST /api/salons
-// @access  Private/Owner, Admin
 export const createSalon = async (req, res) => {
   try {
     const newSalon = new Salon({
@@ -162,30 +207,194 @@ export const deleteSalon = async (req, res) => {
   }
 };
 
-// @desc    Get salons within a radius
-// @route   GET /api/salons/nearby?lat=&lng=&distance=
+// @desc    Get salons within a radius (Smart Search & Relevance)
+// @route   GET /api/salons/nearby?latitude=&longitude=&radius=&search=&sort=&page=&limit=
 // @access  Public
+
+
 export const getNearbySalons = async (req, res) => {
   try {
-    const { lat, lng, distance = 10 } = req.query; // distance in km
+    const { 
+      latitude, longitude, radius = 5000, 
+      search = '', sort = 'relevance', 
+      page = 1, limit = 10,
+      minPrice, maxPrice, minRating, offersOnly
+    } = req.query;
 
-    if (!lat || !lng) {
+    if (!latitude || !longitude) {
       return res.status(400).json({ success: false, message: 'Please provide latitude and longitude' });
     }
 
-    // Convert distance to radians (Earth radius = 6371 km)
-    const radius = parseFloat(distance) / 6371;
+    const lat = parseFloat(latitude);
+    const lng = parseFloat(longitude);
+    let rad = radius === 'any' ? 100000 : parseFloat(radius);
 
-    const salons = await Salon.find({
-      location: {
-        $geoWithin: { $centerSphere: [[parseFloat(lng), parseFloat(lat)], radius] },
-      },
+    if (isNaN(lat) || isNaN(lng) || isNaN(rad) || rad <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid location parameters' });
+    }
+
+    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+    const limitNum = Math.min(parseInt(limit, 10) || 10, 50);
+    const skip = (pageNum - 1) * limitNum;
+
+    // 1. Geospatial Candidate Search
+    const pipeline = [
+      {
+        $geoNear: {
+          near: { type: 'Point', coordinates: [lng, lat] },
+          distanceField: 'distanceMeters',
+          maxDistance: rad,
+          spherical: true,
+        },
+      }
+    ];
+
+    // 2. Add Search Matching (Text filter)
+    const searchTrimmed = search.trim();
+    if (searchTrimmed) {
+      const regex = new RegExp(searchTrimmed, 'i');
+      pipeline.push({
+        $match: {
+          $or: [
+            { name: { $regex: regex } },
+            { description: { $regex: regex } },
+            { 'services.name': { $regex: regex } },
+            { 'services.description': { $regex: regex } },
+            { city: { $regex: regex } },
+            { address: { $regex: regex } }
+          ]
+        }
+      });
+    }
+
+    // Rating Filter
+    if (minRating) {
+      const mRating = parseFloat(minRating);
+      if (!isNaN(mRating)) {
+         pipeline.push({ $match: { rating: { $gte: mRating } } });
+      }
+    }
+
+    // Offers Filter
+    if (offersOnly === 'true') {
+       pipeline.push({ $match: { "activeOffer.isActive": true } });
+    }
+
+    // Calculate starting price FIRST so we can filter by it
+    pipeline.push({
+      $addFields: {
+        startingPrice: {
+          $min: {
+            $map: {
+              input: { $ifNull: ["$services", []] },
+              as: "service",
+              in: "$$service.price"
+            }
+          }
+        },
+        currency: "INR"
+      }
     });
+
+    // Price Filter (After starting price is calculated)
+    const priceMatch = {};
+    if (minPrice) {
+      const minP = parseFloat(minPrice);
+      if (!isNaN(minP)) priceMatch['$gte'] = minP;
+    }
+    if (maxPrice) {
+      const maxP = parseFloat(maxPrice);
+      if (!isNaN(maxP)) priceMatch['$lte'] = maxP;
+    }
+    
+    if (Object.keys(priceMatch).length > 0) {
+      pipeline.push({ $match: { startingPrice: priceMatch } });
+    }
+
+    // Run pipeline
+    const candidates = await Salon.aggregate(pipeline);
+    
+    // 3. Normalize Ranking Signals & Calculate Relevance
+    let scoredCandidates = calculateRelevance(candidates, searchTrimmed);
+
+    // 4. Sort
+    if (sort === 'distance') {
+      scoredCandidates.sort((a, b) => a.distanceMeters - b.distanceMeters || b.rating - a.rating);
+    } else if (sort === 'rating') {
+      scoredCandidates.sort((a, b) => b.rating - a.rating || b.totalReviews - a.totalReviews || a.distanceMeters - b.distanceMeters);
+    } else if (sort === 'priceAsc') {
+      scoredCandidates.sort((a, b) => a.startingPrice - b.startingPrice || b.rating - a.rating || a.distanceMeters - b.distanceMeters);
+    } else if (sort === 'priceDesc') {
+      scoredCandidates.sort((a, b) => b.startingPrice - a.startingPrice || b.rating - a.rating || a.distanceMeters - b.distanceMeters);
+    } else {
+      // Default: relevance
+      scoredCandidates.sort((a, b) => b.relevanceScore - a.relevanceScore);
+    }
+
+    // 5. Pagination
+    const total = scoredCandidates.length;
+    const paginatedSalons = scoredCandidates.slice(skip, skip + limitNum);
+    
+    // Populate owner info
+    await Salon.populate(paginatedSalons, { path: 'owner', select: 'name email' });
+
+    const hasMore = (skip + paginatedSalons.length) < total;
+
+    const appliedFilters = {
+      radius: rad, minPrice, maxPrice, minRating, offersOnly, search, sort
+    };
 
     res.status(200).json({
       success: true,
-      count: salons.length,
-      data: salons,
+      count: paginatedSalons.length,
+      total,
+      page: pageNum,
+      pages: Math.ceil(total / limitNum),
+      hasMore,
+      appliedFilters,
+      data: paginatedSalons,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+import { getAvailableSlots } from '../services/availabilityService.js';
+
+// @desc    Get real-time availability for a shop
+// @route   GET /api/salons/:id/availability?date=&serviceId=
+// @access  Public
+export const getShopAvailability = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { date, serviceId, excludeBookingId } = req.query;
+
+    if (!date || !serviceId) {
+      return res.status(400).json({ success: false, message: 'Date and serviceId are required' });
+    }
+
+    const shop = await Salon.findById(id).lean();
+    if (!shop) {
+      return res.status(404).json({ success: false, message: 'Shop not found' });
+    }
+
+    // Find the requested service inside the shop
+    const service = shop.services.find(s => s._id.toString() === serviceId);
+    if (!service) {
+      return res.status(404).json({ success: false, message: 'Service not found in this shop' });
+    }
+
+    const slots = await getAvailableSlots(id, date, service, 'Asia/Kolkata', excludeBookingId);
+
+    res.status(200).json({
+      success: true,
+      shopId: id,
+      date,
+      service: {
+        id: service._id,
+        name: service.name,
+        duration: service.duration
+      },
+      slots
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

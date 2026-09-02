@@ -6,6 +6,7 @@ import {
   updateSalon,
   deleteSalon,
   getNearbySalons,
+  getShopAvailability,
 } from '../controllers/salonController.js';
 import { protect, authorize } from '../middlewares/authMiddleware.js';
 import reviewRoutes from './reviewRoutes.js';
@@ -16,6 +17,7 @@ const router = express.Router();
 router.use('/:salonId/reviews', reviewRoutes);
 
 router.get('/nearby', getNearbySalons);
+router.get('/:id/availability', getShopAvailability);
 
 router
   .route('/')

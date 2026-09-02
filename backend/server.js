@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
+import { rateLimit } from 'express-rate-limit';
+
 import morgan from 'morgan';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
@@ -11,12 +13,14 @@ import authRoutes from './routes/authRoutes.js';
 import salonRoutes from './routes/salonRoutes.js';
 import barberRoutes from './routes/barberRoutes.js';
 import appointmentRoutes from './routes/appointmentRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import favoriteRoutes from './routes/favoriteRoutes.js';
 import jobRoutes from './routes/jobRoutes.js';
 import applicationRoutes from './routes/applicationRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import { notFound, errorHandler } from './middlewares/errorMiddleware.js';
+import startReminderJob from './jobs/reminderJob.js';
 import { isDatabaseConnected } from './config/db.js';
 const app = express();
 const httpServer = createServer(app);
@@ -129,10 +133,23 @@ app.use('/api', (req, res, next) => {
 });
 
 // Routes
+
+// Rate Limiter
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 100, // Limit each IP to 100 requests per `window`
+  standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  message: { success: false, message: 'Too many requests from this IP, please try again after 15 minutes' }
+});
+
+app.use('/api', apiLimiter);
+
 app.use('/api/auth', authRoutes);
 app.use('/api/salons', salonRoutes);
 app.use('/api/barbers', barberRoutes);
 app.use('/api/appointments', appointmentRoutes);
+app.use('/api/notifications', notificationRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/favorites', favoriteRoutes);
 app.use('/api/jobs', jobRoutes);
@@ -163,6 +180,7 @@ process.on('unhandledRejection', (reason) => {
 const PORT = env.port;
 
 connectDB();
+startReminderJob();
 
 httpServer.on('error', (error) => {
   if (error.code === 'EADDRINUSE') {
@@ -172,6 +190,21 @@ httpServer.on('error', (error) => {
     console.error('[Error] Server failed to start:', error.message);
   }
 });
+
+
+const gracefulShutdown = () => {
+  console.log('Received shutdown signal. Closing HTTP server...');
+  httpServer.close(() => {
+    console.log('HTTP server closed.');
+    mongoose.connection.close(false).then(() => {
+      console.log('MongoDB connection closed.');
+      process.exit(0);
+    });
+  });
+};
+
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);
 
 httpServer.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
