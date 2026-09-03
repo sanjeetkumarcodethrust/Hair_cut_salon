@@ -55,7 +55,30 @@ export const LandingPage = () => (
         </div>
       </div>
     </div>
-  </PageShell>
+  
+      
+      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
+      {selectedServiceIds.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
+           <div>
+             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
+             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
+           </div>
+           <div className="flex gap-2">
+             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
+               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
+                  Join Walk-in Queue
+               </button>
+             )}
+             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
+                Book Appointment
+             </button>
+           </div>
+        </div>
+      )}
+
+
+    </PageShell>
 );
 
 const fallbackSalons = [
@@ -555,6 +578,29 @@ export const SearchSalons = () => {
           )}
         </div>
       )}
+    
+      
+      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
+      {selectedServiceIds.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
+           <div>
+             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
+             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
+           </div>
+           <div className="flex gap-2">
+             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
+               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
+                  Join Walk-in Queue
+               </button>
+             )}
+             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
+                Book Appointment
+             </button>
+           </div>
+        </div>
+      )}
+
+
     </PageShell>
   );
 };
@@ -717,7 +763,78 @@ export const SearchBarbers = () => {
           <button type="button" disabled={page >= pages} onClick={() => fetchBarbers(page + 1)} className="rounded-xl border border-slate-200 px-4 py-2 disabled:opacity-40">Next</button>
         </div>
       )}
+    
+      
+      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
+      {selectedServiceIds.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
+           <div>
+             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
+             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
+           </div>
+           <div className="flex gap-2">
+             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
+               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
+                  Join Walk-in Queue
+               </button>
+             )}
+             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
+                Book Appointment
+             </button>
+           </div>
+        </div>
+      )}
+
+
     </PageShell>
+  );
+};
+
+
+const ReviewsList = ({ salonId }) => {
+  
+  const [isFavorite, setIsFavorite] = React.useState(false);
+
+  const [reviews, setReviews] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const res = await api.get(`/reviews/salon/${salonId}`);
+        setReviews(res.data.reviews || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReviews();
+  }, [salonId]);
+
+  if (loading) return <div className="py-4 text-slate-500">Loading reviews...</div>;
+  if (reviews.length === 0) return <div className="py-4 text-slate-500">No reviews yet.</div>;
+
+  return (
+    <div className="space-y-4">
+      {reviews.map(r => (
+        <div key={r._id} className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+          <div className="flex justify-between items-start mb-2">
+            <div>
+              <p className="font-bold text-slate-900">{r.customer?.name || 'Customer'}</p>
+              <p className="text-xs text-slate-400">{new Date(r.createdAt).toLocaleDateString()}</p>
+            </div>
+            <div className="flex gap-0.5">
+              {[1,2,3,4,5].map(s => (
+                <Star key={s} className={`w-4 h-4 ${s <= r.rating ? 'fill-amber-400 text-amber-400' : 'fill-slate-200 text-slate-200'}`} />
+              ))}
+            </div>
+          </div>
+          {r.serviceName && <p className="text-xs font-semibold text-primary mb-2">{r.serviceName}</p>}
+          {r.comment && <p className="text-sm text-slate-700">{r.comment}</p>}
+        </div>
+      ))}
+    </div>
   );
 };
 
@@ -725,12 +842,30 @@ export const SalonDetails = () => {
   const { id } = useParams();
   const { selectedLocation } = useSelector(state => state.location || {});
   
+  
   const [salon, setSalon] = React.useState(null);
+  const [liveQueue, setLiveQueue] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
+
   const [error, setError] = React.useState(null);
   
+  
+  const handleJoinQueue = async () => {
+    try {
+       await api.post('/queue/join', { shopId: id, serviceIds: selectedServiceIds });
+       toast.success('Successfully joined walk-in queue!');
+       navigate('/dashboard');
+    } catch(err) {
+       toast.error(err.response?.data?.message || 'Failed to join queue');
+    }
+  };
+
   const [searchService, setSearchService] = React.useState('');
-  const [selectedServiceId, setSelectedServiceId] = React.useState(null);
+  
+  const location = window.location;
+  const initialState = window.history.state?.usr?.selectedServiceIds || [];
+  const [selectedServiceIds, setSelectedServiceIds] = React.useState(initialState);
+
   
   // Phase 5: Availability State
   const [selectedDate, setSelectedDate] = React.useState(new Date().toISOString().split('T')[0]);
@@ -754,8 +889,16 @@ export const SalonDetails = () => {
            params.latitude = selectedLocation.latitude;
            params.longitude = selectedLocation.longitude;
         }
+        
         const res = await api.get(`/salons/${id}`, { params });
         setSalon(res.data.data);
+        try {
+           const qRes = await api.get(`/queue/shop/${id}`);
+           setLiveQueue(qRes.data);
+        } catch (e) {
+           console.log("No queue data available");
+        }
+
       } catch (err) {
         setError(err.response?.data?.message || 'Shop not found');
       } finally {
@@ -792,6 +935,29 @@ export const SalonDetails = () => {
   if (loading) return (
     <PageShell eyebrow="Loading..." title="Loading Shop Profile...">
       <div className="flex justify-center items-center py-20"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>
+    
+      
+      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
+      {selectedServiceIds.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
+           <div>
+             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
+             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
+           </div>
+           <div className="flex gap-2">
+             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
+               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
+                  Join Walk-in Queue
+               </button>
+             )}
+             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
+                Book Appointment
+             </button>
+           </div>
+        </div>
+      )}
+
+
     </PageShell>
   );
   
@@ -801,6 +967,29 @@ export const SalonDetails = () => {
         <p className="text-slate-900 font-bold text-lg mb-2">{error || "This barber shop does not exist or has been removed."}</p>
         <Link to="/salons" className="inline-block mt-4 px-6 py-3 bg-primary text-white font-bold rounded-xl shadow-sm hover:opacity-90">← Back to nearby barbers</Link>
       </div>
+    
+      
+      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
+      {selectedServiceIds.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
+           <div>
+             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
+             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
+           </div>
+           <div className="flex gap-2">
+             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
+               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
+                  Join Walk-in Queue
+               </button>
+             )}
+             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
+                Book Appointment
+             </button>
+           </div>
+        </div>
+      )}
+
+
     </PageShell>
   );
 
@@ -980,10 +1169,93 @@ export const SalonDetails = () => {
                    return s ? (
                      <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100 mb-6">
                        <h4 className="font-bold text-slate-900">{s.name}</h4>
-                       <p className="text-sm font-semibold text-primary mt-1">₹{s.price} • {s.duration} min</p>
-                     </div>
-                   ) : null;
-                 })()}
+                         <p className="text-sm font-semibold text-primary mt-1">₹{s.price} • {s.duration} min</p>
+                       </div>
+                     ) : null;
+                   })()}
+
+                         {/* Coupon Section */}
+                         <div className="mt-4 mb-6">
+                           {!appliedCoupon ? (
+                             <div>
+                               <div className="flex gap-2">
+                                 <input 
+                                   type="text" 
+                                   placeholder="Promo code" 
+                                   value={couponCode}
+                                   onChange={e => setCouponCode(e.target.value.toUpperCase())}
+                                   className="flex-1 rounded-xl border border-slate-200 px-4 py-2 uppercase font-bold focus:border-slate-900 focus:ring-0"
+                                 />
+                                 <button 
+                                   onClick={handleApplyCoupon}
+                                   disabled={isApplyingCoupon || !couponCode}
+                                   className="px-4 py-2 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 disabled:opacity-50"
+                                 >
+                                   {isApplyingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Apply'}
+                                 </button>
+                               </div>
+                               {couponError && <p className="text-red-500 text-xs font-bold mt-2">{couponError}</p>}
+                             </div>
+                           ) : (
+                             <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex justify-between items-center">
+                               <div>
+                                 <p className="text-green-700 font-bold text-sm flex items-center gap-1"><CheckCircle className="w-4 h-4" /> Code {appliedCoupon.coupon.code} applied!</p>
+                                 <p className="text-green-600 text-xs mt-0.5">You save ₹{appliedCoupon.discountAmount}</p>
+                               </div>
+                               <button onClick={() => { setAppliedCoupon(null); setCouponCode(''); }} className="text-red-500 text-xs font-bold hover:underline">Remove</button>
+                             </div>
+                           )}
+                         </div>
+
+                         
+                         {/* Loyalty Points Section */}
+                         {user?.loyaltyPoints > 0 && (
+                           <div className="mb-6 p-4 bg-purple-50 rounded-xl border border-purple-100 flex justify-between items-center">
+                             <div>
+                               <p className="font-bold text-purple-900">Loyalty Balance: {user.loyaltyPoints} pts</p>
+                               <p className="text-xs text-purple-700 mt-1">Use points for extra discount (10 pts = ₹1)</p>
+                             </div>
+                             <div className="flex items-center gap-2">
+                               <input 
+                                 type="number" 
+                                 max={user.loyaltyPoints} 
+                                 min="0"
+                                 value={redeemPoints}
+                                 onChange={e => setRedeemPoints(Math.min(parseInt(e.target.value) || 0, user.loyaltyPoints))}
+                                 className="w-20 px-2 py-1 border border-purple-200 rounded text-center font-bold"
+                               />
+                               <span className="text-sm font-bold text-purple-900">pts</span>
+                             </div>
+                           </div>
+                         )}
+
+                         {/* Updated Pricing Summary */}
+
+                         {(appliedCoupon || redeemPoints > 0) && (
+                           
+                           <div className="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                             <div className="flex justify-between text-sm text-slate-500 mb-2">
+                               <span>Original Price</span>
+                               <span className="line-through">₹{appliedCoupon ? appliedCoupon.originalPrice : (activeServices.find(x => x._id === selectedServiceId)?.price || 0)}</span>
+                             </div>
+                             {appliedCoupon && (
+                               <div className="flex justify-between text-sm text-green-600 font-bold mb-2">
+                                 <span>Coupon Discount</span>
+                                 <span>-₹{appliedCoupon.discountAmount}</span>
+                               </div>
+                             )}
+                             {redeemPoints > 0 && (
+                               <div className="flex justify-between text-sm text-purple-600 font-bold mb-3 pb-3 border-b border-slate-200">
+                                 <span>Points Redeemed ({redeemPoints})</span>
+                                 <span>-₹{Math.floor(redeemPoints / 10)}</span>
+                               </div>
+                             )}
+                             <div className="flex justify-between font-black text-slate-900 text-lg">
+                               <span>Total</span>
+                               <span>₹{Math.max(0, (appliedCoupon ? appliedCoupon.finalPrice : (activeServices.find(x => x._id === selectedServiceId)?.price || 0)) - Math.floor(redeemPoints / 10))}</span>
+                             </div>
+                           </div>
+                         )}
 
                  {bookingSuccess ? (
                    <div className="pt-4 border-t border-slate-200 mt-6 animate-in slide-in-from-bottom-4">
@@ -1013,8 +1285,20 @@ export const SalonDetails = () => {
                            if (!user) return setBookingError('Please log in to continue booking.');
                            setIsBooking(true); setBookingError(null);
                            try {
-                             const res = await api.post('/appointments/instant', { shopId: id, serviceId: selectedServiceId });
-                             setBookingSuccess(res.data.data);
+                             
+                             const res = await api.post('/appointments/instant', { shopId: id, serviceIds: selectedServiceIds,
+                                 couponCode: appliedCoupon?.coupon?.code,
+                                 redeemPoints, couponCode: appliedCoupon?.coupon?.code });
+                             const apt = res.data.data;
+                             if (apt.paymentStatus === 'pending') {
+                               const payRes = await api.post('/payments/create-checkout-session', { appointmentId: apt._id });
+                               if (payRes.data.payment?.url) {
+                                  window.location.href = payRes.data.payment.url;
+                                  return;
+                               }
+                             }
+                             setBookingSuccess(apt);
+
                            } catch (err) {
                              setBookingError(err.response?.data?.message || 'Error creating instant booking.');
                            } finally {
@@ -1092,13 +1376,25 @@ export const SalonDetails = () => {
                            if (!user) return setBookingError('Please log in to continue booking.');
                            setIsBooking(true); setBookingError(null);
                            try {
-                             const res = await api.post('/appointments/scheduled', {
-                               shopId: id,
-                               serviceId: selectedServiceId,
-                               date: selectedDate,
-                               startTime: selectedSlot
-                             });
-                             setBookingSuccess(res.data.data);
+                             
+                               const res = await api.post('/appointments/scheduled', {
+                                 shopId: id,
+                                 serviceIds: selectedServiceIds,
+                                 couponCode: appliedCoupon?.coupon?.code,
+                                 redeemPoints,
+                                 date: selectedDate,
+                                 startTime: selectedSlot
+                               });
+                               const apt = res.data.data;
+                               if (apt.paymentStatus === 'pending') {
+                                 const payRes = await api.post('/payments/create-checkout-session', { appointmentId: apt._id });
+                                 if (payRes.data.payment?.url) {
+                                    window.location.href = payRes.data.payment.url;
+                                    return;
+                                 }
+                               }
+                               setBookingSuccess(apt);
+
                            } catch (err) {
                              setBookingError(err.response?.data?.message || 'We couldn\'t schedule your appointment. Please try again.');
                            } finally {
@@ -1119,6 +1415,29 @@ export const SalonDetails = () => {
 
         </div>
       </div>
+    
+      
+      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
+      {selectedServiceIds.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
+           <div>
+             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
+             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
+           </div>
+           <div className="flex gap-2">
+             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
+               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
+                  Join Walk-in Queue
+               </button>
+             )}
+             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
+                Book Appointment
+             </button>
+           </div>
+        </div>
+      )}
+
+
     </PageShell>
   );
 };
@@ -1144,7 +1463,30 @@ export const BarberProfile = () => (
         </ul>
       </div>
     </div>
-  </PageShell>
+  
+      
+      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
+      {selectedServiceIds.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
+           <div>
+             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
+             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
+           </div>
+           <div className="flex gap-2">
+             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
+               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
+                  Join Walk-in Queue
+               </button>
+             )}
+             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
+                Book Appointment
+             </button>
+           </div>
+        </div>
+      )}
+
+
+    </PageShell>
 );
 
 export const BookingPage = () => {
@@ -1525,6 +1867,29 @@ export const JobsPage = () => {
           ))
         )}
       </div>
+    
+      
+      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
+      {selectedServiceIds.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
+           <div>
+             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
+             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
+           </div>
+           <div className="flex gap-2">
+             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
+               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
+                  Join Walk-in Queue
+               </button>
+             )}
+             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
+                Book Appointment
+             </button>
+           </div>
+        </div>
+      )}
+
+
     </PageShell>
   );
 };
@@ -1550,7 +1915,30 @@ export const ApplyJobPage = () => (
         <button className="mt-5 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">Submit application</button>
       </div>
     </div>
-  </PageShell>
+  
+      
+      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
+      {selectedServiceIds.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
+           <div>
+             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
+             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
+           </div>
+           <div className="flex gap-2">
+             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
+               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
+                  Join Walk-in Queue
+               </button>
+             )}
+             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
+                Book Appointment
+             </button>
+           </div>
+        </div>
+      )}
+
+
+    </PageShell>
 );
 
 export const CustomerDashboardPage = () => {
@@ -1594,7 +1982,337 @@ export const CustomerDashboardPage = () => {
                     <p className="text-sm font-semibold text-slate-900">{payment.status}</p>
                     {payment.status === 'Paid' ? (
                       <button onClick={() => handleRefund(payment.id)} className="mt-2 rounded-full border border-rose-200 px-3 py-1 text-sm font-semibold text-rose-600 transition hover:bg-rose-50">Refund</button>
-                    ) : null}
+                    
+      ) : activeTab === 'reviews' ? (
+        <div className="space-y-4">
+          {reviews.map(r => (
+            <div key={r._id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between md:items-center gap-4">
+              <div>
+                <div className="flex items-center gap-3 mb-1">
+                  <h3 className="font-bold text-slate-900 text-lg">Review by {r.customer?.name}</h3>
+                  <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${r.status === 'published' ? 'bg-green-100 text-green-700' : r.status === 'reported' ? 'bg-yellow-100 text-yellow-700' : 'bg-slate-100 text-slate-700'}`}>
+                    {r.status}
+                  </span>
+                </div>
+                <p className="text-sm text-slate-500">Shop: {r.salon?.name} • Rating: {r.rating} ★</p>
+                <p className="text-sm text-slate-700 mt-2">"{r.comment}"</p>
+              </div>
+              <div className="flex gap-2">
+                {r.status !== 'published' && (
+                  <button onClick={() => handleModerateReview(r._id, 'published')} className="px-4 py-2 bg-green-50 text-green-600 font-bold text-sm rounded-xl hover:bg-green-100">Publish</button>
+                )}
+                {r.status !== 'hidden' && (
+                  <button onClick={() => handleModerateReview(r._id, 'hidden')} className="px-4 py-2 bg-slate-100 text-slate-600 font-bold text-sm rounded-xl hover:bg-slate-200">Hide</button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      
+      
+      ) : activeTab === 'support' ? (
+        <div>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-slate-900">Global Support Queue</h2>
+          </div>
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            {tickets.map(t => (
+              <div key={t._id} onClick={() => handleOpenTicket(t._id)} className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:bg-slate-50 transition">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-slate-900">{t.subject}</h3>
+                    {t.priority === 'high' || t.priority === 'urgent' ? <span className="px-1.5 py-0.5 bg-red-100 text-red-700 text-[10px] font-black rounded uppercase">{t.priority}</span> : null}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">#{t._id.substring(0,8).toUpperCase()} • {t.customer?.name} • {t.shop?.name || 'Platform'} • {t.category}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${t.status === 'open' ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-700'}`}>
+                    {t.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+            {tickets.length === 0 && <p className="p-10 text-center text-slate-500">Queue is empty.</p>}
+          </div>
+
+          {selectedTicket && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+              <div className="w-full max-w-2xl rounded-3xl bg-white shadow-xl flex flex-col max-h-[90vh]">
+                <div className="p-6 border-b border-slate-100 flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-900">{selectedTicket.subject}</h3>
+                    <p className="text-sm text-slate-500 mt-1">Ticket #{selectedTicket._id.substring(0,8).toUpperCase()} • {selectedTicket.category}</p>
+                  </div>
+                  <div className="flex gap-2 items-center">
+                    <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${selectedTicket.status === 'open' ? 'bg-orange-100 text-orange-700' : selectedTicket.status === 'resolved' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'}`}>
+                      {selectedTicket.status}
+                    </span>
+                    <button onClick={() => setSelectedTicket(null)} className="p-2 hover:bg-slate-100 rounded-full">✕</button>
+                  </div>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-4">
+                  {ticketMessages.map(msg => (
+                    <div key={msg._id} className={`flex flex-col ${msg.senderRole === (user.role === 'customer' ? 'customer' : (user.role === 'admin' ? 'admin' : 'owner')) ? 'items-end' : 'items-start'}`}>
+                      <div className={`max-w-[80%] rounded-2xl p-4 ${msg.isInternalNote ? 'bg-amber-100 border border-amber-200 text-amber-900' : (msg.senderRole === (user.role === 'customer' ? 'customer' : (user.role === 'admin' ? 'admin' : 'owner')) ? 'bg-slate-900 text-white' : 'bg-white border border-slate-200 text-slate-900')}`}>
+                        {msg.isInternalNote && <p className="text-[10px] font-bold uppercase text-amber-700 mb-1">Internal Note</p>}
+                        <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                      </div>
+                      <span className="text-xs text-slate-400 mt-1">{msg.sender?.name} ({msg.senderRole}) • {new Date(msg.createdAt).toLocaleString()}</span>
+                    </div>
+                  ))}
+                  {ticketMessages.length === 0 && <p className="text-center text-slate-500">No messages yet.</p>}
+                </div>
+                
+                <div className="p-6 border-t border-slate-100 bg-white rounded-b-3xl">
+                  {user.role !== 'customer' && selectedTicket.status !== 'closed' && (
+                    
+                    <div className="flex gap-2 mb-4">
+                      {user.role === 'admin' && selectedTicket.booking && selectedTicket.category === 'Refund Request' && selectedTicket.booking.paymentStatus === 'paid' && (
+                        <button onClick={handleProcessRefund} className="text-xs font-bold px-3 py-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200">Process Refund</button>
+                      )}
+
+                      {selectedTicket.status !== 'resolved' && <button onClick={() => handleUpdateTicketStatus('resolved')} className="text-xs font-bold px-3 py-1.5 bg-green-100 text-green-700 rounded hover:bg-green-200">Mark Resolved</button>}
+                      {selectedTicket.status !== 'closed' && <button onClick={() => handleUpdateTicketStatus('closed')} className="text-xs font-bold px-3 py-1.5 bg-slate-100 text-slate-700 rounded hover:bg-slate-200">Close Ticket</button>}
+                    </div>
+                  )}
+                  
+                  {selectedTicket.status !== 'closed' ? (
+                    <form onSubmit={handleReplyTicket}>
+                      <textarea
+                        required
+                        value={replyMessage}
+                        onChange={e => setReplyMessage(e.target.value)}
+                        placeholder="Type your reply..."
+                        className="w-full rounded-xl border border-slate-200 p-3 text-sm focus:border-slate-900 focus:ring-0 min-h-[100px]"
+                      ></textarea>
+                      <div className="mt-3 flex justify-between items-center">
+                        {user.role === 'admin' ? (
+                          <label className="flex items-center gap-2 text-sm text-slate-600 font-semibold cursor-pointer">
+                            <input type="checkbox" checked={isInternalNote} onChange={e => setIsInternalNote(e.target.checked)} className="rounded border-slate-300 text-amber-600 focus:ring-amber-500" />
+                            Private Internal Note
+                          </label>
+                        ) : <div></div>}
+                        <button type="submit" className="px-6 py-2 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800">Send Reply</button>
+                      </div>
+                    </form>
+                  ) : (
+                    <p className="text-center text-slate-500 font-semibold">This ticket is closed and cannot be replied to.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+
+      ) : activeTab === 'coupons' ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {adminCoupons.map(c => (
+            <div key={c._id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-lg font-black text-slate-900">{c.code}</h3>
+                  <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${c.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>{c.status}</span>
+                </div>
+                <p className="text-sm font-semibold text-slate-600 mb-1">{c.salon?.name || 'Unknown Shop'}</p>
+                <p className="text-primary font-bold text-sm mb-4">
+                  {c.discountType === 'percentage' ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF`}
+                </p>
+                <p className="text-xs text-slate-500 mb-1">Min Order: ₹{c.minOrderValue}</p>
+                <p className="text-xs text-slate-500">Usage: {c.usageCount} / {c.usageLimit || 'Unlimited'}</p>
+              </div>
+            </div>
+          ))}
+          {adminCoupons.length === 0 && <p className="text-slate-500 col-span-3 text-center py-10">No coupons active on platform.</p>}
+        </div>
+
+      ) : activeTab === 'logs' ? (
+        <div className="space-y-4">
+          {logs.map(log => (
+            <div key={log._id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <div className="flex justify-between items-start mb-2">
+                <p className="text-sm font-bold text-slate-900">{log.admin?.name || 'Admin'} performed: <span className="text-primary">{log.action}</span></p>
+                <p className="text-xs font-bold text-slate-400">{new Date(log.createdAt).toLocaleString()}</p>
+              </div>
+              <p className="text-xs text-slate-500">Target: {log.targetType} ({log.targetId})</p>
+              {log.reason && <p className="text-xs text-slate-500 mt-1">Reason: {log.reason}</p>}
+            </div>
+          ))}
+        </div>
+
+      
+      
+      ) : activeTab === 'support' ? (
+        <div>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-slate-900">Shop Support Tickets</h2>
+          </div>
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            {tickets.map(t => (
+              <div key={t._id} onClick={() => handleOpenTicket(t._id)} className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:bg-slate-50 transition">
+                <div>
+                  <h3 className="font-bold text-slate-900">{t.subject}</h3>
+                  <p className="text-xs text-slate-500 mt-1">Ticket #{t._id.substring(0,8).toUpperCase()} • {t.customer?.name} • {t.category}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${t.status === 'open' ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-700'}`}>
+                    {t.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+            {tickets.length === 0 && <p className="p-10 text-center text-slate-500">No support tickets for your shop.</p>}
+          </div>
+
+          {selectedTicket && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+              <div className="w-full max-w-2xl rounded-3xl bg-white shadow-xl flex flex-col max-h-[90vh]">
+                <div className="p-6 border-b border-slate-100 flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-900">{selectedTicket.subject}</h3>
+                    <p className="text-sm text-slate-500 mt-1">Ticket #{selectedTicket._id.substring(0,8).toUpperCase()} • {selectedTicket.category}</p>
+                  </div>
+                  <div className="flex gap-2 items-center">
+                    <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${selectedTicket.status === 'open' ? 'bg-orange-100 text-orange-700' : selectedTicket.status === 'resolved' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'}`}>
+                      {selectedTicket.status}
+                    </span>
+                    <button onClick={() => setSelectedTicket(null)} className="p-2 hover:bg-slate-100 rounded-full">✕</button>
+                  </div>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-4">
+                  {ticketMessages.map(msg => (
+                    <div key={msg._id} className={`flex flex-col ${msg.senderRole === (user.role === 'customer' ? 'customer' : (user.role === 'admin' ? 'admin' : 'owner')) ? 'items-end' : 'items-start'}`}>
+                      <div className={`max-w-[80%] rounded-2xl p-4 ${msg.isInternalNote ? 'bg-amber-100 border border-amber-200 text-amber-900' : (msg.senderRole === (user.role === 'customer' ? 'customer' : (user.role === 'admin' ? 'admin' : 'owner')) ? 'bg-slate-900 text-white' : 'bg-white border border-slate-200 text-slate-900')}`}>
+                        {msg.isInternalNote && <p className="text-[10px] font-bold uppercase text-amber-700 mb-1">Internal Note</p>}
+                        <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                      </div>
+                      <span className="text-xs text-slate-400 mt-1">{msg.sender?.name} ({msg.senderRole}) • {new Date(msg.createdAt).toLocaleString()}</span>
+                    </div>
+                  ))}
+                  {ticketMessages.length === 0 && <p className="text-center text-slate-500">No messages yet.</p>}
+                </div>
+                
+                <div className="p-6 border-t border-slate-100 bg-white rounded-b-3xl">
+                  {user.role !== 'customer' && selectedTicket.status !== 'closed' && (
+                    
+                    <div className="flex gap-2 mb-4">
+                      {user.role === 'admin' && selectedTicket.booking && selectedTicket.category === 'Refund Request' && selectedTicket.booking.paymentStatus === 'paid' && (
+                        <button onClick={handleProcessRefund} className="text-xs font-bold px-3 py-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200">Process Refund</button>
+                      )}
+
+                      {selectedTicket.status !== 'resolved' && <button onClick={() => handleUpdateTicketStatus('resolved')} className="text-xs font-bold px-3 py-1.5 bg-green-100 text-green-700 rounded hover:bg-green-200">Mark Resolved</button>}
+                      {selectedTicket.status !== 'closed' && <button onClick={() => handleUpdateTicketStatus('closed')} className="text-xs font-bold px-3 py-1.5 bg-slate-100 text-slate-700 rounded hover:bg-slate-200">Close Ticket</button>}
+                    </div>
+                  )}
+                  
+                  {selectedTicket.status !== 'closed' ? (
+                    <form onSubmit={handleReplyTicket}>
+                      <textarea
+                        required
+                        value={replyMessage}
+                        onChange={e => setReplyMessage(e.target.value)}
+                        placeholder="Type your reply..."
+                        className="w-full rounded-xl border border-slate-200 p-3 text-sm focus:border-slate-900 focus:ring-0 min-h-[100px]"
+                      ></textarea>
+                      <div className="mt-3 flex justify-between items-center">
+                        {user.role === 'admin' ? (
+                          <label className="flex items-center gap-2 text-sm text-slate-600 font-semibold cursor-pointer">
+                            <input type="checkbox" checked={isInternalNote} onChange={e => setIsInternalNote(e.target.checked)} className="rounded border-slate-300 text-amber-600 focus:ring-amber-500" />
+                            Private Internal Note
+                          </label>
+                        ) : <div></div>}
+                        <button type="submit" className="px-6 py-2 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800">Send Reply</button>
+                      </div>
+                    </form>
+                  ) : (
+                    <p className="text-center text-slate-500 font-semibold">This ticket is closed and cannot be replied to.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+
+      ) : activeTab === 'offers' ? (
+        <div>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-slate-900">Discount Coupons</h2>
+            <button onClick={() => setShowCouponModal(true)} className="px-4 py-2 bg-slate-900 text-white font-bold rounded-full hover:bg-slate-800 text-sm">
+              + Create Coupon
+            </button>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {coupons.map(c => (
+              <div key={c._id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-lg font-black text-slate-900">{c.code}</h3>
+                    <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${c.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>{c.status}</span>
+                  </div>
+                  <p className="text-primary font-bold text-sm mb-4">
+                    {c.discountType === 'percentage' ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF`}
+                  </p>
+                  <p className="text-xs text-slate-500 mb-1">Min Order: ₹{c.minOrderValue}</p>
+                  <p className="text-xs text-slate-500">Usage: {c.usageCount} / {c.usageLimit || 'Unlimited'}</p>
+                </div>
+                <div className="mt-4 pt-4 border-t border-slate-100 flex gap-2">
+                  {c.status === 'active' ? (
+                    <button onClick={() => handleUpdateCoupon(c._id, { status: 'paused' })} className="text-xs font-bold text-orange-600 hover:underline">Pause</button>
+                  ) : (
+                    <button onClick={() => handleUpdateCoupon(c._id, { status: 'active' })} className="text-xs font-bold text-green-600 hover:underline">Activate</button>
+                  )}
+                </div>
+              </div>
+            ))}
+            {coupons.length === 0 && <p className="text-slate-500 col-span-3 text-center py-10">No coupons created yet.</p>}
+          </div>
+
+          {showCouponModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+              <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
+                <h3 className="mb-4 text-lg font-bold text-slate-900">Create Promo Code</h3>
+                <form onSubmit={handleSaveCoupon} className="space-y-4">
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">Code</label>
+                    <input type="text" required value={couponForm.code} onChange={e => setCouponForm({...couponForm, code: e.target.value.toUpperCase()})} className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-2 font-bold uppercase" placeholder="e.g. SAVE20" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-semibold text-slate-700">Type</label>
+                      <select value={couponForm.discountType} onChange={e => setCouponForm({...couponForm, discountType: e.target.value})} className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-2 bg-white">
+                        <option value="percentage">Percentage (%)</option>
+                        <option value="fixed">Fixed (₹)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold text-slate-700">Value</label>
+                      <input type="number" required value={couponForm.discountValue} onChange={e => setCouponForm({...couponForm, discountValue: e.target.value})} className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-2" placeholder={couponForm.discountType === 'percentage' ? '20' : '100'} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-semibold text-slate-700">Min Order (₹)</label>
+                      <input type="number" value={couponForm.minOrderValue} onChange={e => setCouponForm({...couponForm, minOrderValue: e.target.value})} className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-2" placeholder="0" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold text-slate-700">Usage Limit</label>
+                      <input type="number" value={couponForm.usageLimit} onChange={e => setCouponForm({...couponForm, usageLimit: e.target.value})} className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-2" placeholder="Unlimited" />
+                    </div>
+                  </div>
+                  <div className="mt-6 flex justify-end gap-3">
+                    <button type="button" onClick={() => setShowCouponModal(false)} className="px-4 py-2 font-bold text-slate-500 hover:bg-slate-50 rounded-xl">Cancel</button>
+                    <button type="submit" className="rounded-xl bg-slate-900 px-6 py-2 font-bold text-white hover:bg-slate-800">Create</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
+
+      ) : null}
                   </div>
                 </div>
               </div>
@@ -1614,58 +2332,1023 @@ export const CustomerDashboardPage = () => {
           </div>
         </div>
       </div>
+    
+      
+      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
+      {selectedServiceIds.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
+           <div>
+             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
+             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
+           </div>
+           <div className="flex gap-2">
+             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
+               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
+                  Join Walk-in Queue
+               </button>
+             )}
+             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
+                Book Appointment
+             </button>
+           </div>
+        </div>
+      )}
+
+
     </PageShell>
   );
 };
 
-export const BarberDashboardPage = () => (
-  <PageShell eyebrow="Barber dashboard" title="Manage your day" description="Track bookings, availability, and client requests from a single place.">
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {["Today's bookings", 'Open requests', 'Weekly earnings'].map((item) => (
-        <div key={item} className={panelClasses}>
-          <h3 className="text-lg font-semibold text-slate-900">{item}</h3>
-          <p className="mt-2 text-sm text-slate-600">This page can be connected to your barber workflow and calendar.</p>
-        </div>
-      ))}
-    </div>
-  </PageShell>
-);
 
-export const OwnerDashboardPage = () => (
-  <PageShell eyebrow="Owner dashboard" title="Run your salon operations" description="Monitor staff activity, revenue, and incoming bookings without leaving the platform.">
-    <div className="mb-6 flex justify-end">
-      <Link to="/salons/new" className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">
-        + Add New Salon
-      </Link>
-    </div>
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {['Revenue summary', 'Staff roster', 'Pending bookings'].map((item) => (
-        <div key={item} className={panelClasses}>
-          <h3 className="text-lg font-semibold text-slate-900">{item}</h3>
-          <p className="mt-2 text-sm text-slate-600">This workspace is ready for owner-specific management views.</p>
-        </div>
-      ))}
-    </div>
-  </PageShell>
-);
+export const BarberDashboardPage = () => {
+  const { user } = useSelector(state => state.auth || {});
+  const navigate = useNavigate();
+  const [loading, setLoading] = React.useState(true);
+  
+  const [data, setData] = React.useState(null);
+  const [error, setError] = React.useState(null);
+  
+  // Phase 22 States
+  const [attendance, setAttendance] = React.useState(null);
+  const [showLeaveModal, setShowLeaveModal] = React.useState(false);
+  const [leaveData, setLeaveData] = React.useState({ leaveType: 'Personal', startDate: '', endDate: '', reason: '' });
 
-export const AdminDashboardPage = () => (
-  <PageShell eyebrow="Admin dashboard" title="Platform oversight" description="Review users, salons, barbers, and reports from a central administration view.">
-    <div className="mb-6 flex justify-end">
-      <Link to="/salons/new" className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">
-        + Add New Salon
-      </Link>
-    </div>
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {['User management', 'Salon approvals', 'Reports center'].map((item) => (
-        <div key={item} className={panelClasses}>
-          <h3 className="text-lg font-semibold text-slate-900">{item}</h3>
-          <p className="mt-2 text-sm text-slate-600">This dashboard can be connected to the admin backend when ready.</p>
+  
+  const fetchDashboard = async () => {
+    
+    try {
+      setLoading(true);
+      const res = await api.get('/staff/dashboard');
+      setData(res.data);
+      
+      const attRes = await api.get('/workforce/attendance/today');
+      setAttendance(attRes.data.attendance);
+    } catch (err) {
+
+      setError(err.response?.data?.message || 'Failed to load schedule');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (!user) return navigate('/login');
+    if (user.role !== 'barber' && user.role !== 'owner' && user.role !== 'admin') {
+      return navigate('/');
+    }
+    fetchDashboard();
+    // Poll every 30 seconds for live updates
+    const interval = setInterval(fetchDashboard, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  
+  const handleCheckIn = async () => {
+     try {
+        const res = await api.post('/workforce/check-in');
+        setAttendance(res.data.attendance);
+        toast.success('Checked in successfully!');
+     } catch (e) { toast.error(e.response?.data?.message || 'Error checking in'); }
+  };
+  const handleCheckOut = async () => {
+     try {
+        const res = await api.post('/workforce/check-out');
+        setAttendance(res.data.attendance);
+        toast.success('Checked out successfully!');
+     } catch (e) { toast.error(e.response?.data?.message || 'Error checking out'); }
+  };
+  const handleRequestLeave = async (e) => {
+     e.preventDefault();
+     try {
+        await api.post('/workforce/leave', leaveData);
+        toast.success('Leave requested successfully!');
+        setShowLeaveModal(false);
+     } catch (e) { toast.error(e.response?.data?.message || 'Error requesting leave'); }
+  };
+
+  const handleStatusUpdate = async (id, newStatus) => {
+    try {
+      await api.patch(`/staff/appointments/${id}/status`, { status: newStatus });
+      fetchDashboard();
+      toast.success(`Booking marked as ${newStatus}`);
+    } catch(err) {
+      toast.error(err.response?.data?.message || 'Failed to update status');
+    }
+  };
+
+  if (loading && !data) {
+    return (
+      <PageShell eyebrow="Staff Dashboard" title="Daily Operations">
+        <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+      
+      
+      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
+      {selectedServiceIds.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
+           <div>
+             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
+             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
+           </div>
+           <div className="flex gap-2">
+             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
+               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
+                  Join Walk-in Queue
+               </button>
+             )}
+             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
+                Book Appointment
+             </button>
+           </div>
         </div>
-      ))}
-    </div>
-  </PageShell>
-);
+      )}
+
+
+    </PageShell>
+    );
+  }
+
+  if (error) {
+    return (
+      <PageShell eyebrow="Staff Dashboard" title="Daily Operations">
+        <div className="text-center py-20 text-red-500 font-bold">{error}</div>
+      
+      
+      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
+      {selectedServiceIds.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
+           <div>
+             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
+             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
+           </div>
+           <div className="flex gap-2">
+             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
+               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
+                  Join Walk-in Queue
+               </button>
+             )}
+             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
+                Book Appointment
+             </button>
+           </div>
+        </div>
+      )}
+
+
+    </PageShell>
+    );
+  }
+
+  const { todayStats, currentAppointment, nextAppointment, timeline } = data;
+
+  return (
+    <PageShell eyebrow="Staff Dashboard" title={`Welcome back, ${data.barberName || 'Barber'}`} description="Manage your daily operations and client workflow.">
+      
+      {/* Metrics */}
+      <div className="grid gap-4 md:grid-cols-3 mb-8">
+        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Completed</h3>
+            <p className="text-3xl font-black text-slate-900">{todayStats.completed}</p>
+          </div>
+          <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center text-green-600">
+             <CheckCircle className="w-6 h-6" />
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Upcoming</h3>
+            <p className="text-3xl font-black text-slate-900">{todayStats.upcoming}</p>
+          </div>
+          <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+             <Clock className="w-6 h-6" />
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Total Bookings</h3>
+            <p className="text-3xl font-black text-slate-900">{todayStats.total}</p>
+          </div>
+          <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
+             <Calendar className="w-6 h-6" />
+          </div>
+        </div>
+      </div>
+
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column: Now Serving */}
+        <div className="lg:col-span-1 space-y-6">
+        
+          {/* Phase 22 Attendance Panel */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm mb-6">
+             <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-slate-900">Today's Attendance</h3>
+                <span className={`px-2 py-1 rounded-md text-xs font-bold ${attendance ? (attendance.checkOut ? 'bg-slate-100 text-slate-500' : 'bg-green-100 text-green-600') : 'bg-red-100 text-red-600'}`}>
+                   {attendance ? (attendance.checkOut ? 'Clocked Out' : 'Clocked In') : 'Not Checked In'}
+                </span>
+             </div>
+             <div className="grid grid-cols-2 gap-2">
+                {!attendance ? (
+                   <button onClick={handleCheckIn} className="col-span-2 py-2 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition">Check In</button>
+                ) : !attendance.checkOut ? (
+                   <button onClick={handleCheckOut} className="col-span-2 py-2 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition">Check Out</button>
+                ) : (
+                   <div className="col-span-2 py-2 bg-slate-100 text-slate-500 text-center font-bold rounded-xl">Shift Completed</div>
+                )}
+                <button onClick={() => setShowLeaveModal(true)} className="col-span-2 py-2 mt-2 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition">Request Leave</button>
+             </div>
+          </div>
+          
+          {/* Leave Modal */}
+          {showLeaveModal && (
+             <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-3xl p-6 w-full max-w-md">
+                   <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-bold text-xl">Request Leave</h3>
+                      <button onClick={() => setShowLeaveModal(false)}><X className="w-5 h-5 text-slate-400" /></button>
+                   </div>
+                   <form onSubmit={handleRequestLeave} className="space-y-4">
+                      <div>
+                         <label className="block text-sm font-bold text-slate-700 mb-1">Leave Type</label>
+                         <select value={leaveData.leaveType} onChange={e => setLeaveData({...leaveData, leaveType: e.target.value})} className="w-full p-3 rounded-xl border border-slate-200">
+                            <option>Personal</option><option>Sick</option><option>Vacation</option>
+                         </select>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                         <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">Start Date</label>
+                            <input type="date" required value={leaveData.startDate} onChange={e => setLeaveData({...leaveData, startDate: e.target.value})} className="w-full p-3 rounded-xl border border-slate-200" />
+                         </div>
+                         <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">End Date</label>
+                            <input type="date" required value={leaveData.endDate} onChange={e => setLeaveData({...leaveData, endDate: e.target.value})} className="w-full p-3 rounded-xl border border-slate-200" />
+                         </div>
+                      </div>
+                      <button type="submit" className="w-full py-3 bg-primary text-white font-bold rounded-xl">Submit Request</button>
+                   </form>
+                </div>
+             </div>
+          )}
+
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+            Now Serving
+          </h2>
+          {currentAppointment ? (
+            <div className="bg-slate-900 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl pointer-events-none"></div>
+               <div className="flex items-center justify-between mb-6 relative z-10">
+                 <span className="bg-primary/20 text-primary font-bold px-3 py-1 rounded-full text-xs uppercase tracking-wider border border-primary/30">
+                   {currentAppointment.status.replace('_', ' ')}
+                 </span>
+                 <span className="font-semibold text-slate-300">{currentAppointment.startTime} - {currentAppointment.endTime}</span>
+               </div>
+               
+               <div className="flex items-center gap-4 mb-6 relative z-10">
+                 <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center text-xl font-bold border border-white/20 shrink-0">
+                   {currentAppointment.customerImage ? <img src={currentAppointment.customerImage} className="w-full h-full rounded-full object-cover" /> : currentAppointment.customerName.charAt(0)}
+                 </div>
+                 <div>
+                   <h3 className="text-2xl font-bold">{currentAppointment.customerName}</h3>
+                   <p className="text-slate-400 font-medium">{currentAppointment.customerPhone || 'Walk-in'}</p>
+                 </div>
+               </div>
+               
+               <div className="bg-black/20 rounded-2xl p-4 mb-6 relative z-10 border border-white/5">
+                 <p className="text-sm text-slate-400 font-bold mb-2 uppercase tracking-wider">Services</p>
+                 <div className="space-y-1.5">
+                   {currentAppointment.services.map((s, i) => (
+                     <div key={i} className="flex justify-between items-center text-sm font-semibold">
+                       <span>{s.name}</span>
+                       <span className="text-slate-400">{s.duration}m</span>
+                     </div>
+                   ))}
+                 </div>
+                 <div className="mt-3 pt-3 border-t border-white/10 flex justify-between font-bold text-sm">
+                    <span>Total Duration</span>
+                    <span className="text-primary">{currentAppointment.totalDuration} min</span>
+                 </div>
+               </div>
+               
+               <div className="grid grid-cols-2 gap-3 relative z-10">
+                 {currentAppointment.status === 'confirmed' && (
+                   <>
+                     <button onClick={() => handleStatusUpdate(currentAppointment._id, 'arrived')} className="col-span-2 py-3 bg-white text-slate-900 font-bold rounded-xl hover:bg-slate-100 transition shadow-[0_0_20px_rgba(255,255,255,0.2)]">Mark Arrived</button>
+                     <button onClick={() => handleStatusUpdate(currentAppointment._id, 'no_show')} className="col-span-2 py-3 bg-red-500/20 text-red-400 font-bold rounded-xl hover:bg-red-500/30 transition">No Show</button>
+                   </>
+                 )}
+                 {(currentAppointment.status === 'arrived' || currentAppointment.status === 'confirmed') && (
+                   <button onClick={() => handleStatusUpdate(currentAppointment._id, 'in_progress')} className="col-span-2 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-[0_0_20px_rgba(139,92,246,0.4)]">Start Service</button>
+                 )}
+                 {currentAppointment.status === 'in_progress' && (
+                   <button onClick={() => handleStatusUpdate(currentAppointment._id, 'completed')} className="col-span-2 py-3 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-600 transition shadow-[0_0_20px_rgba(16,185,129,0.4)]">Complete Service</button>
+                 )}
+               </div>
+            </div>
+          ) : (
+            <div className="bg-slate-50 border border-slate-200 rounded-3xl p-10 text-center flex flex-col items-center justify-center">
+              <div className="w-16 h-16 bg-slate-200/50 rounded-full flex items-center justify-center text-slate-400 mb-4"><Coffee className="w-8 h-8" /></div>
+              <h3 className="font-bold text-slate-900 text-lg mb-1">No active booking</h3>
+              <p className="text-sm font-medium text-slate-500">You are currently free or on a break.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Right Column: Timeline */}
+        <div className="lg:col-span-2">
+           <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+             <Calendar className="w-5 h-5 text-primary" />
+             Today's Schedule
+           </h2>
+           
+           <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+             {timeline.length === 0 ? (
+                <div className="p-10 text-center text-slate-500 font-medium">No bookings scheduled for today.</div>
+             ) : (
+                <div className="divide-y divide-slate-100">
+                  {timeline.map((apt, index) => (
+                    <div key={apt._id} className={`p-5 md:p-6 transition hover:bg-slate-50 flex flex-col md:flex-row md:items-center gap-4 ${apt.computedState === 'current' ? 'bg-primary/5 border-l-4 border-primary' : apt.computedState === 'completed' ? 'opacity-60 grayscale' : ''}`}>
+                      <div className="flex flex-col md:w-32 shrink-0">
+                        <span className="font-bold text-slate-900 text-lg">{apt.startTime}</span>
+                        <span className="text-sm font-medium text-slate-500">{apt.endTime}</span>
+                      </div>
+                      
+                      <div className="flex-grow flex flex-col md:flex-row md:items-center gap-4 justify-between">
+                         <div className="flex items-center gap-4">
+                           <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 shrink-0 border border-slate-200 overflow-hidden">
+                             {apt.customerImage ? <img src={apt.customerImage} className="w-full h-full object-cover" /> : apt.customerName.charAt(0)}
+                           </div>
+                           <div>
+                             <h4 className="font-bold text-slate-900">{apt.customerName}</h4>
+                             <p className="text-sm text-slate-500 font-medium truncate max-w-[200px]">{apt.services.map(s => s.name).join(' + ')}</p>
+                           </div>
+                         </div>
+                         
+                         <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-4 mt-4 md:mt-0">
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${apt.status === 'completed' ? 'bg-slate-100 text-slate-500' : apt.status === 'in_progress' ? 'bg-primary/10 text-primary' : apt.status === 'arrived' ? 'bg-amber-100 text-amber-600' : apt.status === 'no_show' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
+                              {apt.status.replace('_', ' ')}
+                            </span>
+                            
+                            {apt.computedState === 'upcoming' && apt.status === 'confirmed' && (
+                              <button onClick={() => handleStatusUpdate(apt._id, 'arrived')} className="px-4 py-2 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-slate-800 transition">Mark Arrived</button>
+                            )}
+                         </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+             )}
+           </div>
+        </div>
+      </div>
+    
+      
+      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
+      {selectedServiceIds.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
+           <div>
+             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
+             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
+           </div>
+           <div className="flex gap-2">
+             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
+               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
+                  Join Walk-in Queue
+               </button>
+             )}
+             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
+                Book Appointment
+             </button>
+           </div>
+        </div>
+      )}
+
+
+    </PageShell>
+  );
+};
+
+
+
+
+export const OwnerDashboardPage = () => {
+  const { user } = useSelector(state => state.auth || {});
+  const [salon, setSalon] = React.useState(null);
+  
+  // Phase 22 States
+  const [leaveRequests, setLeaveRequests] = React.useState([]);
+  
+  React.useEffect(() => {
+     api.get('/salons').then(res => {
+         const mySalon = res.data.data.find(s => s.owner?._id === user?._id || s.owner === user?._id);
+         if (mySalon) {
+             setSalon(mySalon);
+             api.get(`/workforce/leave/shop/${mySalon._id}`).then(lr => setLeaveRequests(lr.data.leaves)).catch(console.error);
+         }
+     }).catch(console.error);
+  }, [user]);
+
+  const handleLeaveResponse = async (id, status) => {
+      try {
+          await api.patch(`/workforce/leave/${id}/respond`, { status });
+          setLeaveRequests(prev => prev.map(l => l._id === id ? { ...l, status } : l));
+          toast.success(`Leave ${status}`);
+      } catch (err) {
+          toast.error('Failed to update leave');
+      }
+  };
+
+
+  const toggleWalkIns = async () => {
+      try {
+          const res = await api.patch(`/queue/shop/${salon._id}/toggle`, { walkInsEnabled: !salon.walkInsEnabled });
+          setSalon(prev => ({ ...prev, walkInsEnabled: res.data.walkInsEnabled }));
+          toast.success(res.data.walkInsEnabled ? 'Walk-ins Enabled' : 'Walk-ins Paused');
+      } catch (err) {
+          toast.error('Failed to toggle walk-ins');
+      }
+  };
+
+  return (
+    <PageShell eyebrow="Owner dashboard" title="Run your salon operations" description="Monitor staff activity, revenue, and queue.">
+      <div className="mb-6 flex justify-end gap-4">
+        {salon && (
+           <button onClick={toggleWalkIns} className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-white transition ${salon.walkInsEnabled ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}`}>
+             {salon.walkInsEnabled ? 'Pause Walk-ins' : 'Resume Walk-ins'}
+           </button>
+        )}
+        <Link to="/salons/new" className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">
+          + Add New Salon
+        </Link>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 mb-8">
+        {['Revenue summary', 'Staff roster', 'Pending bookings'].map((item) => (
+          <div key={item} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 className="text-lg font-semibold text-slate-900">{item}</h3>
+            <p className="mt-2 text-sm text-slate-600">This workspace is ready for owner-specific management views.</p>
+          </div>
+        ))}
+      </div>
+      
+      {/* Phase 22 Leave Management */}
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+         <h2 className="text-xl font-bold text-slate-900 mb-4">Pending Leave Requests</h2>
+         {leaveRequests.filter(l => l.status === 'PENDING').length === 0 ? (
+             <p className="text-slate-500">No pending leave requests.</p>
+         ) : (
+             <div className="space-y-4">
+                {leaveRequests.filter(l => l.status === 'PENDING').map(leave => (
+                   <div key={leave._id} className="flex justify-between items-center p-4 border border-slate-100 bg-slate-50 rounded-xl">
+                      <div>
+                         <p className="font-bold text-slate-900">{leave.staffId?.name}</p>
+                         <p className="text-sm text-slate-500">{new Date(leave.startDate).toLocaleDateString()} to {new Date(leave.endDate).toLocaleDateString()} • {leave.leaveType}</p>
+                      </div>
+                      <div className="flex gap-2">
+                         <button onClick={() => handleLeaveResponse(leave._id, 'APPROVED')} className="px-3 py-1.5 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 text-sm">Approve</button>
+                         <button onClick={() => handleLeaveResponse(leave._id, 'REJECTED')} className="px-3 py-1.5 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 text-sm">Reject</button>
+                      </div>
+                   </div>
+                ))}
+             </div>
+         )}
+      </div>
+    </PageShell>
+
+  );
+};
+
+
+
+export const AdminDashboardPage = () => {
+  const [activeTab, setActiveTab] = React.useState('dashboard');
+  const [stats, setStats] = React.useState(null);
+  const [shops, setShops] = React.useState([]);
+  const [users, setUsers] = React.useState([]);
+  
+  const [isFavorite, setIsFavorite] = React.useState(false);
+
+  const [reviews, setReviews] = React.useState([]);
+  const [logs, setLogs] = React.useState([]);
+  const [adminCoupons, setAdminCoupons] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const { user } = useSelector(state => state.auth || {});
+
+  React.useEffect(() => {
+    fetchData(activeTab);
+  }, [activeTab]);
+
+  const fetchData = async (tab) => {
+    setLoading(true);
+    try {
+      if (tab === 'dashboard') {
+        const res = await api.get('/admin/dashboard');
+        setStats(res.data);
+      } else if (tab === 'shops') {
+        const res = await api.get('/admin/shops?limit=50');
+        setShops(res.data.shops);
+            } else if (tab === 'users') {
+        const res = await api.get('/admin/users?limit=50');
+        setUsers(res.data.users);
+      } else if (tab === 'reviews') {
+        const res = await api.get('/admin/reviews?limit=50');
+        setReviews(res.data.reviews);
+            } else if (tab === 'logs') {
+        const res = await api.get('/admin/audit-logs?limit=50');
+        setLogs(res.data.logs);
+      } else if (tab === 'coupons') {
+        const res = await api.get('/admin/coupons?limit=50');
+        setAdminCoupons(res.data.coupons);
+      } else if (tab === 'support') {
+        const res = await api.get('/tickets/admin');
+        setTickets(res.data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyShop = async (id, status) => {
+    if (!window.confirm(`Are you sure you want to mark this shop as ${status}?`)) return;
+    try {
+      await api.put(`/admin/shops/${id}/verification`, { status });
+      fetchData('shops');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Error updating shop');
+    }
+  };
+
+
+  const handleModerateReview = async (id, status) => {
+    if (!window.confirm(`Are you sure you want to mark this review as ${status}?`)) return;
+    try {
+      await api.put(`/admin/reviews/${id}/moderate`, { status, reason: 'Admin moderation' });
+      fetchData('reviews');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Error updating review');
+    }
+  };
+
+  const handleUserStatus = async (id, status) => {
+    if (!window.confirm(`Are you sure you want to ${status} this user?`)) return;
+    try {
+      await api.put(`/admin/users/${id}/status`, { status });
+      fetchData('users');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Error updating user');
+    }
+  };
+
+  if (!user || user.role !== 'admin') {
+    return <div className="p-10 text-center text-red-500 font-bold">Unauthorized. Super Admin access required.</div>;
+  }
+
+  return (
+    <PageShell eyebrow="Super Admin" title="Platform Management" description="Central administration for marketplace control.">
+      <div className="flex gap-4 mb-8 overflow-x-auto pb-2">
+                                {['dashboard', 'shops', 'users', 'reviews', 'coupons', 'support', 'logs'].map(tab => (
+          <button 
+            key={tab} 
+            onClick={() => setActiveTab(tab)}
+            className={`px-6 py-2.5 rounded-full font-bold capitalize whitespace-nowrap transition ${activeTab === tab ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="py-20 text-center text-slate-500 flex justify-center"><Loader2 className="w-8 h-8 animate-spin" /></div>
+      ) : activeTab === 'dashboard' && stats ? (
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Customers</h3>
+            <p className="text-4xl font-black text-slate-900">{stats.totalUsers}</p>
+          </div>
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Total Shops</h3>
+            <p className="text-4xl font-black text-slate-900">{stats.totalShops}</p>
+            <p className="text-sm font-medium text-slate-500 mt-2">{stats.verifiedShops} Verified • {stats.pendingShops} Pending</p>
+          </div>
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Total Revenue</h3>
+            <p className="text-4xl font-black text-green-600">₹{stats.totalRevenue}</p>
+            <p className="text-sm font-medium text-slate-500 mt-2">From {stats.completedBookings} completed bookings</p>
+          </div>
+        </div>
+      ) : activeTab === 'shops' ? (
+        <div className="space-y-4">
+          {shops.map(shop => (
+            <div key={shop._id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between md:items-center gap-4">
+              <div>
+                <div className="flex items-center gap-3 mb-1">
+                  <h3 className="font-bold text-slate-900 text-lg">{shop.name}</h3>
+                  <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${shop.verificationStatus === 'approved' ? 'bg-green-100 text-green-700' : shop.verificationStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                    {shop.verificationStatus}
+                  </span>
+                </div>
+                <p className="text-sm text-slate-500">{shop.owner?.name} • {shop.city}, {shop.state}</p>
+              </div>
+              <div className="flex gap-2">
+                {shop.verificationStatus !== 'approved' && (
+                  <button onClick={() => handleVerifyShop(shop._id, 'approved')} className="px-4 py-2 bg-slate-900 text-white font-bold text-sm rounded-xl hover:bg-slate-800">Approve</button>
+                )}
+                {shop.verificationStatus !== 'rejected' && (
+                  <button onClick={() => handleVerifyShop(shop._id, 'rejected')} className="px-4 py-2 bg-red-50 text-red-600 font-bold text-sm rounded-xl hover:bg-red-100">Reject</button>
+                )}
+                {shop.verificationStatus === 'approved' && (
+                  <button onClick={() => handleVerifyShop(shop._id, 'suspended')} className="px-4 py-2 bg-orange-50 text-orange-600 font-bold text-sm rounded-xl hover:bg-orange-100">Suspend</button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : activeTab === 'users' ? (
+        <div className="space-y-4">
+          {users.map(u => (
+            <div key={u._id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between md:items-center gap-4">
+              <div>
+                <div className="flex items-center gap-3 mb-1">
+                  <h3 className="font-bold text-slate-900 text-lg">{u.name}</h3>
+                  <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${u.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    {u.status}
+                  </span>
+                </div>
+                <p className="text-sm text-slate-500">{u.email} • Role: {u.role}</p>
+              </div>
+              {u.role !== 'admin' && (
+                <div className="flex gap-2">
+                  {u.status === 'active' ? (
+                    <button onClick={() => handleUserStatus(u._id, 'suspended')} className="px-4 py-2 bg-red-50 text-red-600 font-bold text-sm rounded-xl hover:bg-red-100">Suspend</button>
+                  ) : (
+                    <button onClick={() => handleUserStatus(u._id, 'active')} className="px-4 py-2 bg-green-50 text-green-600 font-bold text-sm rounded-xl hover:bg-green-100">Reactivate</button>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      
+      ) : activeTab === 'reviews' ? (
+        <div className="space-y-4">
+          {reviews.map(r => (
+            <div key={r._id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between md:items-center gap-4">
+              <div>
+                <div className="flex items-center gap-3 mb-1">
+                  <h3 className="font-bold text-slate-900 text-lg">Review by {r.customer?.name}</h3>
+                  <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${r.status === 'published' ? 'bg-green-100 text-green-700' : r.status === 'reported' ? 'bg-yellow-100 text-yellow-700' : 'bg-slate-100 text-slate-700'}`}>
+                    {r.status}
+                  </span>
+                </div>
+                <p className="text-sm text-slate-500">Shop: {r.salon?.name} • Rating: {r.rating} ★</p>
+                <p className="text-sm text-slate-700 mt-2">"{r.comment}"</p>
+              </div>
+              <div className="flex gap-2">
+                {r.status !== 'published' && (
+                  <button onClick={() => handleModerateReview(r._id, 'published')} className="px-4 py-2 bg-green-50 text-green-600 font-bold text-sm rounded-xl hover:bg-green-100">Publish</button>
+                )}
+                {r.status !== 'hidden' && (
+                  <button onClick={() => handleModerateReview(r._id, 'hidden')} className="px-4 py-2 bg-slate-100 text-slate-600 font-bold text-sm rounded-xl hover:bg-slate-200">Hide</button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      
+      
+      ) : activeTab === 'support' ? (
+        <div>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-slate-900">Global Support Queue</h2>
+          </div>
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            {tickets.map(t => (
+              <div key={t._id} onClick={() => handleOpenTicket(t._id)} className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:bg-slate-50 transition">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-slate-900">{t.subject}</h3>
+                    {t.priority === 'high' || t.priority === 'urgent' ? <span className="px-1.5 py-0.5 bg-red-100 text-red-700 text-[10px] font-black rounded uppercase">{t.priority}</span> : null}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">#{t._id.substring(0,8).toUpperCase()} • {t.customer?.name} • {t.shop?.name || 'Platform'} • {t.category}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${t.status === 'open' ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-700'}`}>
+                    {t.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+            {tickets.length === 0 && <p className="p-10 text-center text-slate-500">Queue is empty.</p>}
+          </div>
+
+          {selectedTicket && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+              <div className="w-full max-w-2xl rounded-3xl bg-white shadow-xl flex flex-col max-h-[90vh]">
+                <div className="p-6 border-b border-slate-100 flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-900">{selectedTicket.subject}</h3>
+                    <p className="text-sm text-slate-500 mt-1">Ticket #{selectedTicket._id.substring(0,8).toUpperCase()} • {selectedTicket.category}</p>
+                  </div>
+                  <div className="flex gap-2 items-center">
+                    <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${selectedTicket.status === 'open' ? 'bg-orange-100 text-orange-700' : selectedTicket.status === 'resolved' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'}`}>
+                      {selectedTicket.status}
+                    </span>
+                    <button onClick={() => setSelectedTicket(null)} className="p-2 hover:bg-slate-100 rounded-full">✕</button>
+                  </div>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-4">
+                  {ticketMessages.map(msg => (
+                    <div key={msg._id} className={`flex flex-col ${msg.senderRole === (user.role === 'customer' ? 'customer' : (user.role === 'admin' ? 'admin' : 'owner')) ? 'items-end' : 'items-start'}`}>
+                      <div className={`max-w-[80%] rounded-2xl p-4 ${msg.isInternalNote ? 'bg-amber-100 border border-amber-200 text-amber-900' : (msg.senderRole === (user.role === 'customer' ? 'customer' : (user.role === 'admin' ? 'admin' : 'owner')) ? 'bg-slate-900 text-white' : 'bg-white border border-slate-200 text-slate-900')}`}>
+                        {msg.isInternalNote && <p className="text-[10px] font-bold uppercase text-amber-700 mb-1">Internal Note</p>}
+                        <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                      </div>
+                      <span className="text-xs text-slate-400 mt-1">{msg.sender?.name} ({msg.senderRole}) • {new Date(msg.createdAt).toLocaleString()}</span>
+                    </div>
+                  ))}
+                  {ticketMessages.length === 0 && <p className="text-center text-slate-500">No messages yet.</p>}
+                </div>
+                
+                <div className="p-6 border-t border-slate-100 bg-white rounded-b-3xl">
+                  {user.role !== 'customer' && selectedTicket.status !== 'closed' && (
+                    
+                    <div className="flex gap-2 mb-4">
+                      {user.role === 'admin' && selectedTicket.booking && selectedTicket.category === 'Refund Request' && selectedTicket.booking.paymentStatus === 'paid' && (
+                        <button onClick={handleProcessRefund} className="text-xs font-bold px-3 py-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200">Process Refund</button>
+                      )}
+
+                      {selectedTicket.status !== 'resolved' && <button onClick={() => handleUpdateTicketStatus('resolved')} className="text-xs font-bold px-3 py-1.5 bg-green-100 text-green-700 rounded hover:bg-green-200">Mark Resolved</button>}
+                      {selectedTicket.status !== 'closed' && <button onClick={() => handleUpdateTicketStatus('closed')} className="text-xs font-bold px-3 py-1.5 bg-slate-100 text-slate-700 rounded hover:bg-slate-200">Close Ticket</button>}
+                    </div>
+                  )}
+                  
+                  {selectedTicket.status !== 'closed' ? (
+                    <form onSubmit={handleReplyTicket}>
+                      <textarea
+                        required
+                        value={replyMessage}
+                        onChange={e => setReplyMessage(e.target.value)}
+                        placeholder="Type your reply..."
+                        className="w-full rounded-xl border border-slate-200 p-3 text-sm focus:border-slate-900 focus:ring-0 min-h-[100px]"
+                      ></textarea>
+                      <div className="mt-3 flex justify-between items-center">
+                        {user.role === 'admin' ? (
+                          <label className="flex items-center gap-2 text-sm text-slate-600 font-semibold cursor-pointer">
+                            <input type="checkbox" checked={isInternalNote} onChange={e => setIsInternalNote(e.target.checked)} className="rounded border-slate-300 text-amber-600 focus:ring-amber-500" />
+                            Private Internal Note
+                          </label>
+                        ) : <div></div>}
+                        <button type="submit" className="px-6 py-2 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800">Send Reply</button>
+                      </div>
+                    </form>
+                  ) : (
+                    <p className="text-center text-slate-500 font-semibold">This ticket is closed and cannot be replied to.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+
+      ) : activeTab === 'coupons' ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {adminCoupons.map(c => (
+            <div key={c._id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-lg font-black text-slate-900">{c.code}</h3>
+                  <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${c.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>{c.status}</span>
+                </div>
+                <p className="text-sm font-semibold text-slate-600 mb-1">{c.salon?.name || 'Unknown Shop'}</p>
+                <p className="text-primary font-bold text-sm mb-4">
+                  {c.discountType === 'percentage' ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF`}
+                </p>
+                <p className="text-xs text-slate-500 mb-1">Min Order: ₹{c.minOrderValue}</p>
+                <p className="text-xs text-slate-500">Usage: {c.usageCount} / {c.usageLimit || 'Unlimited'}</p>
+              </div>
+            </div>
+          ))}
+          {adminCoupons.length === 0 && <p className="text-slate-500 col-span-3 text-center py-10">No coupons active on platform.</p>}
+        </div>
+
+      ) : activeTab === 'logs' ? (
+        <div className="space-y-4">
+          {logs.map(log => (
+            <div key={log._id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <div className="flex justify-between items-start mb-2">
+                <p className="text-sm font-bold text-slate-900">{log.admin?.name || 'Admin'} performed: <span className="text-primary">{log.action}</span></p>
+                <p className="text-xs font-bold text-slate-400">{new Date(log.createdAt).toLocaleString()}</p>
+              </div>
+              <p className="text-xs text-slate-500">Target: {log.targetType} ({log.targetId})</p>
+              {log.reason && <p className="text-xs text-slate-500 mt-1">Reason: {log.reason}</p>}
+            </div>
+          ))}
+        </div>
+
+      
+      
+      ) : activeTab === 'support' ? (
+        <div>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-slate-900">Shop Support Tickets</h2>
+          </div>
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            {tickets.map(t => (
+              <div key={t._id} onClick={() => handleOpenTicket(t._id)} className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:bg-slate-50 transition">
+                <div>
+                  <h3 className="font-bold text-slate-900">{t.subject}</h3>
+                  <p className="text-xs text-slate-500 mt-1">Ticket #{t._id.substring(0,8).toUpperCase()} • {t.customer?.name} • {t.category}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${t.status === 'open' ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-700'}`}>
+                    {t.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+            {tickets.length === 0 && <p className="p-10 text-center text-slate-500">No support tickets for your shop.</p>}
+          </div>
+
+          {selectedTicket && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+              <div className="w-full max-w-2xl rounded-3xl bg-white shadow-xl flex flex-col max-h-[90vh]">
+                <div className="p-6 border-b border-slate-100 flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-900">{selectedTicket.subject}</h3>
+                    <p className="text-sm text-slate-500 mt-1">Ticket #{selectedTicket._id.substring(0,8).toUpperCase()} • {selectedTicket.category}</p>
+                  </div>
+                  <div className="flex gap-2 items-center">
+                    <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${selectedTicket.status === 'open' ? 'bg-orange-100 text-orange-700' : selectedTicket.status === 'resolved' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'}`}>
+                      {selectedTicket.status}
+                    </span>
+                    <button onClick={() => setSelectedTicket(null)} className="p-2 hover:bg-slate-100 rounded-full">✕</button>
+                  </div>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-4">
+                  {ticketMessages.map(msg => (
+                    <div key={msg._id} className={`flex flex-col ${msg.senderRole === (user.role === 'customer' ? 'customer' : (user.role === 'admin' ? 'admin' : 'owner')) ? 'items-end' : 'items-start'}`}>
+                      <div className={`max-w-[80%] rounded-2xl p-4 ${msg.isInternalNote ? 'bg-amber-100 border border-amber-200 text-amber-900' : (msg.senderRole === (user.role === 'customer' ? 'customer' : (user.role === 'admin' ? 'admin' : 'owner')) ? 'bg-slate-900 text-white' : 'bg-white border border-slate-200 text-slate-900')}`}>
+                        {msg.isInternalNote && <p className="text-[10px] font-bold uppercase text-amber-700 mb-1">Internal Note</p>}
+                        <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                      </div>
+                      <span className="text-xs text-slate-400 mt-1">{msg.sender?.name} ({msg.senderRole}) • {new Date(msg.createdAt).toLocaleString()}</span>
+                    </div>
+                  ))}
+                  {ticketMessages.length === 0 && <p className="text-center text-slate-500">No messages yet.</p>}
+                </div>
+                
+                <div className="p-6 border-t border-slate-100 bg-white rounded-b-3xl">
+                  {user.role !== 'customer' && selectedTicket.status !== 'closed' && (
+                    
+                    <div className="flex gap-2 mb-4">
+                      {user.role === 'admin' && selectedTicket.booking && selectedTicket.category === 'Refund Request' && selectedTicket.booking.paymentStatus === 'paid' && (
+                        <button onClick={handleProcessRefund} className="text-xs font-bold px-3 py-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200">Process Refund</button>
+                      )}
+
+                      {selectedTicket.status !== 'resolved' && <button onClick={() => handleUpdateTicketStatus('resolved')} className="text-xs font-bold px-3 py-1.5 bg-green-100 text-green-700 rounded hover:bg-green-200">Mark Resolved</button>}
+                      {selectedTicket.status !== 'closed' && <button onClick={() => handleUpdateTicketStatus('closed')} className="text-xs font-bold px-3 py-1.5 bg-slate-100 text-slate-700 rounded hover:bg-slate-200">Close Ticket</button>}
+                    </div>
+                  )}
+                  
+                  {selectedTicket.status !== 'closed' ? (
+                    <form onSubmit={handleReplyTicket}>
+                      <textarea
+                        required
+                        value={replyMessage}
+                        onChange={e => setReplyMessage(e.target.value)}
+                        placeholder="Type your reply..."
+                        className="w-full rounded-xl border border-slate-200 p-3 text-sm focus:border-slate-900 focus:ring-0 min-h-[100px]"
+                      ></textarea>
+                      <div className="mt-3 flex justify-between items-center">
+                        {user.role === 'admin' ? (
+                          <label className="flex items-center gap-2 text-sm text-slate-600 font-semibold cursor-pointer">
+                            <input type="checkbox" checked={isInternalNote} onChange={e => setIsInternalNote(e.target.checked)} className="rounded border-slate-300 text-amber-600 focus:ring-amber-500" />
+                            Private Internal Note
+                          </label>
+                        ) : <div></div>}
+                        <button type="submit" className="px-6 py-2 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800">Send Reply</button>
+                      </div>
+                    </form>
+                  ) : (
+                    <p className="text-center text-slate-500 font-semibold">This ticket is closed and cannot be replied to.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+
+      ) : activeTab === 'offers' ? (
+        <div>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-slate-900">Discount Coupons</h2>
+            <button onClick={() => setShowCouponModal(true)} className="px-4 py-2 bg-slate-900 text-white font-bold rounded-full hover:bg-slate-800 text-sm">
+              + Create Coupon
+            </button>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {coupons.map(c => (
+              <div key={c._id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-lg font-black text-slate-900">{c.code}</h3>
+                    <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${c.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>{c.status}</span>
+                  </div>
+                  <p className="text-primary font-bold text-sm mb-4">
+                    {c.discountType === 'percentage' ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF`}
+                  </p>
+                  <p className="text-xs text-slate-500 mb-1">Min Order: ₹{c.minOrderValue}</p>
+                  <p className="text-xs text-slate-500">Usage: {c.usageCount} / {c.usageLimit || 'Unlimited'}</p>
+                </div>
+                <div className="mt-4 pt-4 border-t border-slate-100 flex gap-2">
+                  {c.status === 'active' ? (
+                    <button onClick={() => handleUpdateCoupon(c._id, { status: 'paused' })} className="text-xs font-bold text-orange-600 hover:underline">Pause</button>
+                  ) : (
+                    <button onClick={() => handleUpdateCoupon(c._id, { status: 'active' })} className="text-xs font-bold text-green-600 hover:underline">Activate</button>
+                  )}
+                </div>
+              </div>
+            ))}
+            {coupons.length === 0 && <p className="text-slate-500 col-span-3 text-center py-10">No coupons created yet.</p>}
+          </div>
+
+          {showCouponModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+              <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
+                <h3 className="mb-4 text-lg font-bold text-slate-900">Create Promo Code</h3>
+                <form onSubmit={handleSaveCoupon} className="space-y-4">
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">Code</label>
+                    <input type="text" required value={couponForm.code} onChange={e => setCouponForm({...couponForm, code: e.target.value.toUpperCase()})} className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-2 font-bold uppercase" placeholder="e.g. SAVE20" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-semibold text-slate-700">Type</label>
+                      <select value={couponForm.discountType} onChange={e => setCouponForm({...couponForm, discountType: e.target.value})} className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-2 bg-white">
+                        <option value="percentage">Percentage (%)</option>
+                        <option value="fixed">Fixed (₹)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold text-slate-700">Value</label>
+                      <input type="number" required value={couponForm.discountValue} onChange={e => setCouponForm({...couponForm, discountValue: e.target.value})} className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-2" placeholder={couponForm.discountType === 'percentage' ? '20' : '100'} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-semibold text-slate-700">Min Order (₹)</label>
+                      <input type="number" value={couponForm.minOrderValue} onChange={e => setCouponForm({...couponForm, minOrderValue: e.target.value})} className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-2" placeholder="0" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold text-slate-700">Usage Limit</label>
+                      <input type="number" value={couponForm.usageLimit} onChange={e => setCouponForm({...couponForm, usageLimit: e.target.value})} className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-2" placeholder="Unlimited" />
+                    </div>
+                  </div>
+                  <div className="mt-6 flex justify-end gap-3">
+                    <button type="button" onClick={() => setShowCouponModal(false)} className="px-4 py-2 font-bold text-slate-500 hover:bg-slate-50 rounded-xl">Cancel</button>
+                    <button type="submit" className="rounded-xl bg-slate-900 px-6 py-2 font-bold text-white hover:bg-slate-800">Create</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
+
+      ) : null}
+    
+      
+      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
+      {selectedServiceIds.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
+           <div>
+             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
+             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
+           </div>
+           <div className="flex gap-2">
+             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
+               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
+                  Join Walk-in Queue
+               </button>
+             )}
+             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
+                Book Appointment
+             </button>
+           </div>
+        </div>
+      )}
+
+
+    </PageShell>
+  );
+};
+
 
 export const ProfilePage = () => {
   const userInfo = (() => {
@@ -1701,7 +3384,30 @@ export const ProfilePage = () => {
             </Link>
           </div>
         </div>
-      </PageShell>
+      
+      
+      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
+      {selectedServiceIds.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
+           <div>
+             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
+             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
+           </div>
+           <div className="flex gap-2">
+             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
+               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
+                  Join Walk-in Queue
+               </button>
+             )}
+             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
+                Book Appointment
+             </button>
+           </div>
+        </div>
+      )}
+
+
+    </PageShell>
     );
   }
 
@@ -1745,6 +3451,29 @@ export const ProfilePage = () => {
           ))}
         </div>
       </div>
+    
+      
+      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
+      {selectedServiceIds.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
+           <div>
+             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
+             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
+           </div>
+           <div className="flex gap-2">
+             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
+               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
+                  Join Walk-in Queue
+               </button>
+             )}
+             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
+                Book Appointment
+             </button>
+           </div>
+        </div>
+      )}
+
+
     </PageShell>
   );
 };
@@ -1760,7 +3489,30 @@ export const SettingsPage = () => (
         <div className="rounded-2xl bg-slate-50 p-4">Privacy mode: Standard</div>
       </div>
     </div>
-  </PageShell>
+  
+      
+      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
+      {selectedServiceIds.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
+           <div>
+             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
+             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
+           </div>
+           <div className="flex gap-2">
+             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
+               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
+                  Join Walk-in Queue
+               </button>
+             )}
+             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
+                Book Appointment
+             </button>
+           </div>
+        </div>
+      )}
+
+
+    </PageShell>
 );
 
 export const NotificationsPage = () => (
@@ -1773,5 +3525,28 @@ export const NotificationsPage = () => (
         </div>
       ))}
     </div>
-  </PageShell>
+  
+      
+      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
+      {selectedServiceIds.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
+           <div>
+             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
+             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
+           </div>
+           <div className="flex gap-2">
+             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
+               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
+                  Join Walk-in Queue
+               </button>
+             )}
+             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
+                Book Appointment
+             </button>
+           </div>
+        </div>
+      )}
+
+
+    </PageShell>
 );
