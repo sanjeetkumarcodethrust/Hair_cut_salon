@@ -26,11 +26,36 @@ const appointmentSchema = new mongoose.Schema(
       ref: 'Salon',
       required: true,
     },
-    service: {
-      name: { type: String, required: true },
-      price: { type: Number, required: true },
-      duration: { type: Number, required: true }, // minutes
+    // Legacy single service reference (maintained for backward compatibility)
+    serviceId: {
+      type: mongoose.Schema.Types.ObjectId,
+      // No longer required to support multi-service
     },
+    service: {
+      name: { type: String },
+      price: { type: Number },
+      duration: { type: Number },
+    },
+    
+    // New array for Phase 19 Multi-Service
+    services: [
+      {
+        serviceId: {
+          type: mongoose.Schema.Types.ObjectId,
+          required: true
+        },
+        name: { type: String, required: true },
+        price: { type: Number, required: true },
+        duration: { type: Number, required: true },
+      }
+    ],
+
+    // Total duration of the booking
+    totalDuration: {
+      type: Number, 
+      default: 0
+    },
+
     date: {
       type: Date,
       required: true,
@@ -39,26 +64,49 @@ const appointmentSchema = new mongoose.Schema(
       type: String, // e.g. "10:30"
       required: true,
     },
+
+    originalPrice: {
+      type: Number
+    },
+    loyaltyPointsEarned: {
+      type: Number,
+      default: 0
+    },
+    loyaltyDiscountAmount: {
+      type: Number,
+      default: 0
+    },
+    pointsRedeemed: {
+      type: Number,
+      default: 0
+    },
+    discountAmount: {
+      type: Number,
+      default: 0
+    },
+    couponCode: {
+      type: String
+    },
+    couponId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Coupon'
+    },
     price: {
       type: Number,
       required: true,
     },
     bookingType: {
       type: String,
-      enum: ['instant', 'scheduled'],
+      enum: ['instant', 'scheduled', 'walk_in'],
       default: 'instant',
     },
     snapshots: {
       type: mongoose.Schema.Types.Mixed,
       default: {}
     },
-    serviceId: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-    },
     status: {
       type: String,
-      enum: ['pending', 'confirmed', 'completed', 'cancelled'],
+      enum: ['pending', 'confirmed', 'arrived', 'in_progress', 'completed', 'no_show', 'cancelled'],
       default: 'pending',
     },
     cancellationReason: {
@@ -69,6 +117,14 @@ const appointmentSchema = new mongoose.Schema(
     },
     rescheduleTime: {
       type: String,
+    },
+    advanceAmount: {
+      type: Number,
+      default: 0
+    },
+    remainingAmount: {
+      type: Number,
+      default: 0
     },
     paymentStatus: {
       type: String,

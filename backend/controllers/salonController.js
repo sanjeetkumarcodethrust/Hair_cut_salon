@@ -1,3 +1,6 @@
+import Favorite from '../models/Favorite.js';
+import RecentlyViewed from '../models/RecentlyViewed.js';
+import Appointment from '../models/Appointment.js';
 import { calculateRelevance } from '../services/relevanceService.js';
 import Salon from '../models/Salon.js';
 import Review from '../models/Review.js';
@@ -21,7 +24,7 @@ export const getSalons = async (req, res) => {
     const searchTerm = search || keyword;
 
     // Build query dynamically — no hardcoded city/state
-    const query = {};
+    const query = { verificationStatus: 'approved', isActive: true };
 
     if (searchTerm) {
       query.name = { $regex: searchTerm, $options: 'i' };
@@ -315,7 +318,29 @@ export const getNearbySalons = async (req, res) => {
     const candidates = await Salon.aggregate(pipeline);
     
     // 3. Normalize Ranking Signals & Calculate Relevance
+    
     let scoredCandidates = calculateRelevance(candidates, searchTrimmed);
+
+    if (req.user && sort === 'relevance' && !searchTrimmed) {
+        const customerId = req.user._id;
+        const [favorites, recentViews, bookings] = await Promise.all([
+          Favorite.find({ customer: customerId, type: 'shop' }).distinct('shop'),
+          RecentlyViewed.find({ customer: customerId, entityType: 'shop' }).sort({ viewedAt: -1 }).limit(10).distinct('shop'),
+          Appointment.find({ customer: customerId, status: 'completed' }).distinct('salon')
+        ]);
+        const favSet = new Set(favorites.map(id => id.toString()));
+        const recentSet = new Set(recentViews.map(id => id.toString()));
+        const bookedSet = new Set(bookings.map(id => id.toString()));
+
+        scoredCandidates = scoredCandidates.map(salon => {
+            const shopIdStr = salon._id.toString();
+            if (bookedSet.has(shopIdStr)) salon.relevanceScore += 50;
+            if (favSet.has(shopIdStr)) salon.relevanceScore += 30;
+            if (recentSet.has(shopIdStr)) salon.relevanceScore += 10;
+            return salon;
+        });
+    }
+
 
     // 4. Sort
     if (sort === 'distance') {

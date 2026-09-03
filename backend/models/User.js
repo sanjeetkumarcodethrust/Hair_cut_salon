@@ -22,6 +22,27 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
       select: false,
     },
+
+    status: {
+      type: String,
+      enum: ['active', 'suspended'],
+      default: 'active'
+    },
+    suspensionReason: String,
+
+    loyaltyPoints: {
+      type: Number,
+      default: 0
+    },
+    referralCode: {
+      type: String,
+      unique: true,
+      sparse: true
+    },
+    referredBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
     role: {
       type: String,
       enum: ['customer', 'barber', 'owner', 'admin'],

@@ -1,3 +1,4 @@
+import { startAbandonedHoldJob } from './jobs/abandonedHoldJob.js';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -14,10 +15,18 @@ import salonRoutes from './routes/salonRoutes.js';
 import barberRoutes from './routes/barberRoutes.js';
 import appointmentRoutes from './routes/appointmentRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import customerPreferenceRoutes from './routes/customerPreferenceRoutes.js';
+import ticketRoutes from './routes/ticketRoutes.js';
+import loyaltyRoutes from './routes/loyaltyRoutes.js';
+import couponRoutes from './routes/couponRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import favoriteRoutes from './routes/favoriteRoutes.js';
 import jobRoutes from './routes/jobRoutes.js';
 import applicationRoutes from './routes/applicationRoutes.js';
+import staffRoutes from './routes/staffRoutes.js';
+import queueRoutes from './routes/queueRoutes.js';
+import workforceRoutes from './routes/workforceRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import { notFound, errorHandler } from './middlewares/errorMiddleware.js';
 import startReminderJob from './jobs/reminderJob.js';
@@ -101,6 +110,18 @@ app.use(
 if (env.nodeEnv === 'development') {
   app.use(morgan('dev'));
 }
+
+import paymentRoutes from './routes/paymentRoutes.js';
+
+// Stripe webhook must process raw body before express.json()
+
+
+
+import { handleStripeWebhook } from './controllers/paymentController.js';
+
+// Stripe webhook must process raw body before express.json()
+app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -151,10 +172,19 @@ app.use('/api/barbers', barberRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/coupons', couponRoutes);
+app.use('/api/loyalty', loyaltyRoutes);
+app.use('/api/tickets', ticketRoutes);
+app.use('/api/preferences', customerPreferenceRoutes);
 app.use('/api/favorites', favoriteRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/applications', applicationRoutes);
+app.use('/api/staff', staffRoutes);
+app.use('/api/queue', queueRoutes);
+app.use('/api/workforce', workforceRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Centralized Error Handling — must be after all routes
 app.use(notFound);
@@ -181,6 +211,7 @@ const PORT = env.port;
 
 connectDB();
 startReminderJob();
+startAbandonedHoldJob();
 
 httpServer.on('error', (error) => {
   if (error.code === 'EADDRINUSE') {

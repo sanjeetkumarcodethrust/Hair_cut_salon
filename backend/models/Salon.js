@@ -88,6 +88,19 @@ const salonSchema = new mongoose.Schema(
       saturday: { open: String, close: String, isClosed: { type: Boolean, default: false } },
       sunday: { open: String, close: String, isClosed: { type: Boolean, default: true } },
     },
+
+    paymentPolicy: {
+      advanceRequired: { type: Boolean, default: false },
+      advancePercentage: { type: Number, default: 20 }, // 20% advance
+    },
+
+    verificationStatus: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected', 'suspended'],
+      default: 'pending'
+    },
+    rejectionReason: String,
+    suspensionReason: String,
     rating: {
       type: Number,
       default: 0,

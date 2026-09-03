@@ -1,6 +1,8 @@
 import Stripe from 'stripe';
 import Appointment from '../models/Appointment.js';
 import env from '../config/env.js';
+import { emitBookingConfirmed } from '../services/bookingEventEmitter.js';
+import Salon from '../models/Salon.js';
 
 const stripeSecretKey = env.stripeSecretKey;
 const stripe = stripeSecretKey && stripeSecretKey !== 'placeholder' ? new Stripe(stripeSecretKey) : null;
@@ -9,17 +11,17 @@ const frontendUrl = env.frontendUrl;
 const formatAmount = (amount) => Math.round(Number(amount || 0) * 100);
 
 export const createCheckoutSessionForAppointment = async (appointment, user) => {
-  if (!appointment) {
-    throw new Error('Appointment is required');
-  }
+  if (!appointment) throw new Error('Appointment is required');
 
   if (appointment.paymentStatus === 'paid') {
     return { url: null, sessionId: appointment.stripePaymentIntentId || null, paymentStatus: appointment.paymentStatus };
   }
 
+  // Calculate amount to pay online (advance or full)
+  const amountToPay = appointment.advanceAmount > 0 ? appointment.advanceAmount : appointment.price;
+
   if (env.paymentMode === 'test' || !stripe) {
-    appointment.paymentStatus = 'paid';
-    appointment.status = 'confirmed';
+    // For test mode without stripe configured, mock the flow
     appointment.stripePaymentIntentId = `mock_${appointment._id.toString()}`;
     await appointment.save();
 
@@ -38,9 +40,9 @@ export const createCheckoutSessionForAppointment = async (appointment, user) => 
         price_data: {
           currency: env.stripeCurrency,
           product_data: {
-            name: appointment.service?.name || env.defaultAppointmentName,
+            name: `${appointment.service?.name || env.defaultAppointmentName}${appointment.advanceAmount > 0 ? ' (Advance Payment)' : ''}`,
           },
-          unit_amount: formatAmount(appointment.price),
+          unit_amount: formatAmount(amountToPay),
         },
         quantity: 1,
       },
@@ -53,7 +55,7 @@ export const createCheckoutSessionForAppointment = async (appointment, user) => 
     },
   });
 
-  appointment.stripePaymentIntentId = session.payment_intent || session.id;
+  appointment.stripePaymentIntentId = session.id;
   await appointment.save();
 
   return {
@@ -66,10 +68,12 @@ export const createCheckoutSessionForAppointment = async (appointment, user) => 
 export const createCheckoutSession = async (req, res) => {
   try {
     const { appointmentId } = req.body;
-
     const appointment = await Appointment.findById(appointmentId);
-    if (!appointment) {
-      return res.status(404).json({ message: 'Appointment not found' });
+    if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
+    
+    // Ensure ownership
+    if (appointment.customer.toString() !== req.user._id.toString()) {
+       return res.status(403).json({ message: 'Not authorized to pay for this appointment' });
     }
 
     const payment = await createCheckoutSessionForAppointment(appointment, req.user);
@@ -79,30 +83,71 @@ export const createCheckoutSession = async (req, res) => {
   }
 };
 
+export const handleStripeWebhook = async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+
+  try {
+    if (!env.stripeWebhookSecret) {
+      console.warn("No stripeWebhookSecret found, skipping signature verification (NOT SAFE FOR PRODUCTION)");
+      event = req.body;
+    } else {
+      event = stripe.webhooks.constructEvent(req.rawBody, sig, env.stripeWebhookSecret);
+    }
+  } catch (err) {
+    console.error(`Webhook Error: ${err.message}`);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // Handle the event
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const appointmentId = session.metadata.appointmentId;
+    
+    if (appointmentId) {
+      const appointment = await Appointment.findById(appointmentId);
+      if (appointment && appointment.paymentStatus !== 'paid') {
+        appointment.paymentStatus = 'paid';
+        appointment.status = 'confirmed';
+        await appointment.save();
+        
+        // Trigger notification
+        const salon = await Salon.findById(appointment.salon);
+        if (salon) emitBookingConfirmed(appointment, salon);
+      }
+    }
+  }
+
+  res.json({ received: true });
+};
+
 export const confirmPayment = async (req, res) => {
+  // This endpoint is mostly for frontend fast-polling to check state,
+  // The ACTUAL authoritative change happens via Webhooks for security.
   try {
     const { appointmentId, sessionId } = req.body;
-
     const appointment = await Appointment.findById(appointmentId);
-    if (!appointment) {
-      return res.status(404).json({ message: 'Appointment not found' });
-    }
+    if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
 
     let paymentConfirmed = false;
 
     if (sessionId && sessionId.startsWith('mock_')) {
-      // In test mode or when using mock payments
       paymentConfirmed = true;
     } else if (stripe && sessionId) {
-      // Real Stripe session
       const session = await stripe.checkout.sessions.retrieve(sessionId);
       paymentConfirmed = session.payment_status === 'paid';
     }
 
-    if (paymentConfirmed) {
+    if (paymentConfirmed && appointment.paymentStatus !== 'paid') {
       appointment.paymentStatus = 'paid';
       appointment.status = 'confirmed';
       await appointment.save();
+      
+      const salon = await Salon.findById(appointment.salon);
+      if (salon) emitBookingConfirmed(appointment, salon);
+    }
+
+    if (appointment.paymentStatus === 'paid') {
       return res.status(200).json({ message: 'Payment confirmed', appointment });
     }
 
@@ -111,6 +156,7 @@ export const confirmPayment = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+
 
 export const getPaymentHistory = async (req, res) => {
   try {
@@ -124,9 +170,7 @@ export const getPaymentHistory = async (req, res) => {
 export const refundPayment = async (req, res) => {
   try {
     const appointment = await Appointment.findById(req.params.id);
-    if (!appointment) {
-      return res.status(404).json({ message: 'Appointment not found' });
-    }
+    if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
 
     if (appointment.paymentStatus !== 'paid') {
       return res.status(400).json({ message: 'Only paid appointments can be refunded' });

@@ -2,6 +2,7 @@ import Salon from '../models/Salon.js';
 import BarberProfile from '../models/BarberProfile.js';
 import Chair from '../models/Chair.js';
 import Appointment from '../models/Appointment.js';
+import LeaveRequest from '../models/LeaveRequest.js';
 import moment from 'moment-timezone';
 
 const SLOT_INTERVAL = 15; // minutes
@@ -33,25 +34,55 @@ export const getAvailableSlots = async (shopId, dateStr, service, timezone = 'As
     status: 'active' 
   }).lean();
 
+  
   const qualifiedBarbers = allBarbers.filter(b => {
     // Check if they work today
     const bHours = b.availability?.[dayOfWeek];
     if (!bHours || !bHours.isWorking) return false;
 
-    // Check service compatibility
+    
+    // Phase 22: Is barber on leave today?
+    if (onLeaveBarberIds.includes(barber._id.toString())) {
+        return false;
+    }
+
+    // Phase 19: Check compatibility for all requested services
+
     if (b.services && b.services.length > 0) {
-      const match = b.services.find(s => s.name.toLowerCase() === service.name.toLowerCase());
-      if (!match) return false;
+      let requiredServices = [];
+      if (Array.isArray(service)) requiredServices = service;
+      else if (service) requiredServices = [service];
+      
+      const canDoAll = requiredServices.every(reqS => 
+        b.services.some(bS => bS.name.toLowerCase() === reqS.name.toLowerCase())
+      );
+      if (!canDoAll) return false;
     }
     return true;
   });
+
 
   if (qualifiedBarbers.length === 0) {
     return []; // No barbers can do this today
   }
 
+  
   // 3. Fetch Chairs
   const chairs = await Chair.find({ shopId, status: 'available', active: true }).lean();
+  
+  // Phase 22: Fetch Approved Leaves for this shop on this date
+  const _startOfDay = reqDate.clone().startOf('day');
+  const _endOfDay = reqDate.clone().endOf('day');
+  
+  const approvedLeaves = await LeaveRequest.find({
+      shopId,
+      status: 'APPROVED',
+      startDate: { $lte: _endOfDay.toDate() },
+      endDate: { $gte: _startOfDay.toDate() }
+  }).lean();
+  
+  const onLeaveBarberIds = approvedLeaves.map(l => l.staffId.toString());
+
   
   // If no specific chairs modeled, we assume 1 chair per barber as a fallback
   let chairCount = chairs.length;
@@ -74,12 +105,23 @@ export const getAvailableSlots = async (shopId, dateStr, service, timezone = 'As
   }
   const appointments = await Appointment.find(query).lean();
 
+  
   // 5. Generate Slots
   const slots = [];
   let currentTime = shopStart.clone();
   const now = moment().tz(timezone);
 
-  const durationMin = service.duration || 30;
+  // Phase 19: Calculate total duration if multiple services
+  let durationMin = 30;
+  let serviceList = [];
+  if (Array.isArray(service)) {
+    serviceList = service;
+    durationMin = service.reduce((acc, s) => acc + (s.duration || 30), 0);
+  } else if (service) {
+    serviceList = [service];
+    durationMin = service.duration || 30;
+  }
+
 
   while (currentTime.clone().add(durationMin, 'minutes').isSameOrBefore(shopEnd)) {
     const slotStart = currentTime.clone();

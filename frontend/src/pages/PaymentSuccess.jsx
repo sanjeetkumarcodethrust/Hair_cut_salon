@@ -19,7 +19,7 @@ const PaymentSuccess = () => {
       }
 
       try {
-        const res = await api.post('/appointments/payments/confirm', {
+        const res = await api.post('/payments/confirm', {
           sessionId,
           appointmentId,
         });
@@ -104,12 +104,14 @@ const PaymentSuccess = () => {
                   <span className="text-white font-medium">{appointment.time}</span>
                 </div>
               )}
+              
               {appointment.price && (
                 <div className="flex justify-between text-sm border-t border-white/10 pt-3 mt-3">
                   <span className="text-slate-400">Amount Paid</span>
-                  <span className="text-emerald-400 font-bold">₹{appointment.price}</span>
+                  <span className="text-emerald-400 font-bold">₹{appointment.advanceAmount > 0 ? appointment.advanceAmount : appointment.price}</span>
                 </div>
               )}
+
               <div className="flex justify-between text-sm">
                 <span className="text-slate-400">Status</span>
                 <span className="rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold px-3 py-0.5 border border-emerald-500/30">

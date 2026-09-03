@@ -8,7 +8,7 @@ import { isDatabaseConnected } from '../config/db.js';
 // @route   POST /api/auth/register
 // @access  Public
 export const registerUser = async (req, res) => {
-  const { name, email, password, role, phone } = req.body;
+  const { name, email, password, role, phone, referralCode } = req.body;
 
   // Prevent clients from self-assigning the admin role
   const safeRole = ['customer', 'barber', 'owner'].includes(role) ? role : 'customer';
@@ -20,7 +20,19 @@ export const registerUser = async (req, res) => {
       return res.status(409).json({ success: false, message: 'User already exists' });
     }
 
-    const user = await User.create({
+    
+    let referredBy = null;
+    if (referralCode) {
+       const referrer = await User.findOne({ referralCode: referralCode.toUpperCase().trim() });
+       if (referrer) referredBy = referrer._id;
+    }
+
+    // Generate unique referral code for this user
+    const newReferralCode = (name.substring(0, 4) + Math.floor(1000 + Math.random() * 9000)).toUpperCase().replace(/\s/g, '');
+    
+      const user = await User.create({
+        referralCode: newReferralCode,
+        referredBy,
       name,
       email,
       password,

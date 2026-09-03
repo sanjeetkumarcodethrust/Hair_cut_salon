@@ -473,8 +473,55 @@ export const completeAppointment = async (req, res) => {
       return res.status(400).json({ message: 'Only confirmed appointments can be marked as completed' });
     }
 
+    
     appointment.status = 'completed';
+    
+    // Loyalty Reward Logic
+    const pointsEarned = Math.floor(appointment.price / 10); // 1 point per ₹10
+    appointment.loyaltyPointsEarned = pointsEarned;
     await appointment.save();
+
+    const User = (await import('../models/User.js')).default;
+    const LoyaltyTransaction = (await import('../models/LoyaltyTransaction.js')).default;
+    
+    const customer = await User.findByIdAndUpdate(
+      appointment.customer, 
+      { $inc: { loyaltyPoints: pointsEarned } }, 
+      { new: true }
+    );
+    
+    if (customer) {
+      await LoyaltyTransaction.create({
+        user: customer._id,
+        type: 'earned',
+        points: pointsEarned,
+        referenceId: appointment._id,
+        description: `Points earned for booking ${appointment._id.toString().substring(0,6)}`,
+        balanceAfter: customer.loyaltyPoints
+      });
+      
+      // Check Referral Bonus (if this is the first completed booking)
+      const completedCount = await Appointment.countDocuments({ customer: customer._id, status: 'completed' });
+      if (completedCount === 1 && customer.referredBy) {
+         const referralBonus = 500; // 500 points for successful referral
+         const referrer = await User.findByIdAndUpdate(
+           customer.referredBy,
+           { $inc: { loyaltyPoints: referralBonus } },
+           { new: true }
+         );
+         if (referrer) {
+           await LoyaltyTransaction.create({
+             user: referrer._id,
+             type: 'referral_bonus',
+             points: referralBonus,
+             referenceId: customer._id,
+             description: `Bonus for referring ${customer.name}`,
+             balanceAfter: referrer.loyaltyPoints
+           });
+         }
+      }
+    }
+
 
     const populated = await populateAppointment(Appointment.findById(appointment._id));
     res.status(200).json({ message: 'Appointment completed', data: populated });
@@ -496,28 +543,89 @@ export const createInstantBooking = async (req, res) => {
   }
 
   try {
-    const { shopId, serviceId } = req.body;
-    
-    if (!shopId || !serviceId) {
+    const serviceIds = req.body.serviceIds || (req.body.serviceId ? [req.body.serviceId] : []);
+    if (!req.body.shopId || serviceIds.length === 0) {
       throw new Error('Missing required booking parameters');
     }
-
+    const shopId = req.body.shopId;
+    
     const salon = useTransaction ? await Salon.findById(shopId).session(session) : await Salon.findById(shopId);
     if (!salon) throw new Error('Shop not found');
+    
+    const selectedServices = [];
+    let basePrice = 0;
+    let totalDuration = 0;
+    
+    for (const sid of serviceIds) {
+       const s = salon.services.find(srv => srv._id.toString() === sid);
+       if (!s) throw new Error(`Service ${sid} not found in this shop`);
+       if (s.isActive === false) throw new Error(`Service ${s.name} is no longer available`);
+       selectedServices.push(s);
+       basePrice += s.price;
+       totalDuration += (s.duration || 30);
+    }
+    
+    const service = {
+       _id: selectedServices[0]._id, 
+       name: selectedServices.map(s => s.name).join(' + '),
+       price: basePrice,
+       duration: totalDuration,
+       rawList: selectedServices
+    };
 
-    const service = salon.services.find(s => s._id.toString() === serviceId);
-    if (!service) throw new Error('Service not found in this shop');
-    if (service.isActive === false) throw new Error('This service is no longer available');
-
+    
     let finalPrice = service.price;
+    let originalPrice = service.price;
     let discountApplied = null;
-    if (salon.activeOffer && salon.activeOffer.isActive) {
+    let discountAmount = 0;
+    let couponId = null;
+
+    if (req.body.couponCode) {
+      const Coupon = (await import('../models/Coupon.js')).default;
+      const coupon = await Coupon.findOne({ salon: shopId, code: req.body.couponCode.toUpperCase().trim() });
+      if (!coupon) throw new Error('Invalid coupon code');
+      if (coupon.status !== 'active') throw new Error(`Coupon is ${coupon.status}`);
+      if (coupon.startAt && new Date() < new Date(coupon.startAt)) throw new Error('Coupon is not yet active');
+      if (coupon.expiresAt && new Date() > new Date(coupon.expiresAt)) {
+        coupon.status = 'expired'; await coupon.save(); throw new Error('Coupon has expired');
+      }
+      if (coupon.usageLimit && coupon.usageCount >= coupon.usageLimit) {
+        coupon.status = 'exhausted'; await coupon.save(); throw new Error('Coupon usage limit reached');
+      }
+      if (coupon.minOrderValue && finalPrice < coupon.minOrderValue) throw new Error(`Minimum booking value of ₹${coupon.minOrderValue} required`);
+      
+      if (coupon.perCustomerLimit) {
+         const userUsage = await Appointment.countDocuments({
+           customer: req.user._id,
+           couponId: coupon._id,
+           status: { $nin: ['cancelled', 'pending'] }
+         });
+         if (userUsage >= coupon.perCustomerLimit) throw new Error('You have reached the maximum usage limit for this coupon');
+      }
+
+      if (coupon.discountType === 'percentage') {
+        discountAmount = (finalPrice * coupon.discountValue) / 100;
+        if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) discountAmount = coupon.maxDiscount;
+      } else {
+        discountAmount = coupon.discountValue;
+      }
+      if (discountAmount > finalPrice) discountAmount = finalPrice;
+      
+      finalPrice = finalPrice - discountAmount;
+      discountApplied = coupon.code;
+      couponId = coupon._id;
+      
+      // Atomically increment usage
+      await Coupon.findByIdAndUpdate(coupon._id, { $inc: { usageCount: 1 } });
+    } else if (salon.activeOffer && salon.activeOffer.isActive) {
        discountApplied = salon.activeOffer.title;
        if (salon.activeOffer.discountValue && salon.activeOffer.discountValue.includes('%')) {
           const pct = parseInt(salon.activeOffer.discountValue);
-          finalPrice = finalPrice - (finalPrice * pct / 100);
+          discountAmount = (finalPrice * pct / 100);
+          finalPrice = finalPrice - discountAmount;
        }
     }
+
 
     // Auto-find earliest slot starting from today
     const todayStr = moment().tz('Asia/Kolkata').format('YYYY-MM-DD');
@@ -573,7 +681,15 @@ export const createInstantBooking = async (req, res) => {
       time: startTime,
       startTime: sTime.toDate(),
       endTime: eTime.toDate(),
-      price: finalPrice,
+
+      originalPrice,
+      discountAmount,
+      couponCode: discountApplied,
+      couponId,
+
+        loyaltyDiscountAmount,
+        pointsRedeemed,
+        price: finalPrice,
       status: 'confirmed',
       bookingType: 'instant',
       snapshots: {
@@ -624,37 +740,92 @@ export const createScheduledBooking = async (req, res) => {
   }
 
   try {
-    const { shopId, serviceId, date, startTime, barberId } = req.body;
-    
-    if (!shopId || !serviceId || !date || !startTime) {
+    const serviceIds = req.body.serviceIds || (req.body.serviceId ? [req.body.serviceId] : []);
+    const { date, startTime, barberId } = req.body;
+    if (!req.body.shopId || serviceIds.length === 0 || !date || !startTime) {
       throw new Error('Missing required scheduling parameters');
     }
-
-    // Scheduling horizon: Max 30 days
-    const reqDate = moment.tz(date, 'Asia/Kolkata');
-    const maxDate = moment().tz('Asia/Kolkata').add(30, 'days');
-    if (reqDate.isAfter(maxDate)) {
-      throw new Error('Cannot schedule more than 30 days in advance.');
-    }
-
+    const shopId = req.body.shopId;
+    
     const salon = useTransaction ? await Salon.findById(shopId).session(session) : await Salon.findById(shopId);
     if (!salon) throw new Error('Shop not found');
+    
+    const selectedServices = [];
+    let basePrice = 0;
+    let totalDuration = 0;
+    
+    for (const sid of serviceIds) {
+       const s = salon.services.find(srv => srv._id.toString() === sid);
+       if (!s) throw new Error(`Service ${sid} not found in this shop`);
+       if (s.isActive === false) throw new Error(`Service ${s.name} is no longer available`);
+       selectedServices.push(s);
+       basePrice += s.price;
+       totalDuration += (s.duration || 30);
+    }
+    
+    const service = {
+       _id: selectedServices[0]._id,
+       name: selectedServices.map(s => s.name).join(' + '),
+       price: basePrice,
+       duration: totalDuration,
+       rawList: selectedServices
+    };
 
-    const service = salon.services.find(s => s._id.toString() === serviceId);
-    if (!service) throw new Error('Service not found in this shop');
-    if (service.isActive === false) throw new Error('This service is no longer available');
-
+    
     let finalPrice = service.price;
+    let originalPrice = service.price;
     let discountApplied = null;
-    if (salon.activeOffer && salon.activeOffer.isActive) {
+    let discountAmount = 0;
+    let couponId = null;
+
+    if (req.body.couponCode) {
+      const Coupon = (await import('../models/Coupon.js')).default;
+      const coupon = await Coupon.findOne({ salon: shopId, code: req.body.couponCode.toUpperCase().trim() });
+      if (!coupon) throw new Error('Invalid coupon code');
+      if (coupon.status !== 'active') throw new Error(`Coupon is ${coupon.status}`);
+      if (coupon.startAt && new Date() < new Date(coupon.startAt)) throw new Error('Coupon is not yet active');
+      if (coupon.expiresAt && new Date() > new Date(coupon.expiresAt)) {
+        coupon.status = 'expired'; await coupon.save(); throw new Error('Coupon has expired');
+      }
+      if (coupon.usageLimit && coupon.usageCount >= coupon.usageLimit) {
+        coupon.status = 'exhausted'; await coupon.save(); throw new Error('Coupon usage limit reached');
+      }
+      if (coupon.minOrderValue && finalPrice < coupon.minOrderValue) throw new Error(`Minimum booking value of ₹${coupon.minOrderValue} required`);
+      
+      if (coupon.perCustomerLimit) {
+         const userUsage = await Appointment.countDocuments({
+           customer: req.user._id,
+           couponId: coupon._id,
+           status: { $nin: ['cancelled', 'pending'] }
+         });
+         if (userUsage >= coupon.perCustomerLimit) throw new Error('You have reached the maximum usage limit for this coupon');
+      }
+
+      if (coupon.discountType === 'percentage') {
+        discountAmount = (finalPrice * coupon.discountValue) / 100;
+        if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) discountAmount = coupon.maxDiscount;
+      } else {
+        discountAmount = coupon.discountValue;
+      }
+      if (discountAmount > finalPrice) discountAmount = finalPrice;
+      
+      finalPrice = finalPrice - discountAmount;
+      discountApplied = coupon.code;
+      couponId = coupon._id;
+      
+      // Atomically increment usage
+      await Coupon.findByIdAndUpdate(coupon._id, { $inc: { usageCount: 1 } });
+    } else if (salon.activeOffer && salon.activeOffer.isActive) {
        discountApplied = salon.activeOffer.title;
        if (salon.activeOffer.discountValue && salon.activeOffer.discountValue.includes('%')) {
           const pct = parseInt(salon.activeOffer.discountValue);
-          finalPrice = finalPrice - (finalPrice * pct / 100);
+          discountAmount = (finalPrice * pct / 100);
+          finalPrice = finalPrice - discountAmount;
        }
     }
 
-    const slots = await getAvailableSlots(shopId, date, service, 'Asia/Kolkata');
+
+    const slots = await getAvailableSlots(shopId, date, service.rawList, 'Asia/Kolkata');
     const targetSlot = slots.find(s => s.startTime === startTime);
     
     if (!targetSlot) {
@@ -730,7 +901,15 @@ export const createScheduledBooking = async (req, res) => {
       time: startTime,
       startTime: sTime.toDate(),
       endTime: eTime.toDate(),
-      price: finalPrice,
+
+      originalPrice,
+      discountAmount,
+      couponCode: discountApplied,
+      couponId,
+
+        loyaltyDiscountAmount,
+        pointsRedeemed,
+        price: finalPrice,
       status: 'confirmed',
       bookingType: 'scheduled',
       snapshots: {

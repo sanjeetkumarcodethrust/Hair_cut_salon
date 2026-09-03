@@ -1,22 +1,30 @@
 import express from 'express';
 import {
-  addReview,
-  updateReview,
-  deleteReview,
+  createReview,
   getSalonReviews,
-  getBarberReviews,
+  getMyReviews,
+  editReview,
+  deleteReview,
+  reportReview
 } from '../controllers/reviewController.js';
-import { protect, authorize } from '../middlewares/authMiddleware.js';
+import { protect } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-// Standalone review routes
-router.post('/', protect, authorize('customer'), addReview);
-router.put('/:id', protect, authorize('customer'), updateReview);
-router.delete('/:id', protect, deleteReview);
+router.route('/')
+  .post(protect, createReview);
 
-// Nested (re-routed from salons/barbers)
-router.get('/salon/:salonId', getSalonReviews);
-router.get('/barber/:barberId', getBarberReviews);
+router.route('/my')
+  .get(protect, getMyReviews);
+
+router.route('/salon/:id')
+  .get(getSalonReviews);
+
+router.route('/:id')
+  .put(protect, editReview)
+  .delete(protect, deleteReview);
+
+router.route('/:id/report')
+  .post(protect, reportReview);
 
 export default router;

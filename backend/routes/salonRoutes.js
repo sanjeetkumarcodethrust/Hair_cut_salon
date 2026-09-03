@@ -8,7 +8,7 @@ import {
   getNearbySalons,
   getShopAvailability,
 } from '../controllers/salonController.js';
-import { protect, authorize } from '../middlewares/authMiddleware.js';
+import { protect, authorize, optionalAuth } from '../middlewares/authMiddleware.js';
 import reviewRoutes from './reviewRoutes.js';
 
 const router = express.Router();
@@ -16,7 +16,7 @@ const router = express.Router();
 // Re-route into other resource routers
 router.use('/:salonId/reviews', reviewRoutes);
 
-router.get('/nearby', getNearbySalons);
+router.get('/nearby', optionalAuth, getNearbySalons);
 router.get('/:id/availability', getShopAvailability);
 
 router
