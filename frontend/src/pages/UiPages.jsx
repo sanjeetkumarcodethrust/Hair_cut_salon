@@ -57,25 +57,7 @@ export const LandingPage = () => (
     </div>
   
       
-      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
-      {selectedServiceIds.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
-           <div>
-             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
-             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
-           </div>
-           <div className="flex gap-2">
-             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
-               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
-                  Join Walk-in Queue
-               </button>
-             )}
-             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
-                Book Appointment
-             </button>
-           </div>
-        </div>
-      )}
+
 
 
     </PageShell>
@@ -580,25 +562,7 @@ export const SearchSalons = () => {
       )}
     
       
-      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
-      {selectedServiceIds.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
-           <div>
-             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
-             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
-           </div>
-           <div className="flex gap-2">
-             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
-               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
-                  Join Walk-in Queue
-               </button>
-             )}
-             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
-                Book Appointment
-             </button>
-           </div>
-        </div>
-      )}
+
 
 
     </PageShell>
@@ -765,25 +729,7 @@ export const SearchBarbers = () => {
       )}
     
       
-      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
-      {selectedServiceIds.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
-           <div>
-             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
-             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
-           </div>
-           <div className="flex gap-2">
-             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
-               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
-                  Join Walk-in Queue
-               </button>
-             )}
-             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
-                Book Appointment
-             </button>
-           </div>
-        </div>
-      )}
+
 
 
     </PageShell>
@@ -937,7 +883,12 @@ export const SalonDetails = () => {
       <div className="flex justify-center items-center py-20"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>
     
       
-      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
+
+
+
+          {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
+
+          {/* Sticky Cart / Checkout Bar */}
       {selectedServiceIds.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
            <div>
@@ -956,8 +907,6 @@ export const SalonDetails = () => {
            </div>
         </div>
       )}
-
-
     </PageShell>
   );
   
@@ -969,25 +918,7 @@ export const SalonDetails = () => {
       </div>
     
       
-      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
-      {selectedServiceIds.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
-           <div>
-             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
-             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
-           </div>
-           <div className="flex gap-2">
-             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
-               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
-                  Join Walk-in Queue
-               </button>
-             )}
-             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
-                Book Appointment
-             </button>
-           </div>
-        </div>
-      )}
+
 
 
     </PageShell>
@@ -1417,25 +1348,7 @@ export const SalonDetails = () => {
       </div>
     
       
-      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
-      {selectedServiceIds.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
-           <div>
-             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
-             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
-           </div>
-           <div className="flex gap-2">
-             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
-               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
-                  Join Walk-in Queue
-               </button>
-             )}
-             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
-                Book Appointment
-             </button>
-           </div>
-        </div>
-      )}
+
 
 
     </PageShell>
@@ -1465,25 +1378,7 @@ export const BarberProfile = () => (
     </div>
   
       
-      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
-      {selectedServiceIds.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
-           <div>
-             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
-             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
-           </div>
-           <div className="flex gap-2">
-             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
-               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
-                  Join Walk-in Queue
-               </button>
-             )}
-             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
-                Book Appointment
-             </button>
-           </div>
-        </div>
-      )}
+
 
 
     </PageShell>
@@ -1869,25 +1764,7 @@ export const JobsPage = () => {
       </div>
     
       
-      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
-      {selectedServiceIds.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
-           <div>
-             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
-             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
-           </div>
-           <div className="flex gap-2">
-             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
-               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
-                  Join Walk-in Queue
-               </button>
-             )}
-             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
-                Book Appointment
-             </button>
-           </div>
-        </div>
-      )}
+
 
 
     </PageShell>
@@ -1917,25 +1794,7 @@ export const ApplyJobPage = () => (
     </div>
   
       
-      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
-      {selectedServiceIds.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
-           <div>
-             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
-             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
-           </div>
-           <div className="flex gap-2">
-             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
-               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
-                  Join Walk-in Queue
-               </button>
-             )}
-             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
-                Book Appointment
-             </button>
-           </div>
-        </div>
-      )}
+
 
 
     </PageShell>
@@ -2334,25 +2193,7 @@ export const CustomerDashboardPage = () => {
       </div>
     
       
-      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
-      {selectedServiceIds.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
-           <div>
-             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
-             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
-           </div>
-           <div className="flex gap-2">
-             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
-               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
-                  Join Walk-in Queue
-               </button>
-             )}
-             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
-                Book Appointment
-             </button>
-           </div>
-        </div>
-      )}
+
 
 
     </PageShell>
@@ -2442,25 +2283,7 @@ export const BarberDashboardPage = () => {
         <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
       
       
-      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
-      {selectedServiceIds.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
-           <div>
-             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
-             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
-           </div>
-           <div className="flex gap-2">
-             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
-               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
-                  Join Walk-in Queue
-               </button>
-             )}
-             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
-                Book Appointment
-             </button>
-           </div>
-        </div>
-      )}
+
 
 
     </PageShell>
@@ -2473,25 +2296,7 @@ export const BarberDashboardPage = () => {
         <div className="text-center py-20 text-red-500 font-bold">{error}</div>
       
       
-      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
-      {selectedServiceIds.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
-           <div>
-             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
-             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
-           </div>
-           <div className="flex gap-2">
-             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
-               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
-                  Join Walk-in Queue
-               </button>
-             )}
-             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
-                Book Appointment
-             </button>
-           </div>
-        </div>
-      )}
+
 
 
     </PageShell>
@@ -2704,25 +2509,7 @@ export const BarberDashboardPage = () => {
       </div>
     
       
-      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
-      {selectedServiceIds.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
-           <div>
-             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
-             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
-           </div>
-           <div className="flex gap-2">
-             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
-               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
-                  Join Walk-in Queue
-               </button>
-             )}
-             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
-                Book Appointment
-             </button>
-           </div>
-        </div>
-      )}
+
 
 
     </PageShell>
@@ -3324,25 +3111,7 @@ export const AdminDashboardPage = () => {
       ) : null}
     
       
-      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
-      {selectedServiceIds.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
-           <div>
-             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
-             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
-           </div>
-           <div className="flex gap-2">
-             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
-               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
-                  Join Walk-in Queue
-               </button>
-             )}
-             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
-                Book Appointment
-             </button>
-           </div>
-        </div>
-      )}
+
 
 
     </PageShell>
@@ -3386,25 +3155,7 @@ export const ProfilePage = () => {
         </div>
       
       
-      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
-      {selectedServiceIds.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
-           <div>
-             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
-             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
-           </div>
-           <div className="flex gap-2">
-             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
-               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
-                  Join Walk-in Queue
-               </button>
-             )}
-             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
-                Book Appointment
-             </button>
-           </div>
-        </div>
-      )}
+
 
 
     </PageShell>
@@ -3453,25 +3204,7 @@ export const ProfilePage = () => {
       </div>
     
       
-      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
-      {selectedServiceIds.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
-           <div>
-             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
-             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
-           </div>
-           <div className="flex gap-2">
-             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
-               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
-                  Join Walk-in Queue
-               </button>
-             )}
-             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
-                Book Appointment
-             </button>
-           </div>
-        </div>
-      )}
+
 
 
     </PageShell>
@@ -3491,25 +3224,7 @@ export const SettingsPage = () => (
     </div>
   
       
-      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
-      {selectedServiceIds.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
-           <div>
-             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
-             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
-           </div>
-           <div className="flex gap-2">
-             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
-               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
-                  Join Walk-in Queue
-               </button>
-             )}
-             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
-                Book Appointment
-             </button>
-           </div>
-        </div>
-      )}
+
 
 
     </PageShell>
@@ -3527,25 +3242,7 @@ export const NotificationsPage = () => (
     </div>
   
       
-      {/* Sticky Cart / Checkout Bar for Phase 19 & 21 */}
-      {selectedServiceIds.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-50 flex items-center justify-between md:justify-center md:gap-8 lg:gap-20">
-           <div>
-             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{selectedServiceIds.length} Service{selectedServiceIds.length > 1 ? 's' : ''} Selected</p>
-             <p className="text-xl font-black text-slate-900">₹{salon.services.filter(s => selectedServiceIds.includes(s._id)).reduce((acc, curr) => acc + curr.price, 0)}</p>
-           </div>
-           <div className="flex gap-2">
-             {liveQueue?.walkInsEnabled && !liveQueue?.isFull && (
-               <button onClick={handleJoinQueue} className="px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-sm md:text-base">
-                  Join Walk-in Queue
-               </button>
-             )}
-             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
-                Book Appointment
-             </button>
-           </div>
-        </div>
-      )}
+
 
 
     </PageShell>
