@@ -9,6 +9,7 @@ import morgan from 'morgan';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import connectDB from './config/db.js';
+import { runBusinessMigration } from './utils/migrateBusiness.js';
 import env from './config/env.js';
 import authRoutes from './routes/authRoutes.js';
 import salonRoutes from './routes/salonRoutes.js';
@@ -18,6 +19,7 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import customerPreferenceRoutes from './routes/customerPreferenceRoutes.js';
 import ticketRoutes from './routes/ticketRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
+import businessRoutes from './routes/businessRoutes.js';
 import loyaltyRoutes from './routes/loyaltyRoutes.js';
 import couponRoutes from './routes/couponRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
@@ -178,6 +180,7 @@ app.use('/api/coupons', couponRoutes);
 app.use('/api/loyalty', loyaltyRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/business', businessRoutes);
 app.use('/api/preferences', customerPreferenceRoutes);
 app.use('/api/favorites', favoriteRoutes);
 app.use('/api/jobs', jobRoutes);
@@ -211,7 +214,9 @@ process.on('unhandledRejection', (reason) => {
 
 const PORT = env.port;
 
-connectDB();
+connectDB().then(async () => {
+  await runBusinessMigration();
+});
 startReminderJob();
 startAbandonedHoldJob();
 

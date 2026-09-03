@@ -87,7 +87,7 @@ export const getSalon = async (req, res) => {
     const { latitude, longitude } = req.query;
     
     // Use lean() for easier manipulation if needed, or just convert to object later.
-    const salonDoc = await Salon.findById(req.params.id).populate('owner', 'name email');
+    const salonDoc = await Salon.findById(req.params.id).populate('owner', 'name email').populate('business', 'name logo').populate('business', 'name logo');
 
     if (!salonDoc) {
       return res.status(404).json({ success: false, message: 'Shop not found' });

@@ -29,6 +29,17 @@ const serviceSchema = new mongoose.Schema({
 
 const salonSchema = new mongoose.Schema(
   {
+        business: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Business'
+    },
+    branchName: {
+      type: String
+    },
+    managers: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

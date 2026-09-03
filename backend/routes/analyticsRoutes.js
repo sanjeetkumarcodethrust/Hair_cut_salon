@@ -18,7 +18,10 @@ const isShopOwner = async (req, res, next) => {
       return next();
     }
     
-    if (salon.owner.toString() !== req.user._id.toString()) {
+    const isOwner = salon.owner.toString() === req.user._id.toString();
+    const isManager = req.user.role === 'manager' && req.user.managedBranches && req.user.managedBranches.includes(salon._id.toString());
+    
+    if (!isOwner && !isManager) {
       return res.status(403).json({ success: false, message: 'Not authorized for this shop\'s analytics' });
     }
     

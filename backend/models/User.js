@@ -16,6 +16,10 @@ const userSchema = new mongoose.Schema(
         'Please add a valid email',
       ],
     },
+        managedBranches: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Salon'
+    }],
     password: {
       type: String,
       required: [true, 'Please add a password'],
@@ -45,7 +49,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['customer', 'barber', 'owner', 'admin'],
+      enum: ['customer', 'barber', 'owner', 'manager', 'admin'],
       default: 'customer',
     },
     profileImage: {
