@@ -154,6 +154,8 @@ export const SearchSalons = () => {
         params: {
           latitude: selectedLocation.latitude,
           longitude: selectedLocation.longitude,
+          lat: selectedLocation.latitude,
+          lng: selectedLocation.longitude,
           page: pageNum,
           limit: 12,
           search: debouncedSearch,
