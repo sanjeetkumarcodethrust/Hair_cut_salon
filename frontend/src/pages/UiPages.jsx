@@ -813,8 +813,28 @@ export const SalonDetails = () => {
   const location = window.location;
   const initialState = window.history.state?.usr?.selectedServiceIds || [];
   const [selectedServiceIds, setSelectedServiceIds] = React.useState(initialState);
-
   
+  const [couponCode, setCouponCode] = React.useState('');
+  const [appliedCoupon, setAppliedCoupon] = React.useState(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = React.useState(false);
+  const [couponError, setCouponError] = React.useState(null);
+  const [redeemPoints, setRedeemPoints] = React.useState(0);
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode) return;
+    setIsApplyingCoupon(true);
+    setCouponError(null);
+    try {
+      const activeServices = salon?.services?.filter(s => selectedServiceIds.includes(s._id)) || [];
+      const totalAmount = activeServices.reduce((acc, curr) => acc + curr.price, 0);
+      const res = await api.post('/coupons/validate', { code: couponCode, shopId: id, totalAmount });
+      setAppliedCoupon(res.data.data);
+    } catch (err) {
+      setCouponError(err.response?.data?.message || 'Invalid coupon');
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
   // Phase 5: Availability State
   const [selectedDate, setSelectedDate] = React.useState(new Date().toISOString().split('T')[0]);
   const [availableSlots, setAvailableSlots] = React.useState([]);
@@ -858,7 +878,7 @@ export const SalonDetails = () => {
 
   // Fetch slots when service or date changes
   React.useEffect(() => {
-    if (!selectedServiceId || !selectedDate) {
+    if (selectedServiceIds.length === 0 || !selectedDate) {
       setAvailableSlots([]);
       return;
     }
@@ -867,7 +887,7 @@ export const SalonDetails = () => {
       setSelectedSlot(null);
       try {
         const res = await api.get(`/salons/${id}/availability`, {
-          params: { date: selectedDate, serviceId: selectedServiceId }
+          params: { date: selectedDate, serviceIds: selectedServiceIds.join(',') }
         });
         setAvailableSlots(res.data.slots || []);
       } catch (err) {
@@ -878,7 +898,7 @@ export const SalonDetails = () => {
       }
     };
     fetchSlots();
-  }, [id, selectedServiceId, selectedDate]);
+  }, [id, selectedServiceIds, selectedDate]);
 
   if (loading) return (
     <PageShell eyebrow="Loading..." title="Loading Shop Profile...">
@@ -903,7 +923,7 @@ export const SalonDetails = () => {
                   Join Walk-in Queue
                </button>
              )}
-             <button onClick={() => navigate('/book', { state: { salon, selectedServiceIds } })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
+             <button onClick={() => document.getElementById('booking-section')?.scrollIntoView({ behavior: 'smooth' })} className="px-4 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg text-sm md:text-base">
                 Book Appointment
              </button>
            </div>
@@ -1036,11 +1056,10 @@ export const SalonDetails = () => {
         {/* Right Column: Services Menu & Availability */}
         <div className="space-y-6 lg:sticky lg:top-24">
            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/50">
-             {!selectedServiceId ? (
-               <>
+             <>
                  <div className="mb-6">
                    <h3 className="text-xl font-bold text-slate-900 mb-2">Service Menu</h3>
-                   <p className="text-sm text-slate-500 font-medium">Select a service to check availability.</p>
+                   <p className="text-sm text-slate-500 font-medium">Select services to check availability.</p>
                  </div>
 
                  <div className="relative mb-6">
@@ -1054,7 +1073,7 @@ export const SalonDetails = () => {
                     />
                  </div>
 
-                 <div className="space-y-8 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                 <div className={`space-y-8 overflow-y-auto pr-2 custom-scrollbar ${selectedServiceIds.length > 0 ? 'max-h-[30vh]' : 'max-h-[60vh]'} mb-6`}>
                    {Object.keys(categorized).length === 0 ? (
                      <p className="text-center text-slate-500 text-sm py-4">No services match your search.</p>
                    ) : (
@@ -1062,11 +1081,19 @@ export const SalonDetails = () => {
                        <div key={category}>
                          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 border-b border-slate-100 pb-2">{category}</h4>
                          <div className="space-y-3">
-                           {services.map(service => (
+                           {services.map(service => {
+                               const isSelected = selectedServiceIds.includes(service._id);
+                               return (
                                <div 
                                  key={service._id} 
-                                 onClick={() => setSelectedServiceId(service._id)}
-                                 className="p-4 rounded-2xl border-2 border-slate-100 hover:border-slate-200 bg-white transition cursor-pointer flex flex-col justify-between group"
+                                 onClick={() => {
+                                   if (isSelected) {
+                                     setSelectedServiceIds(prev => prev.filter(id => id !== service._id));
+                                   } else {
+                                     setSelectedServiceIds(prev => [...prev, service._id]);
+                                   }
+                                 }}
+                                 className={`p-4 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between group ${isSelected ? 'border-primary bg-indigo-50/30' : 'border-slate-100 hover:border-slate-200 bg-white'}`}
                                >
                                   <div className="flex justify-between items-start mb-2 gap-4">
                                     <div>
@@ -1077,35 +1104,41 @@ export const SalonDetails = () => {
                                       <div className="font-bold text-sm text-slate-900">₹{service.price}</div>
                                     </div>
                                   </div>
-                                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100/60">
+                                  <div className={`flex items-center justify-between mt-3 pt-3 border-t ${isSelected ? 'border-indigo-100' : 'border-slate-100/60'}`}>
                                     <span className="text-xs font-semibold text-slate-500 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> {service.duration} min</span>
-                                    <span className="text-xs font-bold px-4 py-1.5 rounded-lg transition bg-slate-100 text-slate-600 group-hover:bg-indigo-50 group-hover:text-primary">
-                                      Select
+                                    <span className={`text-xs font-bold px-4 py-1.5 rounded-lg transition ${isSelected ? 'bg-primary text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-indigo-50 group-hover:text-primary'}`}>
+                                      {isSelected ? 'Selected' : 'Select'}
                                     </span>
                                   </div>
                                </div>
-                           ))}
+                               );
+                           })}
                          </div>
                        </div>
                      ))
                    )}
                  </div>
                </>
-             ) : (
-               <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-                 <button onClick={() => { setSelectedServiceId(null); setBookingMode(null); setBookingSuccess(null); setBookingError(null); }} className="text-sm font-bold text-primary flex items-center gap-1 mb-4 hover:opacity-80">
-                   ← Back to services
-                 </button>
+               
+             {selectedServiceIds.length > 0 && (
+               <div id="booking-section" className="animate-in fade-in slide-in-from-right-4 duration-300 pt-6 border-t border-slate-200">
+                 <div className="flex items-center justify-between mb-4">
+                   <h3 className="font-bold text-slate-900 text-lg">Booking Details</h3>
+                   <button onClick={() => { setSelectedServiceIds([]); setBookingMode(null); setBookingSuccess(null); setBookingError(null); }} className="text-xs font-bold text-red-500 hover:underline">
+                     Clear Selection
+                   </button>
+                 </div>
                  
                  {(() => {
-                   const s = activeServices.find(x => x._id === selectedServiceId);
-                   return s ? (
+                   const selected = activeServices.filter(x => selectedServiceIds.includes(x._id));
+                   if (selected.length === 0) return null;
+                   return (
                      <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100 mb-6">
-                       <h4 className="font-bold text-slate-900">{s.name}</h4>
-                         <p className="text-sm font-semibold text-primary mt-1">₹{s.price} • {s.duration} min</p>
+                       <h4 className="font-bold text-slate-900">{selected.map(s => s.name).join(', ')}</h4>
+                         <p className="text-sm font-semibold text-primary mt-1">₹{selected.reduce((a, b) => a + b.price, 0)} • {selected.reduce((a, b) => a + (b.duration || 30), 0)} min</p>
                        </div>
-                     ) : null;
-                   })()}
+                   );
+                 })()}
 
                          {/* Coupon Section */}
                          <div className="mt-4 mb-6">
@@ -1169,7 +1202,7 @@ export const SalonDetails = () => {
                            <div className="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
                              <div className="flex justify-between text-sm text-slate-500 mb-2">
                                <span>Original Price</span>
-                               <span className="line-through">₹{appliedCoupon ? appliedCoupon.originalPrice : (activeServices.find(x => x._id === selectedServiceId)?.price || 0)}</span>
+                               <span className="line-through">₹{appliedCoupon ? appliedCoupon.originalPrice : (activeServices.filter(x => selectedServiceIds.includes(x._id)).reduce((acc, curr) => acc + curr.price, 0))}</span>
                              </div>
                              {appliedCoupon && (
                                <div className="flex justify-between text-sm text-green-600 font-bold mb-2">
@@ -1185,7 +1218,7 @@ export const SalonDetails = () => {
                              )}
                              <div className="flex justify-between font-black text-slate-900 text-lg">
                                <span>Total</span>
-                               <span>₹{Math.max(0, (appliedCoupon ? appliedCoupon.finalPrice : (activeServices.find(x => x._id === selectedServiceId)?.price || 0)) - Math.floor(redeemPoints / 10))}</span>
+                               <span>₹{Math.max(0, (appliedCoupon ? appliedCoupon.finalPrice : (activeServices.filter(x => selectedServiceIds.includes(x._id)).reduce((acc, curr) => acc + curr.price, 0))) - Math.floor(redeemPoints / 10))}</span>
                              </div>
                            </div>
                          )}

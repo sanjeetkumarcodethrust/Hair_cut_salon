@@ -391,10 +391,10 @@ import { getAvailableSlots } from '../services/availabilityService.js';
 export const getShopAvailability = async (req, res) => {
   try {
     const { id } = req.params;
-    const { date, serviceId, excludeBookingId } = req.query;
+    const { date, serviceId, serviceIds, excludeBookingId } = req.query;
 
-    if (!date || !serviceId) {
-      return res.status(400).json({ success: false, message: 'Date and serviceId are required' });
+    if (!date || (!serviceId && !serviceIds)) {
+      return res.status(400).json({ success: false, message: 'Date and serviceId(s) are required' });
     }
 
     const shop = await Salon.findById(id).lean();
@@ -402,23 +402,32 @@ export const getShopAvailability = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Shop not found' });
     }
 
-    // Find the requested service inside the shop
-    const service = shop.services.find(s => s._id.toString() === serviceId);
-    if (!service) {
-      return res.status(404).json({ success: false, message: 'Service not found in this shop' });
+    let services = [];
+    if (serviceIds) {
+      const ids = serviceIds.split(',');
+      services = shop.services.filter(s => ids.includes(s._id.toString()));
+      if (services.length === 0) {
+        return res.status(404).json({ success: false, message: 'Services not found in this shop' });
+      }
+    } else {
+      const service = shop.services.find(s => s._id.toString() === serviceId);
+      if (!service) {
+        return res.status(404).json({ success: false, message: 'Service not found in this shop' });
+      }
+      services = [service];
     }
 
-    const slots = await getAvailableSlots(id, date, service, 'Asia/Kolkata', excludeBookingId);
+    const slots = await getAvailableSlots(id, date, services, 'Asia/Kolkata', excludeBookingId);
 
     res.status(200).json({
       success: true,
       shopId: id,
       date,
-      service: {
-        id: service._id,
-        name: service.name,
-        duration: service.duration
-      },
+      services: services.map(s => ({
+        id: s._id,
+        name: s.name,
+        duration: s.duration
+      })),
       slots
     });
   } catch (error) {
