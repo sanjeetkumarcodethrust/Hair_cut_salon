@@ -845,7 +845,7 @@ export const SalonDetails = () => {
   const [bookingError, setBookingError] = React.useState(null);
   const [bookingSuccess, setBookingSuccess] = React.useState(null);
   const [bookingMode, setBookingMode] = React.useState(null); // 'schedule' or null
-  const { user } = useSelector(state => state.auth || {});
+  const { userInfo: user } = useSelector(state => state.auth || {});
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -2237,7 +2237,7 @@ export const CustomerDashboardPage = () => {
 
 
 export const BarberDashboardPage = () => {
-  const { user } = useSelector(state => state.auth || {});
+  const { userInfo: user } = useSelector(state => state.auth || {});
   const navigate = useNavigate();
   const [loading, setLoading] = React.useState(true);
   
@@ -2555,7 +2555,7 @@ export const BarberDashboardPage = () => {
 
 
 export const OwnerDashboardPage = () => {
-  const { user } = useSelector(state => state.auth || {});
+  const { userInfo: user } = useSelector(state => state.auth || {});
   const [salon, setSalon] = React.useState(null);
   
   // Phase 22 States
@@ -2655,7 +2655,7 @@ export const AdminDashboardPage = () => {
   const [logs, setLogs] = React.useState([]);
   const [adminCoupons, setAdminCoupons] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
-  const { user } = useSelector(state => state.auth || {});
+  const { userInfo: user } = useSelector(state => state.auth || {});
 
   React.useEffect(() => {
     fetchData(activeTab);
