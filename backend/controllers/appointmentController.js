@@ -121,7 +121,7 @@ export const createAppointment = async (req, res) => {
     // Notify customer
     try {
       const pendingTpl = bookingPendingEmail(populated, req.user.name);
-      await sendEmail({ to: req.user.email, ...pendingTpl });
+      sendEmail({ to: req.user.email, ...pendingTpl }).catch(err => console.error('Email error:', err));
     } catch (emailErr) {
       // Email delivery error ignored in local/test mode
     }
@@ -238,7 +238,7 @@ export const approveAppointment = async (req, res) => {
         status === 'confirmed'
           ? bookingConfirmedEmail(populated, customer.name)
           : bookingCancelledEmail(populated, customer.name, 'Rejected by salon owner');
-      await sendEmail({ to: customer.email, ...tpl });
+      sendEmail({ to: customer.email, ...tpl }).catch(err => console.error('Email error:', err));
     }
 
     res.status(200).json(populated);

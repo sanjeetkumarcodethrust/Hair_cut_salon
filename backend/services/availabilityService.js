@@ -35,6 +35,19 @@ export const getAvailableSlots = async (shopId, dateStr, service, timezone = 'As
   }).lean();
 
   
+  // Phase 22: Fetch Approved Leaves for this shop on this date
+  const _startOfDay = reqDate.clone().startOf('day');
+  const _endOfDay = reqDate.clone().endOf('day');
+  
+  const approvedLeaves = await LeaveRequest.find({
+      shopId,
+      status: 'APPROVED',
+      startDate: { $lte: _endOfDay.toDate() },
+      endDate: { $gte: _startOfDay.toDate() }
+  }).lean();
+  
+  const onLeaveBarberIds = approvedLeaves.map(l => l.staffId.toString());
+
   const qualifiedBarbers = allBarbers.filter(b => {
     // Check if they work today
     const bHours = b.availability?.[dayOfWeek];
@@ -42,7 +55,7 @@ export const getAvailableSlots = async (shopId, dateStr, service, timezone = 'As
 
     
     // Phase 22: Is barber on leave today?
-    if (onLeaveBarberIds.includes(barber._id.toString())) {
+    if (onLeaveBarberIds.includes(b._id.toString())) {
         return false;
     }
 
@@ -69,20 +82,6 @@ export const getAvailableSlots = async (shopId, dateStr, service, timezone = 'As
   
   // 3. Fetch Chairs
   const chairs = await Chair.find({ shopId, status: 'available', active: true }).lean();
-  
-  // Phase 22: Fetch Approved Leaves for this shop on this date
-  const _startOfDay = reqDate.clone().startOf('day');
-  const _endOfDay = reqDate.clone().endOf('day');
-  
-  const approvedLeaves = await LeaveRequest.find({
-      shopId,
-      status: 'APPROVED',
-      startDate: { $lte: _endOfDay.toDate() },
-      endDate: { $gte: _startOfDay.toDate() }
-  }).lean();
-  
-  const onLeaveBarberIds = approvedLeaves.map(l => l.staffId.toString());
-
   
   // If no specific chairs modeled, we assume 1 chair per barber as a fallback
   let chairCount = chairs.length;
