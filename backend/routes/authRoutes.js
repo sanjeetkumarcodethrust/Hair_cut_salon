@@ -22,8 +22,8 @@ const authLimiter = rateLimit({
 });
 
 
-router.post('/register', authLimiter, registerUser);
-router.post('/login', authLimiter, loginUser);
+router.post('/register', registerUser);
+router.post('/login', loginUser);
 router.post('/logout', logoutUser);
 router.post('/refresh', refreshAccessToken);
 router.route('/profile')
