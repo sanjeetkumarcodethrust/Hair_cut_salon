@@ -94,7 +94,7 @@ const BookingHistory = () => {
               >
                 <div className="flex flex-col sm:flex-row gap-5">
                   <div className="w-20 h-20 shrink-0 bg-slate-100 rounded-2xl overflow-hidden">
-                    <img src={apt.salon?.images?.[0] || 'https://via.placeholder.com/150'} alt="Shop" className="w-full h-full object-cover" />
+                    <img src={apt.salon?.images?.[0] || `https://ui-avatars.com/api/?name=${encodeURIComponent(apt.salon?.name || 'Salon')}&background=random`} alt="Shop" className="w-full h-full object-cover" />
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between items-start">

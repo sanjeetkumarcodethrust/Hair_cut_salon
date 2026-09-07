@@ -26,7 +26,7 @@ export const createCheckoutSessionForAppointment = async (appointment, user) => 
     await appointment.save();
 
     return {
-      url: `${frontendUrl}/payments/success?appointmentId=${appointment._id.toString()}`,
+      url: `${frontendUrl}/payments/success?session_id=${appointment.stripePaymentIntentId}&appointmentId=${appointment._id.toString()}`,
       sessionId: appointment.stripePaymentIntentId,
       paymentStatus: appointment.paymentStatus,
     };

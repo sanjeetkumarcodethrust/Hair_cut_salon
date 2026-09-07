@@ -196,7 +196,7 @@ const BookingDetails = () => {
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Shop Details</h3>
                   <div className="flex gap-4">
                     <div className="w-12 h-12 rounded-xl bg-slate-100 overflow-hidden shrink-0">
-                      <img src={apt.salon?.images?.[0] || 'https://via.placeholder.com/150'} alt="Shop" className="w-full h-full object-cover" />
+                      <img src={apt.salon?.images?.[0] || `https://ui-avatars.com/api/?name=${encodeURIComponent(apt.salon?.name || 'Salon')}&background=random`} alt="Shop" className="w-full h-full object-cover" />
                     </div>
                     <div>
                       <p className="font-bold text-slate-900">{apt.salon?.name}</p>

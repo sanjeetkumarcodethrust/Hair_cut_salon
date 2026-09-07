@@ -629,7 +629,7 @@ export const createInstantBooking = async (req, res) => {
 
     // Auto-find earliest slot starting from today
     const todayStr = moment().tz('Asia/Kolkata').format('YYYY-MM-DD');
-    const slots = await getAvailableSlots(shopId, todayStr, service, 'Asia/Kolkata');
+    const slots = await getAvailableSlots(shopId, todayStr, service.rawList, 'Asia/Kolkata');
     
     if (!slots || slots.length === 0) {
       throw new Error('No availability right now. Try scheduling a later time.');
