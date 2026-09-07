@@ -44,7 +44,7 @@ const CutMateLayout = () => {
   const navItems = [
     { icon: Home, label: 'Home', href: '/' },
     { icon: Compass, label: 'Explore', href: '/salons' },
-    { icon: Calendar, label: 'Appointments', href: '/customer-dashboard' },
+    { icon: Calendar, label: 'Appointments', href: '/bookings' },
     { icon: Heart, label: 'Favorites', href: '/extras' },
     { icon: Briefcase, label: 'Jobs', href: '/jobs' },
     { icon: MessageSquare, label: 'Messages', href: '/notifications' },

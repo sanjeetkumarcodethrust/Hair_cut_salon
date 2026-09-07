@@ -29,13 +29,14 @@ const BookingHistory = () => {
 
   if (!userInfo) return <Navigate to="/login" replace />;
 
-  const now = new Date();
+  const todayMidnight = new Date();
+  todayMidnight.setHours(0, 0, 0, 0);
   
   const upcoming = appointments.filter(a => 
-    ['pending', 'confirmed'].includes(a.status) && new Date(a.date) >= new Date(now.setHours(0,0,0,0))
+    ['pending', 'confirmed'].includes(a.status) && new Date(a.date) >= todayMidnight
   );
   
-  const completed = appointments.filter(a => a.status === 'completed' || (['pending', 'confirmed'].includes(a.status) && new Date(a.date) < new Date(now.setHours(0,0,0,0))));
+  const completed = appointments.filter(a => a.status === 'completed' || (['pending', 'confirmed'].includes(a.status) && new Date(a.date) < todayMidnight));
   
   const cancelled = appointments.filter(a => a.status === 'cancelled');
 
