@@ -686,10 +686,7 @@ export const createInstantBooking = async (req, res) => {
       discountAmount,
       couponCode: discountApplied,
       couponId,
-
-        loyaltyDiscountAmount,
-        pointsRedeemed,
-        price: finalPrice,
+      price: finalPrice,
       status: 'confirmed',
       bookingType: 'instant',
       snapshots: {
@@ -906,10 +903,7 @@ export const createScheduledBooking = async (req, res) => {
       discountAmount,
       couponCode: discountApplied,
       couponId,
-
-        loyaltyDiscountAmount,
-        pointsRedeemed,
-        price: finalPrice,
+      price: finalPrice,
       status: 'confirmed',
       bookingType: 'scheduled',
       snapshots: {
