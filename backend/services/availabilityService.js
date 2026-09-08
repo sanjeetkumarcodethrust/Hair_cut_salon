@@ -76,7 +76,22 @@ export const getAvailableSlots = async (shopId, dateStr, service, timezone = 'As
 
 
   if (qualifiedBarbers.length === 0) {
-    return []; // No barbers can do this today
+    if (allBarbers.length === 0) {
+      // Fallback: If no barbers exist in the shop at all, assume the owner acts as the sole barber
+      // and is available during all shop opening hours.
+      qualifiedBarbers.push({
+        _id: 'fallback_owner_barber',
+        availability: {
+          [dayOfWeek]: {
+            start: todayHours.open,
+            end: todayHours.close,
+            isWorking: true
+          }
+        }
+      });
+    } else {
+      return []; // Barbers exist but none can do this today
+    }
   }
 
   
@@ -176,7 +191,12 @@ export const getAvailableSlots = async (shopId, dateStr, service, timezone = 'As
 
         if (!onBreak) {
           // Is barber busy with another appointment?
-          const isBusy = overlappingAppts.some(apt => apt.barber?.toString() === barber._id.toString());
+          const isBusy = overlappingAppts.some(apt => {
+            if (barber._id === 'fallback_owner_barber') {
+               return !apt.barber; // If appointment has no barber, fallback barber is busy doing it
+            }
+            return apt.barber?.toString() === barber._id.toString();
+          });
           if (!isBusy) {
             availableBarbers.push(barber._id.toString());
           }

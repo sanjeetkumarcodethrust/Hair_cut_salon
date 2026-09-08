@@ -669,7 +669,7 @@ export const createInstantBooking = async (req, res) => {
     const apptData = {
       customer: req.user._id,
       salon: shopId,
-      barber: assignedBarberId,
+      barber: assignedBarberId === 'fallback_owner_barber' ? undefined : assignedBarberId,
       chair: assignedChairId,
       serviceId: service._id,
       service: {
@@ -715,6 +715,7 @@ export const createInstantBooking = async (req, res) => {
       data: appointment[0]
     });
   } catch (error) {
+    console.error('==== INSTANT BOOKING FAILED ====', error.message, error.stack);
     if (useTransaction && session.inTransaction()) {
         await session.abortTransaction();
     }
@@ -867,9 +868,10 @@ export const createScheduledBooking = async (req, res) => {
        assignedChairId = freeChair._id;
     }
 
+    const barberQueryFilter = assignedBarberId === 'fallback_owner_barber' ? { $exists: false } : assignedBarberId;
     const overlappingBarberApptQuery = Appointment.findOne({
           salon: shopId,
-          barber: assignedBarberId,
+          barber: barberQueryFilter,
           status: { $in: ['pending', 'confirmed'] },
           startTime: { $lt: eTime.toDate() },
           endTime: { $gt: sTime.toDate() }
@@ -886,7 +888,7 @@ export const createScheduledBooking = async (req, res) => {
     const apptData = {
       customer: req.user._id,
       salon: shopId,
-      barber: assignedBarberId,
+      barber: assignedBarberId === 'fallback_owner_barber' ? undefined : assignedBarberId,
       chair: assignedChairId,
       serviceId: service._id,
       service: {
