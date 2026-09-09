@@ -23,8 +23,10 @@ export const getAvailableSlots = async (shopId, dateStr, service, timezone = 'As
 
   // Parse Shop Open/Close times
   // Format is usually "HH:mm" e.g. "10:00", "20:00"
-  const shopStart = moment.tz(`${dateStr}T${todayHours.open}:00`, timezone);
-  const shopEnd = moment.tz(`${dateStr}T${todayHours.close}:00`, timezone);
+  const openTime = todayHours.open || '09:00';
+  const closeTime = todayHours.close || '20:00';
+  const shopStart = moment.tz(`${dateStr}T${openTime}:00`, timezone);
+  const shopEnd = moment.tz(`${dateStr}T${closeTime}:00`, timezone);
 
   // 2. Fetch Barbers
   // A barber is considered capable if they have the service in their services array, 
@@ -83,8 +85,8 @@ export const getAvailableSlots = async (shopId, dateStr, service, timezone = 'As
         _id: 'fallback_owner_barber',
         availability: {
           [dayOfWeek]: {
-            start: todayHours.open,
-            end: todayHours.close,
+            start: openTime,
+            end: closeTime,
             isWorking: true
           }
         }
@@ -173,8 +175,10 @@ export const getAvailableSlots = async (shopId, dateStr, service, timezone = 'As
     // Check Barber Availability
     for (const barber of qualifiedBarbers) {
       const bHours = barber.availability[dayOfWeek];
-      const bStart = moment.tz(`${dateStr}T${bHours.start}:00`, timezone);
-      const bEnd = moment.tz(`${dateStr}T${bHours.end}:00`, timezone);
+      const bStartTime = bHours.start || openTime;
+      const bEndTime = bHours.end || closeTime;
+      const bStart = moment.tz(`${dateStr}T${bStartTime}:00`, timezone);
+      const bEnd = moment.tz(`${dateStr}T${bEndTime}:00`, timezone);
 
       // Is the slot within barber's working hours?
       if (slotStart.isSameOrAfter(bStart) && slotEnd.isSameOrBefore(bEnd)) {
