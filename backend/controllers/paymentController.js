@@ -25,8 +25,8 @@ export const createCheckoutSessionForAppointment = async (appointment, user) => 
     appointment.stripePaymentIntentId = `mock_${appointment._id.toString()}`;
     await appointment.save();
 
-    const finalUrl = frontendUrl + '/payments/success?session_id=' + appointment.stripePaymentIntentId + '&appointmentId=' + appointment._id.toString();
-    console.log("GENERATED URL:", finalUrl);
+    const finalUrl = '/payments/success?session_id=' + appointment.stripePaymentIntentId + '&appointmentId=' + appointment._id.toString();
+    console.log("GENERATED MOCK URL:", finalUrl);
     return {
       url: finalUrl,
       sessionId: appointment.stripePaymentIntentId,
