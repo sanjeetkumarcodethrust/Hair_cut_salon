@@ -25,8 +25,10 @@ export const createCheckoutSessionForAppointment = async (appointment, user) => 
     appointment.stripePaymentIntentId = `mock_${appointment._id.toString()}`;
     await appointment.save();
 
+    const finalUrl = frontendUrl + '/payments/success?session_id=' + appointment.stripePaymentIntentId + '&appointmentId=' + appointment._id.toString();
+    console.log("GENERATED URL:", finalUrl);
     return {
-      url: `${frontendUrl}/payments/success?session_id=${appointment.stripePaymentIntentId}&appointmentId=${appointment._id.toString()}`,
+      url: finalUrl,
       sessionId: appointment.stripePaymentIntentId,
       paymentStatus: appointment.paymentStatus,
     };
@@ -139,18 +141,22 @@ export const confirmPayment = async (req, res) => {
     }
 
     if (paymentConfirmed && appointment.paymentStatus !== 'paid') {
+      console.log('UPDATING APPT TO PAID', appointmentId, sessionId);
       appointment.paymentStatus = 'paid';
       appointment.status = 'confirmed';
       await appointment.save();
       
       const salon = await Salon.findById(appointment.salon);
       if (salon) emitBookingConfirmed(appointment, salon);
+    } else {
+      console.log('NOT UPDATING APPT. paymentConfirmed:', paymentConfirmed, 'status:', appointment.paymentStatus);
     }
 
     if (appointment.paymentStatus === 'paid') {
       return res.status(200).json({ message: 'Payment confirmed', appointment });
     }
 
+    console.log('RETURNING 402!', { paymentConfirmed, status: appointment.paymentStatus });
     return res.status(402).json({ message: 'Payment not completed yet' });
   } catch (error) {
     res.status(400).json({ message: error.message });
