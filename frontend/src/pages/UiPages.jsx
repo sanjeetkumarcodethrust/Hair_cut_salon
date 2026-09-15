@@ -1438,7 +1438,7 @@ export const BookingPage = () => {
   const times = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
 
   const [form, setForm] = useState({
-    service: null,
+    services: [],
     salonId: '',
     date: new Date().toISOString().split('T')[0],
     time: '',
@@ -1474,16 +1474,23 @@ export const BookingPage = () => {
         ? form.salonId
         : (salons.find((s) => s._id && !s._id.startsWith('fallback'))?._id);
 
+      const totalDuration = form.services.reduce((sum, s) => sum + s.duration, 0) || 30;
+      const totalPrice = form.services.reduce((sum, s) => sum + s.price, 0) || 200;
+      const serviceName = form.services.length > 1
+        ? `${form.services[0].name} + ${form.services.length - 1} more`
+        : form.services[0]?.name || 'Hair Cut & Styling';
+
       const response = await api.post('/appointments', {
         salon: validSalonId,
         service: {
-          name: form.service?.name || 'Hair Cut & Styling',
-          price: form.service?.price || 200,
-          duration: form.service?.duration || 30,
+          name: serviceName,
+          price: totalPrice,
+          duration: totalDuration,
         },
+        services: form.services,
         date: form.date,
         time: form.time || '10:00 AM',
-        price: form.service?.price || 200,
+        price: totalPrice,
         notes: form.notes || 'Booked from CutMate app',
       });
 
@@ -1545,12 +1552,23 @@ export const BookingPage = () => {
           <div>
             <h2 className="text-lg font-semibold text-white mb-4">Choose a service</h2>
             <div className="grid gap-3 sm:grid-cols-2">
-              {services.map(srv => (
+              {services.map(srv => {
+                const isSelected = form.services?.some(s => s.name === srv.name);
+                return (
                 <button
                   key={srv.name}
-                  onClick={() => setForm(f => ({ ...f, service: srv }))}
+                  onClick={() => {
+                    setForm(f => {
+                      const exists = f.services.find(s => s.name === srv.name);
+                      if (exists) {
+                        return { ...f, services: f.services.filter(s => s.name !== srv.name) };
+                      } else {
+                        return { ...f, services: [...f.services, srv] };
+                      }
+                    });
+                  }}
                   className={`text-left rounded-2xl p-4 border transition flex items-center gap-4 ${
-                    form.service?.name === srv.name
+                    isSelected
                       ? 'border-purple-500 bg-purple-900/20 ring-1 ring-purple-500'
                       : 'border-white/10 bg-white/5 hover:border-white/20'
                   }`}
@@ -1560,11 +1578,11 @@ export const BookingPage = () => {
                     <p className="font-semibold text-white text-sm">{srv.name}</p>
                     <p className="text-xs text-slate-400 mt-0.5">{srv.duration} min · ₹{srv.price}</p>
                   </div>
-                  {form.service?.name === srv.name && (
+                  {isSelected && (
                     <div className="w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center text-[10px] text-white">✓</div>
                   )}
                 </button>
-              ))}
+              )})}
             </div>
 
             {/* Salon selector */}
@@ -1597,7 +1615,7 @@ export const BookingPage = () => {
             </div>
 
             <button
-              disabled={!form.service}
+              disabled={!form.services || form.services.length === 0}
               onClick={() => setStep(2)}
               className="mt-8 w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white py-3.5 rounded-full font-semibold transition"
             >
@@ -1670,11 +1688,13 @@ export const BookingPage = () => {
             <div className={`${darkPanel} mb-4 space-y-4`}>
               <div className="flex justify-between text-sm">
                 <span className="text-slate-400">Service</span>
-                <span className="text-white font-semibold">{form.service?.name} {form.service?.icon}</span>
+                <span className="text-white font-semibold">
+                  {form.services.length > 1 ? `${form.services[0].name} + ${form.services.length - 1} more` : form.services[0]?.name}
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-slate-400">Duration</span>
-                <span className="text-white">{form.service?.duration} min</span>
+                <span className="text-white">{form.services.reduce((sum, s) => sum + s.duration, 0)} min</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-slate-400">Date</span>
@@ -1692,7 +1712,7 @@ export const BookingPage = () => {
               )}
               <div className="border-t border-white/10 pt-4 flex justify-between">
                 <span className="text-slate-300 font-semibold">Total</span>
-                <span className="text-purple-400 text-xl font-bold">₹{form.service?.price}</span>
+                <span className="text-purple-400 text-xl font-bold">₹{form.services.reduce((sum, s) => sum + s.price, 0)}</span>
               </div>
             </div>
 
@@ -1728,7 +1748,7 @@ export const BookingPage = () => {
                 {submitting ? (
                   <span className="flex items-center justify-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />Redirecting to payment...</span>
                 ) : (
-                  `Pay ₹${form.service?.price} & Confirm`
+                  `Pay ₹${form.services.reduce((sum, s) => sum + s.price, 0)} & Confirm`
                 )}
               </button>
             </div>
