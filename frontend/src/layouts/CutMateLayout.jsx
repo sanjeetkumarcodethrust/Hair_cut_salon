@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../features/auth/authSlice';
+import LocationSelector from '../components/LocationSelector';
 import {
   Scissors,
   Home,
@@ -94,13 +95,9 @@ const CutMateLayout = () => {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col overflow-hidden relative">
         {/* Top Header */}
-        <header className="h-20 flex items-center justify-between px-8 border-b border-white/5 z-10 bg-[#0a0a0a]/80 backdrop-blur-md">
+        <header className="h-20 flex items-center justify-between px-8 border-b border-white/5 z-50 bg-[#0a0a0a]/80 backdrop-blur-md">
           {/* Location */}
-          <div className="flex items-center gap-2 text-sm text-slate-300">
-            <MapPin className="w-4 h-4 text-amber-500" />
-            <span>Mumbai, India</span>
-            <span className="text-xs ml-1">▼</span>
-          </div>
+          <LocationSelector />
 
           {/* Search */}
           <div className="hidden md:flex flex-1 max-w-md mx-8 relative">
