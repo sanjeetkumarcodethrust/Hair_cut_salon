@@ -99,7 +99,10 @@ const BookingHistory = () => {
                   <div className="flex-1">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h4 className="font-bold text-lg text-slate-900 group-hover:text-primary transition">{apt.salon?.name || 'Unknown Salon'}</h4>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold text-lg text-slate-900 group-hover:text-primary transition">{apt.salon?.name || 'Unknown Salon'}</h4>
+                          <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">ID: {apt._id.substring(0, 8).toUpperCase()}</span>
+                        </div>
                         <p className="text-sm text-slate-500 flex items-center gap-1 mt-1"><MapPin className="w-3.5 h-3.5" /> {apt.salon?.city || 'Unknown Location'}</p>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${apt.status === 'cancelled' ? 'bg-red-50 text-red-600' : apt.status === 'completed' ? 'bg-green-50 text-green-600' : 'bg-indigo-50 text-primary'}`}>

@@ -53,7 +53,7 @@ const PaymentSuccess = () => {
             We could not verify your payment. Please check your booking history or contact support.
           </p>
           <Link
-            to="/customer-dashboard"
+            to="/bookings"
             className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-full font-semibold transition"
           >
             View My Bookings <ArrowRight className="w-4 h-4" />
@@ -84,6 +84,12 @@ const PaymentSuccess = () => {
           {appointment && (
             <div className="mb-8 rounded-2xl bg-white/5 border border-white/10 p-5 text-left space-y-3">
               <h2 className="text-sm font-semibold text-white">Booking Summary</h2>
+              {appointment._id && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-400">Booking ID</span>
+                  <span className="text-white font-medium">{appointment._id.substring(0,8).toUpperCase()}</span>
+                </div>
+              )}
               {appointment.service?.name && (
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-400">Service</span>
@@ -124,7 +130,7 @@ const PaymentSuccess = () => {
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
-              to="/customer-dashboard"
+              to="/bookings"
               className="inline-flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-full font-semibold transition"
             >
               <Calendar className="w-4 h-4" />

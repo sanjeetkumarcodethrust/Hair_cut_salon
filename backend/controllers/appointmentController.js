@@ -139,16 +139,26 @@ export const createAppointment = async (req, res) => {
 // @access  Private
 export const getMyAppointments = async (req, res) => {
   try {
-    let query = {};
+    let query = { customer: req.user._id }; // Default to customer bookings
 
-    if (req.user.role === 'customer') {
-      query = { customer: req.user._id };
-    } else if (req.user.role === 'barber') {
-      query = { barber: req.user._id };
+    if (req.user.role === 'barber') {
+      query = {
+        $or: [
+          { customer: req.user._id },
+          { barber: req.user._id }
+        ]
+      };
     } else if (req.user.role === 'owner') {
       const salons = await Salon.find({ owner: req.user._id });
       const salonIds = salons.map((s) => s._id);
-      query = { salon: { $in: salonIds } };
+      query = {
+        $or: [
+          { customer: req.user._id },
+          { salon: { $in: salonIds } }
+        ]
+      };
+    } else if (req.user.role === 'admin') {
+      query = {};
     }
     // admin: empty query → all appointments
 
