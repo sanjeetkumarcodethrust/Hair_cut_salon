@@ -113,8 +113,8 @@ const CutMateLayout = () => {
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-4">
-            <button className="text-slate-400 hover:text-white transition">
+          <div className="flex items-center gap-2 md:gap-4">
+            <button className="text-slate-400 hover:text-white transition hidden sm:block">
               <Heart className="w-5 h-5" />
             </button>
             <button className="text-slate-400 hover:text-white transition relative">
@@ -123,12 +123,12 @@ const CutMateLayout = () => {
             </button>
 
             {userInfo ? (
-              <div className="flex items-center gap-3">
-                <Link to="/profile" className="flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 p-1 pr-3 hover:bg-white/10 transition">
+              <div className="flex items-center gap-2 md:gap-3">
+                <Link to="/profile" className="flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 p-1 sm:pr-3 hover:bg-white/10 transition">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center font-bold text-xs text-slate-950">
                     {userInfo.name ? userInfo.name.charAt(0).toUpperCase() : 'U'}
                   </div>
-                  <div className="text-left leading-tight">
+                  <div className="text-left leading-tight hidden sm:block">
                     <p className="text-xs font-semibold text-white">{userInfo.name || 'User'}</p>
                     <p className="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">
                       {userInfo.role === 'owner' ? 'Salon Owner' : userInfo.role === 'barber' ? 'Barber' : 'Customer'}
@@ -138,23 +138,41 @@ const CutMateLayout = () => {
                 <button
                   onClick={handleLogout}
                   title="Logout"
-                  className="p-2 rounded-full border border-rose-500/20 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition"
+                  className="p-2 rounded-full border border-rose-500/20 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition hidden sm:block"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
               </div>
             ) : (
-              <Link to="/login" className="px-5 py-2 rounded-full border border-white/10 text-sm font-medium hover:bg-white/5 transition">
-                Login / Signup
+              <Link to="/login" className="px-4 py-2 rounded-full border border-white/10 text-sm font-medium hover:bg-white/5 transition whitespace-nowrap">
+                Login
               </Link>
             )}
           </div>
         </header>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar">
+        <div className="flex-1 overflow-y-auto custom-scrollbar pb-20 xl:pb-0">
           <Outlet />
         </div>
+        
+        {/* Mobile Bottom Navigation */}
+        <nav className="xl:hidden fixed bottom-0 left-0 right-0 bg-[#0a0a0a]/95 backdrop-blur-lg border-t border-white/10 z-50 px-6 py-3 flex justify-between items-center shadow-lg">
+          {[
+            { icon: Home, label: 'Home', href: '/' },
+            { icon: Compass, label: 'Explore', href: '/salons' },
+            { icon: Calendar, label: 'Bookings', href: '/bookings' },
+            { icon: User, label: 'Profile', href: '/profile' },
+          ].map(item => {
+            const active = location.pathname === item.href;
+            return (
+              <Link key={item.label} to={item.href} className={`flex flex-col items-center gap-1.5 transition-colors ${active ? 'text-amber-500' : 'text-slate-500 hover:text-slate-300'}`}>
+                <item.icon className="w-5 h-5" />
+                <span className="text-[10px] font-semibold">{item.label}</span>
+              </Link>
+            )
+          })}
+        </nav>
       </main>
     </div>
   );
