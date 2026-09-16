@@ -108,7 +108,7 @@ const salonSchema = new mongoose.Schema(
     verificationStatus: {
       type: String,
       enum: ['pending', 'approved', 'rejected', 'suspended'],
-      default: 'pending'
+      default: 'approved'
     },
     rejectionReason: String,
     suspensionReason: String,

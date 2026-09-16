@@ -24,7 +24,7 @@ export const getSalons = async (req, res) => {
     const searchTerm = search || keyword;
 
     // Build query dynamically — no hardcoded city/state
-    const query = { verificationStatus: 'approved', isActive: true };
+    const query = {};
 
     if (searchTerm) {
       query.name = { $regex: searchTerm, $options: 'i' };
