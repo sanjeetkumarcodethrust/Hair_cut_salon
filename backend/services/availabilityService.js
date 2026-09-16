@@ -22,9 +22,9 @@ export const getAvailableSlots = async (shopId, dateStr, service, timezone = 'As
   }
 
   // Parse Shop Open/Close times
-  // Format is usually "HH:mm" e.g. "10:00", "20:00"
-  const openTime = todayHours.open || '09:00';
-  const closeTime = todayHours.close || '20:00';
+  // Format is usually "HH:mm" e.g. "08:00", "23:59"
+  const openTime = todayHours.open || '08:00';
+  const closeTime = todayHours.close || '23:59';
   const shopStart = moment.tz(`${dateStr}T${openTime}:00`, timezone);
   const shopEnd = moment.tz(`${dateStr}T${closeTime}:00`, timezone);
 
