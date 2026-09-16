@@ -1435,17 +1435,24 @@ export const BookingPage = () => {
     { name: 'Facial', duration: 45, price: 500, icon: '💆' },
   ];
 
-  const times = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'];
+
+  const getLocalDateString = () => {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().split('T')[0];
+  };
 
   const [form, setForm] = useState({
     services: [],
     salonId: '',
-    date: new Date().toISOString().split('T')[0],
+    date: getLocalDateString(),
     time: '',
     notes: '',
   });
 
   const [fetchError, setFetchError] = useState(null);
+  const [availableTimes, setAvailableTimes] = useState([]);
+  const [loadingTimes, setLoadingTimes] = useState(false);
 
   const fetchSalons = () => {
     setLoadingSalons(true);
@@ -1459,6 +1466,26 @@ export const BookingPage = () => {
   useEffect(() => {
     fetchSalons();
   }, []);
+
+  useEffect(() => {
+    if (form.salonId && form.date && form.services.length > 0) {
+      setLoadingTimes(true);
+      const totalDuration = form.services.reduce((sum, s) => sum + s.duration, 0);
+      api.get(`/salons/${form.salonId}/availability`, {
+        params: { date: form.date, totalDuration }
+      })
+      .then(res => {
+        setAvailableTimes(res.data.slots.filter(s => s.available).map(s => s.startTime));
+      })
+      .catch(err => {
+        console.error(err);
+        setAvailableTimes([]);
+      })
+      .finally(() => setLoadingTimes(false));
+    } else {
+      setAvailableTimes([]);
+    }
+  }, [form.salonId, form.date, form.services]);
 
   const handleBooking = async () => {
     if (!userInfo?.token) {
@@ -1505,7 +1532,7 @@ export const BookingPage = () => {
       if (error?.response?.status === 401) {
         setMessage('🔒 Please sign in first to complete your booking.');
       } else {
-        setMessage(error?.response?.data?.message || error?.customMessage || '🎉 Booking confirmed! Check your dashboard.');
+        setMessage(error?.response?.data?.message || error?.customMessage || error?.message || '❌ Failed to book appointment. Please try again.');
       }
     } finally {
       setSubmitting(false);
@@ -1634,7 +1661,7 @@ export const BookingPage = () => {
               <label className="text-xs text-slate-400 block mb-2 font-medium">Select Date</label>
               <input
                 type="date"
-                min={new Date().toISOString().split('T')[0]}
+                min={getLocalDateString()}
                 value={form.date}
                 onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
                 className="w-full bg-transparent text-white text-sm focus:outline-none appearance-none"
@@ -1643,21 +1670,31 @@ export const BookingPage = () => {
             </div>
 
             <h3 className="text-sm font-semibold text-slate-300 mb-3">Available Times</h3>
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-6">
-              {times.map(t => (
-                <button
-                  key={t}
-                  onClick={() => setForm(f => ({ ...f, time: t }))}
-                  className={`py-2.5 text-sm rounded-xl border font-medium transition ${
-                    form.time === t
-                      ? 'bg-purple-600 border-purple-600 text-white'
-                      : 'border-white/10 bg-white/5 text-slate-300 hover:border-white/20'
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
+            {loadingTimes ? (
+              <div className="flex justify-center items-center py-4">
+                <Loader2 className="w-5 h-5 text-purple-400 animate-spin" />
+              </div>
+            ) : availableTimes.length === 0 ? (
+              <div className="text-center py-6 bg-white/5 border border-white/10 rounded-2xl mb-6">
+                <p className="text-sm text-slate-400">Seats are full for this day. Please select another date.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-6">
+                {availableTimes.map(t => (
+                  <button
+                    key={t}
+                    onClick={() => setForm(f => ({ ...f, time: t }))}
+                    className={`py-2.5 text-sm rounded-xl border font-medium transition ${
+                      form.time === t
+                        ? 'bg-purple-600 border-purple-600 text-white'
+                        : 'border-white/10 bg-white/5 text-slate-300 hover:border-white/20'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            )}
 
             <div className={`${darkPanel} mb-6`}>
               <label className="text-xs text-slate-400 block mb-2 font-medium">Notes (optional)</label>

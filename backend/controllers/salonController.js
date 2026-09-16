@@ -391,10 +391,13 @@ import { getAvailableSlots } from '../services/availabilityService.js';
 export const getShopAvailability = async (req, res) => {
   try {
     const { id } = req.params;
-    const { date, serviceId, serviceIds, excludeBookingId } = req.query;
+    const { date, serviceId, serviceIds, excludeBookingId, totalDuration } = req.query;
 
-    if (!date || (!serviceId && !serviceIds)) {
-      return res.status(400).json({ success: false, message: 'Date and serviceId(s) are required' });
+    if (!date) {
+      return res.status(400).json({ success: false, message: 'Date is required' });
+    }
+    if (!serviceId && !serviceIds && !totalDuration) {
+      return res.status(400).json({ success: false, message: 'serviceId, serviceIds, or totalDuration is required' });
     }
 
     const shop = await Salon.findById(id).lean();
@@ -409,12 +412,14 @@ export const getShopAvailability = async (req, res) => {
       if (services.length === 0) {
         return res.status(404).json({ success: false, message: 'Services not found in this shop' });
       }
-    } else {
+    } else if (serviceId) {
       const service = shop.services.find(s => s._id.toString() === serviceId);
       if (!service) {
         return res.status(404).json({ success: false, message: 'Service not found in this shop' });
       }
       services = [service];
+    } else if (totalDuration) {
+      services = [{ name: 'Generic Service', duration: parseInt(totalDuration) || 30 }];
     }
 
     const slots = await getAvailableSlots(id, date, services, 'Asia/Kolkata', excludeBookingId);

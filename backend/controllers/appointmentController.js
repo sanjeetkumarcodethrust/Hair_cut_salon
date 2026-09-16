@@ -70,26 +70,27 @@ export const createAppointment = async (req, res) => {
       const barberExists = await BarberProfile.findById(barber);
       if (barberExists) {
         targetBarberId = barberExists._id;
-
-        // Check for duplicate booking
-        const appointmentDate = new Date(date);
-        const startOfDay = new Date(appointmentDate);
-        startOfDay.setUTCHours(0, 0, 0, 0);
-        const endOfDay = new Date(appointmentDate);
-        endOfDay.setUTCHours(23, 59, 59, 999);
-
-        const existingAppointment = await Appointment.findOne({
-          barber: targetBarberId,
-          date: { $gte: startOfDay, $lte: endOfDay },
-          time,
-          status: { $ne: 'cancelled' },
-        });
-
-        if (existingAppointment) {
-          return res.status(400).json({ message: 'This time slot is already booked for this barber.' });
-        }
       }
     }
+
+    // Check for duplicate booking using real-time availability service
+    const availableSlots = await getAvailableSlots(targetSalonId, date, service, 'Asia/Kolkata');
+    const targetSlot = availableSlots.find(s => s.startTime === time && s.available);
+
+    if (!targetSlot) {
+      return res.status(400).json({ message: 'Sorry, this seat/time is already fully booked. Please select another time.' });
+    }
+
+    // Auto-assign barber if not specified but available
+    if (!targetBarberId && targetSlot.availableBarbers?.length > 0) {
+      const bId = targetSlot.availableBarbers[0];
+      if (bId !== 'fallback_owner_barber') {
+        targetBarberId = bId;
+      }
+    }
+
+    const sTime = moment.tz(`${date}T${targetSlot.startTime}:00`, 'Asia/Kolkata');
+    const eTime = moment.tz(`${date}T${targetSlot.endTime}:00`, 'Asia/Kolkata');
 
     const appointment = await Appointment.create({
       customer: req.user._id,
@@ -98,6 +99,8 @@ export const createAppointment = async (req, res) => {
       service,
       date,
       time,
+      startTime: sTime.toDate(),
+      endTime: eTime.toDate(),
       price: price || service?.price || 200,
       notes: notes || 'Booked from CutMate app',
       status: 'pending',
