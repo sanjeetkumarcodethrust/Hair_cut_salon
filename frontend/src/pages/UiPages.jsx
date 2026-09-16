@@ -1470,9 +1470,10 @@ export const BookingPage = () => {
     setSubmitting(true);
     setMessage('');
     try {
-      const validSalonId = (form.salonId && !form.salonId.startsWith('fallback'))
-        ? form.salonId
-        : (salons.find((s) => s._id && !s._id.startsWith('fallback'))?._id);
+      if (!form.salonId) {
+        throw new Error('Please select a valid salon.');
+      }
+      const validSalonId = form.salonId;
 
       const totalDuration = form.services.reduce((sum, s) => sum + s.duration, 0) || 30;
       const totalPrice = form.services.reduce((sum, s) => sum + s.price, 0) || 200;
@@ -1602,20 +1603,21 @@ export const BookingPage = () => {
                     value={form.salonId}
                     onChange={e => setForm(f => ({ ...f, salonId: e.target.value }))}
                   >
-                    <option value="" className="bg-[#0a0a0a]">Select a salon...</option>
+                    <option value="" className="bg-[#0a0a0a]">
+                      {salons.length === 0 ? "No salons available" : "Select a salon..."}
+                    </option>
                     {salons.map(s => (
                       <option key={s._id} value={s._id} className="bg-[#0a0a0a]">
                         {s.name} — {s.city || s.address}
                       </option>
                     ))}
-                    {salons.length === 0 && <option value="demo" className="bg-[#0a0a0a]">Demo Salon (Test mode)</option>}
                   </select>
                 )}
               </div>
             </div>
 
             <button
-              disabled={!form.services || form.services.length === 0}
+              disabled={!form.services || form.services.length === 0 || !form.salonId}
               onClick={() => setStep(2)}
               className="mt-8 w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white py-3.5 rounded-full font-semibold transition"
             >
