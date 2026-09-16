@@ -293,7 +293,7 @@ export const cancelAppointment = async (req, res) => {
     }
 
     appointment.status = 'cancelled';
-    appointment.cancellationReason = req.body.reason || '';
+    appointment.cancellationReason = req.body?.reason || '';
     
     // Maintain audit trail
     if (!appointment.snapshots) appointment.snapshots = {};
