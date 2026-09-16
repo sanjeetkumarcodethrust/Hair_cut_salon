@@ -182,27 +182,27 @@ export const getAppointment = async (req, res) => {
       return res.status(404).json({ message: 'Appointment not found' });
     }
 
-    // Ownership verification for customers
-    if (req.user.role === 'customer') {
-       if (appointment.customer?._id?.toString() !== req.user._id.toString() && appointment.customer?.toString() !== req.user._id.toString()) {
-          return res.status(403).json({ message: 'You are not authorized to view this booking' });
-       }
-    } else if (req.user.role === 'owner') {
-       // Owners can only view bookings for their salons
+    const aptCustomerId = appointment.customer?._id ? appointment.customer._id.toString() : appointment.customer?.toString();
+    let authorized = req.user.role === 'admin' || aptCustomerId === req.user._id.toString();
+
+    if (!authorized && req.user.role === 'owner') {
        const salons = await Salon.find({ owner: req.user._id }).lean();
        const salonIds = salons.map(s => s._id.toString());
-       if (!salonIds.includes(appointment.salon?._id?.toString() && appointment.salon?.toString())) {
-          // It's possible the populated salon object has _id
-          const aptSalonId = appointment.salon?._id ? appointment.salon._id.toString() : appointment.salon?.toString();
-          if (!salonIds.includes(aptSalonId)) {
-             return res.status(403).json({ message: 'Not authorized to view this booking' });
-          }
+       const aptSalonId = appointment.salon?._id ? appointment.salon._id.toString() : appointment.salon?.toString();
+       if (salonIds.includes(aptSalonId)) {
+          authorized = true;
        }
-    } else if (req.user.role === 'barber') {
+    }
+
+    if (!authorized && req.user.role === 'barber') {
        const aptBarberId = appointment.barber?._id ? appointment.barber._id.toString() : appointment.barber?.toString();
-       if (aptBarberId !== req.user._id.toString()) {
-          return res.status(403).json({ message: 'Not authorized to view this booking' });
+       if (aptBarberId === req.user._id.toString()) {
+          authorized = true;
        }
+    }
+
+    if (!authorized) {
+       return res.status(403).json({ message: 'Not authorized to view this booking' });
     }
 
     res.status(200).json(appointment);
