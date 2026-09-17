@@ -399,7 +399,7 @@ const BookingDetails = () => {
               
               <div className="flex flex-col items-center justify-center py-6 bg-white rounded-2xl border border-slate-200 mb-6 shadow-sm">
                 <QRCodeSVG 
-                  value={`upi://pay?pa=salon@upi&pn=CutMate&am=${apt.advanceAmount > 0 ? apt.advanceAmount : apt.price}&cu=INR`} 
+                  value={`upi://pay?pa=9608420138@ybl&pn=CutMate&am=${apt.advanceAmount > 0 ? apt.advanceAmount : apt.price}&cu=INR`} 
                   size={200}
                   level="H"
                   includeMargin={true}
