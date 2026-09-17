@@ -415,7 +415,7 @@ const BookingDetails = () => {
                   value={utr}
                   onChange={(e) => setUtr(e.target.value.replace(/\D/g, '').slice(0, 12))}
                   placeholder="e.g. 123456789012"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-slate-900 focus:ring-0 transition"
+                  className="w-full px-4 py-3 bg-white text-slate-900 placeholder:text-slate-400 font-bold tracking-widest rounded-xl border border-slate-200 focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900 transition"
                   required
                 />
                 <p className="text-xs text-slate-500 mt-1">Found in your UPI app's transaction history.</p>
