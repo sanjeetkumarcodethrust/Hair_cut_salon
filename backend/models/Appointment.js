@@ -128,8 +128,11 @@ const appointmentSchema = new mongoose.Schema(
     },
     paymentStatus: {
       type: String,
-      enum: ['pending', 'paid', 'refunded'],
+      enum: ['pending', 'verification_pending', 'paid', 'refunded'],
       default: 'pending',
+    },
+    utrNumber: {
+      type: String,
     },
     stripePaymentIntentId: {
       type: String,

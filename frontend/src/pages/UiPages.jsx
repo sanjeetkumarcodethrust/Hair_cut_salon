@@ -1523,10 +1523,13 @@ export const BookingPage = () => {
       });
 
       const paymentUrl = response?.data?.payment?.url;
-      if (paymentUrl) {
+      if (paymentUrl && !paymentUrl.includes('mock_')) {
         window.location.assign(paymentUrl);
       } else {
-        setMessage('🎉 Appointment successfully booked and confirmed! Check your dashboard.');
+        setMessage('🎉 Appointment booked successfully! Redirecting to payment...');
+        setTimeout(() => {
+          window.location.href = `/bookings/${response.data.appointment._id}`;
+        }, 1500);
       }
     } catch (error) {
       if (error?.response?.status === 401) {

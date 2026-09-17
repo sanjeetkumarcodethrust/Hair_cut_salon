@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Navigate, useNavigate, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Calendar, Clock, Scissors, MapPin, Loader2, User, ChevronLeft, AlertCircle, CheckCircle } from 'lucide-react';
+import { Calendar, Clock, Scissors, MapPin, Loader2, User, ChevronLeft, AlertCircle, CheckCircle, QrCode } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import api from '../services/api';
 
 const BookingDetails = () => {
@@ -16,6 +17,8 @@ const BookingDetails = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showReschedule, setShowReschedule] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [utr, setUtr] = useState('');
   
   // Reschedule State
   const [dateOptions, setDateOptions] = useState([]);
@@ -114,21 +117,30 @@ const BookingDetails = () => {
   };
 
 
-  const handlePayment = async () => {
+  const handlePayment = () => {
+    setShowQrModal(true);
+  };
+
+  const handleConfirmManualPayment = async () => {
+    if (!utr || utr.length < 12) {
+      alert("Please enter a valid 12-digit UTR or Transaction ID.");
+      return;
+    }
     setActionLoading(true);
     try {
-      const res = await api.post('/payments/create-checkout-session', {
-        appointmentId: id
+      const res = await api.post('/payments/confirm', {
+        appointmentId: id,
+        sessionId: 'mock_manual_qr_' + Date.now(),
+        utrNumber: utr
       });
-      if (res.data.payment.url) {
-        window.location.href = res.data.payment.url;
-      } else {
-        // It was already paid or mock mode returned a redirect
-        alert("Payment processed");
-        window.location.reload();
+      if (res.data.appointment) {
+        setApt(res.data.appointment);
+        setShowQrModal(false);
+        setUtr('');
+        alert("Payment verification submitted successfully! The salon owner will review it.");
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to initiate payment');
+      alert(err.response?.data?.message || 'Failed to confirm payment');
     } finally {
       setActionLoading(false);
     }
@@ -247,12 +259,12 @@ const BookingDetails = () => {
               <div className="flex justify-between items-center pt-4 border-t border-slate-100">
                 <div>
                   <span className="text-sm font-bold text-slate-400 uppercase tracking-wider block mb-1">Status</span>
-                  <span className={`text-sm font-bold uppercase ${apt.paymentStatus === 'paid' ? 'text-green-600' : 'text-orange-500'}`}>
-                    {apt.paymentStatus === 'paid' ? 'Paid' : 'Pending Payment'}
+                  <span className={`text-sm font-bold uppercase ${apt.paymentStatus === 'paid' ? 'text-green-600' : apt.paymentStatus === 'verification_pending' ? 'text-blue-500' : 'text-orange-500'}`}>
+                    {apt.paymentStatus === 'paid' ? 'Paid' : apt.paymentStatus === 'verification_pending' ? 'Verifying...' : 'Pending Payment'}
                   </span>
                 </div>
                 
-                {apt.paymentStatus !== 'paid' && apt.status === 'pending' && (
+                {apt.paymentStatus !== 'paid' && apt.paymentStatus !== 'verification_pending' && apt.status === 'pending' && (
                   <button
                     onClick={handlePayment}
                     disabled={actionLoading}
@@ -370,6 +382,51 @@ const BookingDetails = () => {
                 className={`w-full py-3.5 font-bold rounded-xl shadow-md transition flex justify-center items-center gap-2 ${selectedSlot && !actionLoading ? 'bg-primary text-white hover:opacity-90' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
               >
                 {actionLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirm Reschedule'}
+              </button>
+            </div>
+          )}
+
+          {/* QR Code Payment UI */}
+          {showQrModal && (
+            <div className="p-6 bg-slate-50 border-t border-slate-200 animate-in fade-in slide-in-from-bottom-4">
+              <div className="flex justify-between items-center mb-6">
+                <div className="flex items-center gap-2">
+                  <QrCode className="w-5 h-5 text-slate-700" />
+                  <h4 className="text-lg font-bold text-slate-900">Scan QR to Pay</h4>
+                </div>
+                <button onClick={() => setShowQrModal(false)} className="text-sm font-bold text-slate-500 hover:text-slate-900">Cancel</button>
+              </div>
+              
+              <div className="flex flex-col items-center justify-center py-6 bg-white rounded-2xl border border-slate-200 mb-6 shadow-sm">
+                <QRCodeSVG 
+                  value={`upi://pay?pa=salon@upi&pn=CutMate&am=${apt.advanceAmount > 0 ? apt.advanceAmount : apt.price}&cu=INR`} 
+                  size={200}
+                  level="H"
+                  includeMargin={true}
+                />
+                <p className="mt-4 text-sm font-bold text-slate-500">Amount to Pay: <span className="text-slate-900 text-lg font-black">₹{apt.advanceAmount > 0 ? apt.advanceAmount : apt.price}</span></p>
+                <p className="text-xs text-slate-400 mt-1">Scan with any UPI App (GPay, PhonePe, Paytm)</p>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-bold text-slate-700 mb-2">12-Digit UTR / Transaction ID <span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  value={utr}
+                  onChange={(e) => setUtr(e.target.value.replace(/\D/g, '').slice(0, 12))}
+                  placeholder="e.g. 123456789012"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-slate-900 focus:ring-0 transition"
+                  required
+                />
+                <p className="text-xs text-slate-500 mt-1">Found in your UPI app's transaction history.</p>
+              </div>
+
+              <button 
+                onClick={handleConfirmManualPayment}
+                disabled={actionLoading || utr.length < 12}
+                className="w-full py-3.5 bg-green-600 text-white font-bold rounded-xl shadow-md hover:bg-green-700 disabled:opacity-50 transition flex justify-center items-center gap-2"
+              >
+                {actionLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Submit for Verification'}
               </button>
             </div>
           )}

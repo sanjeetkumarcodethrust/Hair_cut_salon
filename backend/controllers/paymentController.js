@@ -127,9 +127,19 @@ export const confirmPayment = async (req, res) => {
   // This endpoint is mostly for frontend fast-polling to check state,
   // The ACTUAL authoritative change happens via Webhooks for security.
   try {
-    const { appointmentId, sessionId } = req.body;
+    const { appointmentId, sessionId, utrNumber } = req.body;
     const appointment = await Appointment.findById(appointmentId);
     if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
+
+    if (sessionId && sessionId.startsWith('mock_manual_qr')) {
+      if (!utrNumber || utrNumber.length < 12) {
+         return res.status(400).json({ message: 'Valid 12-digit UTR / Transaction ID is required' });
+      }
+      appointment.paymentStatus = 'verification_pending';
+      appointment.utrNumber = utrNumber;
+      await appointment.save();
+      return res.status(200).json({ message: 'Payment verification pending', appointment });
+    }
 
     let paymentConfirmed = false;
 
@@ -154,6 +164,10 @@ export const confirmPayment = async (req, res) => {
 
     if (appointment.paymentStatus === 'paid') {
       return res.status(200).json({ message: 'Payment confirmed', appointment });
+    }
+    
+    if (appointment.paymentStatus === 'verification_pending') {
+      return res.status(200).json({ message: 'Payment verification pending', appointment });
     }
 
     console.log('RETURNING 402!', { paymentConfirmed, status: appointment.paymentStatus });
