@@ -12,15 +12,17 @@ const privateKey = process.env.VAPID_PRIVATE_KEY || 'Y_8X_8Y_8X_8Y_8X_8Y_8X_8Y_8
 
 try {
   // Try to set VAPID details, but if keys are mock strings it will throw
+  const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:admin@cutmate.in';
   webpush.setVapidDetails(
-    'mailto:test@example.com',
+    vapidSubject,
     publicKey,
     privateKey
   );
 } catch (e) {
   const vapidKeys = webpush.generateVAPIDKeys();
+  const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:admin@cutmate.in';
   webpush.setVapidDetails(
-    'mailto:test@example.com',
+    vapidSubject,
     vapidKeys.publicKey,
     vapidKeys.privateKey
   );
