@@ -1257,11 +1257,8 @@ export const SalonDetails = () => {
                                  redeemPoints, couponCode: appliedCoupon?.coupon?.code });
                              const apt = res.data.data;
                              if (apt.paymentStatus === 'pending') {
-                               const payRes = await api.post('/payments/create-checkout-session', { appointmentId: apt._id });
-                               if (payRes.data.payment?.url) {
-                                  window.location.href = payRes.data.payment.url;
-                                  return;
-                               }
+                               window.location.href = '/bookings/' + apt._id;
+                               return;
                              }
                              setBookingSuccess(apt);
 
@@ -1353,11 +1350,8 @@ export const SalonDetails = () => {
                                });
                                const apt = res.data.data;
                                if (apt.paymentStatus === 'pending') {
-                                 const payRes = await api.post('/payments/create-checkout-session', { appointmentId: apt._id });
-                                 if (payRes.data.payment?.url) {
-                                    window.location.href = payRes.data.payment.url;
-                                    return;
-                                 }
+                                 window.location.href = '/bookings/' + apt._id;
+                                 return;
                                }
                                setBookingSuccess(apt);
 

@@ -700,7 +700,8 @@ export const createInstantBooking = async (req, res) => {
       couponCode: discountApplied,
       couponId,
       price: finalPrice,
-      status: 'confirmed',
+      status: 'pending',
+      paymentStatus: 'pending',
       bookingType: 'instant',
       snapshots: {
         serviceName: service.name,
@@ -919,7 +920,8 @@ export const createScheduledBooking = async (req, res) => {
       couponCode: discountApplied,
       couponId,
       price: finalPrice,
-      status: 'confirmed',
+      status: 'pending',
+      paymentStatus: 'pending',
       bookingType: 'scheduled',
       snapshots: {
         serviceName: service.name,
