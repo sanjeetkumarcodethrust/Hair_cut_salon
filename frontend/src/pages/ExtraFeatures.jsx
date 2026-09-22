@@ -10,9 +10,9 @@ const recommendationCards = [
 ];
 
 const galleryItems = [
-  { before: 'Before', after: 'After', title: 'Textured crop', image: 'https://images.unsplash.com/photo-1593987010419-792ab9228882?auto=format&fit=crop&w=400&q=80' },
-  { before: 'Before', after: 'After', title: 'Taper fade', image: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=400&q=80' },
-  { before: 'Before', after: 'After', title: 'Soft waves', image: 'https://images.unsplash.com/photo-1506509420088-7da7a1db30c3?auto=format&fit=crop&w=400&q=80' },
+  { before: 'Before', after: 'After', title: 'Textured crop', image: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=400&q=80' },
+  { before: 'Before', after: 'After', title: 'Taper fade', image: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=400&q=80' },
+  { before: 'Before', after: 'After', title: 'Soft waves', image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80' },
 ];
 
 const loyaltyTiers = [
@@ -218,7 +218,10 @@ const ExtraFeatures = () => {
             <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-3">
               {messages.map((msg, idx) => (
                 <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`rounded-2xl px-4 py-2 max-w-[85%] text-sm ${msg.role === 'user' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200'}`}>
+                  <div 
+                    className={`rounded-2xl px-4 py-2 max-w-[85%] text-sm ${msg.role === 'user' ? 'text-black font-medium' : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200'}`}
+                    style={msg.role === 'user' ? { backgroundColor: '#e2e8f0' } : {}}
+                  >
                     {msg.text}
                   </div>
                 </div>
