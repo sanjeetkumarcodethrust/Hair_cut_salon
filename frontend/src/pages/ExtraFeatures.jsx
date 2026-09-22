@@ -234,7 +234,7 @@ const ExtraFeatures = () => {
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 placeholder="Ask something..." 
-                className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-primary dark:bg-slate-900 dark:border-slate-800 dark:text-white"
+                className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-primary dark:bg-slate-900 dark:border-slate-800 dark:text-white"
               />
               <button type="submit" className="bg-primary text-white rounded-full p-2 w-9 h-9 flex items-center justify-center hover:bg-primary/90 transition-colors">
                 <MessageCircle className="h-4 w-4" />
