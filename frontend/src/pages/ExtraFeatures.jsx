@@ -10,9 +10,9 @@ const recommendationCards = [
 ];
 
 const galleryItems = [
-  { before: 'Before', after: 'After', title: 'Textured crop' },
-  { before: 'Before', after: 'After', title: 'Taper fade' },
-  { before: 'Before', after: 'After', title: 'Soft waves' },
+  { before: 'Before', after: 'After', title: 'Textured crop', image: 'https://images.unsplash.com/photo-1593987010419-792ab9228882?auto=format&fit=crop&w=400&q=80' },
+  { before: 'Before', after: 'After', title: 'Taper fade', image: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=400&q=80' },
+  { before: 'Before', after: 'After', title: 'Soft waves', image: 'https://images.unsplash.com/photo-1506509420088-7da7a1db30c3?auto=format&fit=crop&w=400&q=80' },
 ];
 
 const loyaltyTiers = [
@@ -25,6 +25,31 @@ const ExtraFeatures = () => {
   const [otpMode, setOtpMode] = useState(false);
   const [language, setLanguage] = useState('en');
   const [chatOpen, setChatOpen] = useState(false);
+  const [messages, setMessages] = useState([
+    { role: 'ai', text: 'Hi! Need help choosing a service or hairstyle?' }
+  ]);
+  const [chatInput, setChatInput] = useState('');
+
+  const handleSendMessage = (e) => {
+    e.preventDefault();
+    if (!chatInput.trim()) return;
+    
+    setMessages(prev => [...prev, { role: 'user', text: chatInput }]);
+    const currentInput = chatInput.trim().toLowerCase();
+    setChatInput('');
+    
+    setTimeout(() => {
+      let reply = "I can definitely help with that! You can book an appointment with our top barbers from the home screen.";
+      if (currentInput.includes('fade') || currentInput.includes('haircut')) {
+        reply = "A fade is a great choice! We recommend a skin fade or taper fade for a sharp, modern look.";
+      } else if (currentInput.includes('beard')) {
+        reply = "We offer premium beard trims and hot towel shaves. It's a very relaxing experience, highly recommended!";
+      } else if (currentInput.includes('price') || currentInput.includes('cost')) {
+        reply = "Our haircuts start from $25, and beard trims from $15. You can check the full menu when you book.";
+      }
+      setMessages(prev => [...prev, { role: 'ai', text: reply }]);
+    }, 800);
+  };
 
   const copy = useMemo(() => ({
     en: {
@@ -98,7 +123,9 @@ const ExtraFeatures = () => {
                     <span>→</span>
                     <span>{item.after}</span>
                   </div>
-                  <div className="mt-4 h-24 rounded-2xl bg-gradient-to-br from-primary/15 to-violet-500/10" />
+                  <div className="mt-4 h-32 w-full rounded-2xl overflow-hidden bg-slate-200 dark:bg-slate-800">
+                    <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
+                  </div>
                   <p className="mt-3 text-sm font-semibold text-slate-900 dark:text-white">{item.title}</p>
                 </div>
               ))}
@@ -181,9 +208,35 @@ const ExtraFeatures = () => {
           </button>
         </div>
         {chatOpen ? (
-          <div className="mt-5 rounded-[1.25rem] border border-slate-200 bg-white/80 p-4 text-sm text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-950/70 dark:text-slate-200">
-            <p className="font-semibold">Assistant</p>
-            <p className="mt-2">I can recommend a sharp taper fade for a polished look or a soft textured crop for a more relaxed style.</p>
+          <div className="mt-5 rounded-[1.25rem] border border-slate-200 bg-white shadow-lg overflow-hidden flex flex-col h-[350px] dark:border-slate-800 dark:bg-slate-950">
+            <div className="bg-slate-50 border-b border-slate-100 px-4 py-3 dark:bg-slate-900 dark:border-slate-800">
+              <p className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                <Brain className="h-4 w-4 text-primary" /> AI Assistant
+              </p>
+            </div>
+            
+            <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-3">
+              {messages.map((msg, idx) => (
+                <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`rounded-2xl px-4 py-2 max-w-[85%] text-sm ${msg.role === 'user' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200'}`}>
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <form onSubmit={handleSendMessage} className="border-t border-slate-100 p-3 bg-white dark:bg-slate-950 dark:border-slate-800 flex gap-2">
+              <input 
+                type="text" 
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder="Ask something..." 
+                className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-primary dark:bg-slate-900 dark:border-slate-800 dark:text-white"
+              />
+              <button type="submit" className="bg-primary text-white rounded-full p-2 w-9 h-9 flex items-center justify-center hover:bg-primary/90 transition-colors">
+                <MessageCircle className="h-4 w-4" />
+              </button>
+            </form>
           </div>
         ) : null}
       </motion.section>
