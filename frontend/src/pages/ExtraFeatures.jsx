@@ -39,14 +39,26 @@ const ExtraFeatures = () => {
     setChatInput('');
     
     setTimeout(() => {
-      let reply = "I can definitely help with that! You can book an appointment with our top barbers from the home screen.";
-      if (currentInput.includes('fade') || currentInput.includes('haircut')) {
-        reply = "A fade is a great choice! We recommend a skin fade or taper fade for a sharp, modern look.";
-      } else if (currentInput.includes('beard')) {
+      let reply = "I'm still learning! For now, I can help you with styling advice, pricing, and booking information. What would you like to know?";
+      
+      if (currentInput.match(/\b(hi|hello|hey|hii|hola|namaste)\b/)) {
+        reply = "Hello there! How can I help you today? You can ask me about haircuts, beard trims, or prices.";
+      } else if (currentInput.match(/\b(how are you|kaise ho)\b/)) {
+        reply = "I'm doing great, thank you! How can I assist you with your salon needs today?";
+      } else if (currentInput.includes('fade') || currentInput.includes('haircut') || currentInput.includes('style')) {
+        reply = "A fade is a great choice! We recommend a skin fade or taper fade for a sharp, modern look. Or a textured crop for something relaxed.";
+      } else if (currentInput.includes('beard') || currentInput.includes('shave')) {
         reply = "We offer premium beard trims and hot towel shaves. It's a very relaxing experience, highly recommended!";
-      } else if (currentInput.includes('price') || currentInput.includes('cost')) {
-        reply = "Our haircuts start from $25, and beard trims from $15. You can check the full menu when you book.";
+      } else if (currentInput.includes('price') || currentInput.includes('cost') || currentInput.includes('paisa') || currentInput.includes('charge')) {
+        reply = "Our haircuts start from $25, and beard trims from $15. You can check the full menu and exact prices when you select a salon.";
+      } else if (currentInput.includes('time') || currentInput.includes('open') || currentInput.includes('close')) {
+        reply = "Most of our salons are open from 9 AM to 8 PM, 7 days a week. You can see exact timings on the specific salon's profile page.";
+      } else if (currentInput.includes('book') || currentInput.includes('appointment')) {
+        reply = "To book an appointment, please head to the Home screen, search for a salon, and select your preferred time slot!";
+      } else if (currentInput.includes('thank')) {
+        reply = "You're welcome! Let me know if you need anything else.";
       }
+      
       setMessages(prev => [...prev, { role: 'ai', text: reply }]);
     }, 800);
   };
