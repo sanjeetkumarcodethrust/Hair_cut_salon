@@ -3321,20 +3321,68 @@ export const SettingsPage = () => (
     </PageShell>
 );
 
-export const NotificationsPage = () => (
-  <PageShell eyebrow="Notifications" title="Recent updates" description="Review appointment reminders, new offers, and job status changes.">
-    <div className="space-y-4">
-      {['Your booking is confirmed', 'A new job match is available', 'A salon sent you a reminder'].map((item) => (
-        <div key={item} className={panelClasses}>
-          <h3 className="text-lg font-semibold text-slate-900">{item}</h3>
-          <p className="mt-2 text-sm text-slate-600">Notifications are ready for live event-driven content.</p>
-        </div>
-      ))}
-    </div>
-  
+export const NotificationsPage = () => {
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await api.get('/notifications');
+      setNotifications(res.data.data || []);
       
+      // mark as read
+      const unread = (res.data.data || []).filter(n => !n.readAt).map(n => n._id);
+      if (unread.length > 0) {
+        await api.put('/notifications/read', { notificationIds: unread });
+      }
+    } catch (error) {
+      console.error('Failed to fetch notifications', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 10000); // Poll every 10 seconds for real-time feel
+    return () => clearInterval(interval);
+  }, []);
 
-
+  return (
+    <PageShell eyebrow="Notifications" title="Recent updates" description="Review appointment reminders, new offers, and job status changes.">
+      <div className="space-y-4">
+        {loading && notifications.length === 0 ? (
+          <div className="flex justify-center p-8">
+            <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+          </div>
+        ) : notifications.length === 0 ? (
+          <div className={panelClasses}>
+            <p className="text-slate-500 text-center py-4">No new notifications</p>
+          </div>
+        ) : (
+          notifications.map((item) => (
+            <div key={item._id} className={`${panelClasses} ${!item.readAt ? 'bg-indigo-50 border-indigo-100' : ''}`}>
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900">{item.title}</h3>
+                  <p className="mt-2 text-sm text-slate-600">{item.body}</p>
+                  <p className="mt-1 text-xs text-slate-400">
+                    {new Date(item.createdAt).toLocaleString()}
+                  </p>
+                </div>
+                {!item.readAt && (
+                  <span className="h-3 w-3 bg-indigo-500 rounded-full mt-1"></span>
+                )}
+              </div>
+              {item.bookingId && (
+                <Link to={`/bookings/${item.bookingId}`} className="mt-3 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                  View Booking →
+                </Link>
+              )}
+            </div>
+          ))
+        )}
+      </div>
     </PageShell>
-);
+  );
+};

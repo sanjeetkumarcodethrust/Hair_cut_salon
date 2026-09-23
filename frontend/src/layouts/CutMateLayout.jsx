@@ -1,3 +1,4 @@
+import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../features/auth/authSlice';
@@ -41,6 +42,25 @@ const CutMateLayout = () => {
   const handleLogout = () => {
     dispatch(logout());
   };
+
+  const [unreadCount, setUnreadCount] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!userInfo) return;
+    const fetchUnread = async () => {
+      try {
+        const { default: api } = await import('../services/api');
+        const res = await api.get('/notifications');
+        const count = (res.data.data || []).filter(n => !n.readAt).length;
+        setUnreadCount(count);
+      } catch (err) {
+        // ignore errors silently
+      }
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 15000);
+    return () => clearInterval(interval);
+  }, [userInfo]);
 
   const navItems = [
     { icon: Home, label: 'Home', href: '/' },
@@ -114,10 +134,12 @@ const CutMateLayout = () => {
             <button className="text-slate-400 hover:text-white transition hidden sm:block">
               <Heart className="w-5 h-5" />
             </button>
-            <button className="text-slate-400 hover:text-white transition relative">
+            <Link to="/notifications" className="text-slate-400 hover:text-white transition relative block">
               <Bell className="w-5 h-5" />
-              <span className="absolute top-0 right-0 w-2 h-2 bg-pink-500 rounded-full border border-[#0a0a0a]" />
-            </button>
+              {unreadCount > 0 && (
+                <span className="absolute top-0 right-0 w-2 h-2 bg-pink-500 rounded-full border border-[#0a0a0a]" />
+              )}
+            </Link>
 
             {userInfo ? (
               <div className="flex items-center gap-2 md:gap-3">
