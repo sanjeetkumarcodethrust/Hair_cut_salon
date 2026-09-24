@@ -127,13 +127,13 @@ const CutMateDashboard = () => {
               <div className="relative mt-8 md:mt-0 flex-shrink-0 hidden sm:block">
                 <img src="/assets/hero_model.jpg" alt="Model" className="w-64 h-64 md:w-80 md:h-80 object-cover rounded-full border-4 border-[#0a0a0a] shadow-2xl relative z-10" />
                 {/* floating card */}
-                <div className="absolute -bottom-6 -left-6 bg-[#0a0a0a]/80 backdrop-blur-md border border-white/20 rounded-2xl p-4 shadow-xl z-20">
+                {/* <div className="absolute -bottom-6 -left-6 bg-[#0a0a0a]/80 backdrop-blur-md border border-white/20 rounded-2xl p-4 shadow-xl z-20">
                   <p className="text-sm font-semibold text-white"></p>
                   <p className="text-sm font-bold text-white mb-2"></p>
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] text-slate-300"></span>
                   </div>
-                </div>
+                </div> */}
               </div>
             </div>
           </section>
