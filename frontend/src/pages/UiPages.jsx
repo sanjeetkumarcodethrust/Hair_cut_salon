@@ -302,7 +302,7 @@ export const SearchSalons = () => {
                   placeholder="Enter area, city or locality..."
                   value={locationQuery}
                   onChange={(e) => setLocationQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
             </form>
@@ -427,7 +427,7 @@ export const SearchSalons = () => {
                     placeholder="Min"
                     value={tempFilters.minPrice}
                     onChange={(e) => setTempFilters({...tempFilters, minPrice: e.target.value})}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary "
                   />
                   <span className="text-slate-400 font-medium">-</span>
                   <input
@@ -435,7 +435,7 @@ export const SearchSalons = () => {
                     placeholder="Max"
                     value={tempFilters.maxPrice}
                     onChange={(e) => setTempFilters({...tempFilters, maxPrice: e.target.value})}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
               </div>
