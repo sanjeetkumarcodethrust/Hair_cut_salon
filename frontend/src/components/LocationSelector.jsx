@@ -136,7 +136,7 @@ const LocationSelector = () => {
   };
 
   // If there's no location set yet, default to Mumbai, India
-  const displayLoc = selectedLocation?.displayName || 'Mumbai, India';
+  const displayLoc = selectedLocation?.displayName || 'Pune, India';
 
   return (
     <div className="relative" ref={dropdownRef}>
