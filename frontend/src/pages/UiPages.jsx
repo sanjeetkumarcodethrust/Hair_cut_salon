@@ -443,7 +443,7 @@ export const SearchSalons = () => {
               <div>
                 <label className="block text-sm font-bold text-slate-900 mb-3">Rating</label>
                 <div className="flex flex-wrap gap-2">
-                  {[{label:'Any', v:''}, {label:'3.0+', v:'3'}, {label:'3.5+', v:'3.5'}, {label:'4.0+', v:'4'}, {label:'4.5+', v:'4.5'}].map(opt => (
+                  {[{label:'Any', v:''}, {label:'3.0+', v:'3'}, {label:'3.5+', v:'3.5'}, {label:'4.0+', v:'4'}, {label:'4.5+', v:'4.5'},{label:'5.0', v:'5'}].map(opt => (
                     <button
                       key={opt.label}
                       onClick={() => setTempFilters({...tempFilters, minRating: opt.v})}
