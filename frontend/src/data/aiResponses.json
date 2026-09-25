@@ -1,0 +1,37 @@
+{
+  "default": "I'm still learning! For now, I can help you with styling advice, pricing, and booking information. What would you like to know?",
+  "intents": [
+    {
+      "keywords": ["hi", "hello", "hey", "hii", "hola", "namaste"],
+      "reply": "Hello there! How can I help you today? You can ask me about haircuts, beard trims, or prices."
+    },
+    {
+      "keywords": ["how are you", "kaise ho"],
+      "reply": "I'm doing great, thank you! How can I assist you with your salon needs today?"
+    },
+    {
+      "keywords": ["fade", "haircut", "style"],
+      "reply": "A fade is a great choice! We recommend a skin fade or taper fade for a sharp, modern look. Or a textured crop for something relaxed."
+    },
+    {
+      "keywords": ["beard", "shave"],
+      "reply": "We offer premium beard trims and hot towel shaves. It's a very relaxing experience, highly recommended!"
+    },
+    {
+      "keywords": ["price", "cost", "paisa", "charge"],
+      "reply": "Our haircuts start from $25, and beard trims from $15. You can check the full menu and exact prices when you select a salon."
+    },
+    {
+      "keywords": ["time", "open", "close"],
+      "reply": "Most of our salons are open from 9 AM to 8 PM, 7 days a week. You can see exact timings on the specific salon's profile page."
+    },
+    {
+      "keywords": ["book", "appointment"],
+      "reply": "To book an appointment, please head to the Home screen, search for a salon, and select your preferred time slot!"
+    },
+    {
+      "keywords": ["thank"],
+      "reply": "You're welcome! Let me know if you need anything else."
+    }
+  ]
+}

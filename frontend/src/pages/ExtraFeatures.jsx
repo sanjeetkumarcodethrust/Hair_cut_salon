@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Brain, Camera, Gift, MessageCircle, QrCode, Sparkles, Volume2, Languages, Smartphone } from 'lucide-react';
 import PageShell from '../components/PageShell';
+import aiResponses from '../data/aiResponses.json';
 
 const recommendationCards = [
   { title: 'Soft textured crop', detail: 'Ideal for oval and heart face shapes', vibe: 'Low-maintenance' },
@@ -39,27 +40,27 @@ const ExtraFeatures = () => {
     setChatInput('');
     
     setTimeout(() => {
-      let reply = "I'm still learning! For now, I can help you with styling advice, pricing, and booking information. What would you like to know?";
-      
-      if (currentInput.match(/\b(hi|hello|hey|hii|hola|namaste)\b/)) {
-        reply = "Hello there! How can I help you today? You can ask me about haircuts, beard trims, or prices.";
-      } else if (currentInput.match(/\b(how are you|kaise ho)\b/)) {
-        reply = "I'm doing great, thank you! How can I assist you with your salon needs today?";
-      } else if (currentInput.includes('fade') || currentInput.includes('haircut') || currentInput.includes('style')) {
-        reply = "A fade is a great choice! We recommend a skin fade or taper fade for a sharp, modern look. Or a textured crop for something relaxed.";
-      } else if (currentInput.includes('beard') || currentInput.includes('shave')) {
-        reply = "We offer premium beard trims and hot towel shaves. It's a very relaxing experience, highly recommended!";
-      } else if (currentInput.includes('price') || currentInput.includes('cost') || currentInput.includes('paisa') || currentInput.includes('charge')) {
-        reply = "Our haircuts start from $25, and beard trims from $15. You can check the full menu and exact prices when you select a salon.";
-      } else if (currentInput.includes('time') || currentInput.includes('open') || currentInput.includes('close')) {
-        reply = "Most of our salons are open from 9 AM to 8 PM, 7 days a week. You can see exact timings on the specific salon's profile page.";
-      } else if (currentInput.includes('book') || currentInput.includes('appointment')) {
-        reply = "To book an appointment, please head to the Home screen, search for a salon, and select your preferred time slot!";
-      } else if (currentInput.includes('thank')) {
-        reply = "You're welcome! Let me know if you need anything else.";
+      let reply = aiResponses.default;
+      let imageUrl = null;
+
+      // Basic photo generation simulation
+      const photoMatch = currentInput.match(/(photo|image|picture) of (a |an )?(.*)/);
+      if (photoMatch && photoMatch[3]) {
+        const query = photoMatch[3].replace(/[^a-zA-Z0-9]/g, '');
+        reply = `Here is a photo of ${photoMatch[3]}!`;
+        imageUrl = `https://loremflickr.com/400/300/${query},haircut`;
+      } else {
+        // Dynamic intent matching from JSON
+        for (const intent of aiResponses.intents) {
+          const matched = intent.keywords.some(keyword => currentInput.includes(keyword) || currentInput.match(new RegExp(`\\b${keyword}\\b`)));
+          if (matched) {
+            reply = intent.reply;
+            break;
+          }
+        }
       }
       
-      setMessages(prev => [...prev, { role: 'ai', text: reply }]);
+      setMessages(prev => [...prev, { role: 'ai', text: reply, image: imageUrl }]);
     }, 800);
   };
 
@@ -230,11 +231,18 @@ const ExtraFeatures = () => {
             <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-3">
               {messages.map((msg, idx) => (
                 <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div 
-                    className={`rounded-2xl px-4 py-2 max-w-[85%] text-sm ${msg.role === 'user' ? 'text-black font-medium' : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200'}`}
-                    style={msg.role === 'user' ? { backgroundColor: '#e2e8f0' } : {}}
-                  >
-                    {msg.text}
+                  <div className="flex flex-col gap-2 max-w-[85%]">
+                    <div 
+                      className={`rounded-2xl px-4 py-2 text-sm ${msg.role === 'user' ? 'text-black font-medium' : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200'}`}
+                      style={msg.role === 'user' ? { backgroundColor: '#e2e8f0' } : {}}
+                    >
+                      {msg.text}
+                    </div>
+                    {msg.image && (
+                      <div className="rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700">
+                        <img src={msg.image} alt="Generated AI Photo" className="w-full h-auto object-cover max-h-48" />
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
