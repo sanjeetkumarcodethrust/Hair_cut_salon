@@ -28,13 +28,13 @@ export const getSalons = async (req, res) => {
     const andConditions = [];
 
     if (searchTerm) {
-      const regex = { $regex: searchTerm, $options: 'i' };
+      const term = searchTerm.trim();
       andConditions.push({
         $or: [
-          { name: regex },
-          { city: regex },
-          { address: regex },
-          { 'services.name': regex }
+          { name: { $regex: term, $options: 'i' } },
+          { city: { $regex: term, $options: 'i' } },
+          { address: { $regex: term, $options: 'i' } },
+          { 'services.name': { $regex: term, $options: 'i' } }
         ]
       });
     }
@@ -44,12 +44,12 @@ export const getSalons = async (req, res) => {
     }
 
     if (location) {
-      const locationRegex = { $regex: location.trim(), $options: 'i' };
+      const locTerm = location.trim();
       andConditions.push({
         $or: [
-          { address: locationRegex },
-          { city: locationRegex },
-          { state: locationRegex },
+          { address: { $regex: locTerm, $options: 'i' } },
+          { city: { $regex: locTerm, $options: 'i' } },
+          { state: { $regex: locTerm, $options: 'i' } },
         ]
       });
     }
