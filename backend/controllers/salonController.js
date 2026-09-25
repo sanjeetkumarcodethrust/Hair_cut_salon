@@ -25,34 +25,49 @@ export const getSalons = async (req, res) => {
 
     // Build query dynamically — no hardcoded city/state
     const query = {};
+    const andConditions = [];
 
     if (searchTerm) {
-      query.name = { $regex: searchTerm, $options: 'i' };
+      const regex = { $regex: searchTerm, $options: 'i' };
+      andConditions.push({
+        $or: [
+          { name: regex },
+          { city: regex },
+          { address: regex },
+          { 'services.name': regex }
+        ]
+      });
     }
 
     if (city) {
-      query.city = { $regex: city.trim(), $options: 'i' };
+      andConditions.push({ city: { $regex: city.trim(), $options: 'i' } });
     }
 
     if (location) {
       const locationRegex = { $regex: location.trim(), $options: 'i' };
-      query.$or = [
-        { address: locationRegex },
-        { city: locationRegex },
-        { state: locationRegex },
-      ];
+      andConditions.push({
+        $or: [
+          { address: locationRegex },
+          { city: locationRegex },
+          { state: locationRegex },
+        ]
+      });
     }
 
     if (service) {
       // Match salons that have a service whose name contains the search term
-      query['services.name'] = { $regex: service.trim(), $options: 'i' };
+      andConditions.push({ 'services.name': { $regex: service.trim(), $options: 'i' } });
     }
 
     if (minRating) {
       const rating = parseFloat(minRating);
       if (!isNaN(rating)) {
-        query.rating = { $gte: rating };
+        andConditions.push({ rating: { $gte: rating } });
       }
+    }
+
+    if (andConditions.length > 0) {
+      query.$and = andConditions;
     }
 
     // Pagination
