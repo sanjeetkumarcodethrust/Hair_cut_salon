@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Brain, Camera, Gift, MessageCircle, QrCode, Sparkles, Volume2, Languages, Smartphone } from 'lucide-react';
 import PageShell from '../components/PageShell';
 import aiResponses from '../data/aiResponses.json';
+import api from '../services/api';
 
 const recommendationCards = [
   { title: 'Soft textured crop', detail: 'Ideal for oval and heart face shapes', vibe: 'Low-maintenance' },
@@ -31,37 +32,29 @@ const ExtraFeatures = () => {
   ]);
   const [chatInput, setChatInput] = useState('');
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
     
     setMessages(prev => [...prev, { role: 'user', text: chatInput }]);
-    const currentInput = chatInput.trim().toLowerCase();
+    const currentInput = chatInput.trim();
     setChatInput('');
     
-    setTimeout(() => {
-      let reply = aiResponses.default;
-      let imageUrl = null;
-
-      // Basic photo generation simulation
-      const photoMatch = currentInput.match(/(photo|image|picture) of (a |an )?(.*)/);
-      if (photoMatch && photoMatch[3]) {
-        const query = photoMatch[3].replace(/[^a-zA-Z0-9]/g, '');
-        reply = `Here is a photo of ${photoMatch[3]}!`;
-        imageUrl = `https://loremflickr.com/400/300/${query},haircut`;
+    try {
+      const response = await api.post('/ai/chat', { prompt: currentInput });
+      if (response.data && response.data.success) {
+        setMessages(prev => [...prev, { 
+          role: 'ai', 
+          text: response.data.reply, 
+          image: response.data.imageUrl 
+        }]);
       } else {
-        // Dynamic intent matching from JSON
-        for (const intent of aiResponses.intents) {
-          const matched = intent.keywords.some(keyword => currentInput.includes(keyword) || currentInput.match(new RegExp(`\\b${keyword}\\b`)));
-          if (matched) {
-            reply = intent.reply;
-            break;
-          }
-        }
+        setMessages(prev => [...prev, { role: 'ai', text: "I'm having trouble connecting to my brain. Please try again." }]);
       }
-      
-      setMessages(prev => [...prev, { role: 'ai', text: reply, image: imageUrl }]);
-    }, 800);
+    } catch (error) {
+      console.error("AI Error:", error);
+      setMessages(prev => [...prev, { role: 'ai', text: "An error occurred while thinking. Please try again later." }]);
+    }
   };
 
   const copy = useMemo(() => ({
