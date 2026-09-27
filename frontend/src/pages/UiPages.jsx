@@ -1001,13 +1001,9 @@ export const SalonDetails = () => {
                     <span className="flex items-center gap-1 bg-amber-50 text-amber-600 px-3 py-1 rounded-xl font-bold text-sm">
                       <Star className="w-4 h-4 fill-amber-500" /> {salon.rating > 0 ? salon.rating : 'New'}
                     </span>
-                    <span className="text-slate-500 font-medium text-sm">({salon.totalReviews} reviews)</span>
+                   <span className="text-slate-500 font-medium text-sm">({salon.totalReviews} reviews)</span>
                  </div>
-                 {isOpenToday ? (
-                    <span className="bg-green-50 text-green-600 px-3 py-1 rounded-xl font-bold text-sm">Open Today</span>
-                 ) : (
-                    <span className="bg-red-50 text-red-600 px-3 py-1 rounded-xl font-bold text-sm">Closed Today</span>
-                 )}
+                 <span className="bg-green-50 text-green-600 px-3 py-1 rounded-xl font-bold text-sm">Open Today</span>
               </div>
               <h2 className="text-2xl font-bold text-slate-900 mb-6">{salon.name}</h2>
               
@@ -1026,11 +1022,7 @@ export const SalonDetails = () => {
                    <Clock className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                    <div>
                      <p className="text-sm font-semibold text-slate-900 mb-1">Today's Hours</p>
-                     {isOpenToday ? (
-                        <p className="text-sm text-slate-600 leading-relaxed">{todayHours.open} - {todayHours.close}</p>
-                     ) : (
-                        <p className="text-sm text-slate-600 leading-relaxed">Closed</p>
-                     )}
+                     <p className="text-sm text-slate-600 leading-relaxed">{(todayHours && todayHours.open) ? todayHours.open : '09:00 AM'} - {(todayHours && todayHours.close) ? todayHours.close : '08:00 PM'}</p>
                    </div>
                 </div>
               </div>

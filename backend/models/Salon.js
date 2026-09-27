@@ -97,7 +97,7 @@ const salonSchema = new mongoose.Schema(
       thursday: { open: String, close: String, isClosed: { type: Boolean, default: false } },
       friday: { open: String, close: String, isClosed: { type: Boolean, default: false } },
       saturday: { open: String, close: String, isClosed: { type: Boolean, default: false } },
-      sunday: { open: String, close: String, isClosed: { type: Boolean, default: true } },
+      sunday: { open: String, close: String, isClosed: { type: Boolean, default: false } },
     },
 
     paymentPolicy: {

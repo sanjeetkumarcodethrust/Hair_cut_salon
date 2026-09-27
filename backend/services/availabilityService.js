@@ -14,11 +14,11 @@ export const getAvailableSlots = async (shopId, dateStr, service, timezone = 'As
 
   const reqDate = moment.tz(dateStr, timezone);
   const dayOfWeek = reqDate.format('dddd').toLowerCase();
-  const todayHours = shop.openingHours?.[dayOfWeek];
+  let todayHours = shop.openingHours?.[dayOfWeek];
 
-  // If shop is closed today
-  if (!todayHours || todayHours.isClosed) {
-    return [];
+  // If no hours set, fallback to 09:00 AM - 08:00 PM (Ignore isClosed flag as requested)
+  if (!todayHours || !todayHours.open || !todayHours.close) {
+    todayHours = { open: '09:00 AM', close: '08:00 PM' };
   }
 
   // Parse Shop Open/Close times
