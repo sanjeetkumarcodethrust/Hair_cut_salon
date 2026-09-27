@@ -47,11 +47,23 @@ export const generateAiResponse = async (req, res) => {
         }
       } catch (err) {
         console.error('Gemini API Error:', err);
-        // Fallback to JSON if Gemini fails
       }
     }
 
-    // 3. Fallback to Dynamic JSON responses
+    // 3. Fallback to free real-time AI (Pollinations Text API)
+    try {
+      const sysPrompt = "You are a helpful AI assistant for a hair salon called CutMate. Keep responses short, friendly, and helpful.";
+      const encodedPrompt = encodeURIComponent(`${sysPrompt} User says: ${prompt}`);
+      const textResponse = await fetch(`https://text.pollinations.ai/prompt/${encodedPrompt}`);
+      if (textResponse.ok) {
+        reply = await textResponse.text();
+        return res.json({ success: true, reply, imageUrl });
+      }
+    } catch (err) {
+      console.error('Free AI API Error:', err);
+    }
+
+    // 4. Final Fallback to Dynamic JSON responses
     try {
       if (fs.existsSync(aiResponsesPath)) {
         const rawData = fs.readFileSync(aiResponsesPath, 'utf8');
