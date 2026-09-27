@@ -20,10 +20,11 @@ export const generateAiResponse = async (req, res) => {
     let imageUrl = null;
 
     // 1. Check if user wants a photo
-    const photoMatch = currentInput.match(/(?:generate|show|make|create)?\s*(?:a\s+)?(?:photo|image|picture)\s+(?:of|for)?\s*(?:a\s+|an\s+)?(.*)/i);
-    if (photoMatch && photoMatch[1]) {
-      const query = encodeURIComponent(photoMatch[1].trim());
-      reply = `Here is a real-world generated image of ${photoMatch[1]}!`;
+    const photoMatch = currentInput.match(/(?:photo|image|picture|pic)(?:s)?(?:\s+(?:of|for))?\s*(?:a\s+|an\s+)?(.*)/i);
+    if (photoMatch) {
+      const subject = photoMatch[1] ? photoMatch[1].trim() : 'hair salon';
+      const query = encodeURIComponent(subject);
+      reply = `Here is a real-world generated image of ${subject}!`;
       imageUrl = `https://image.pollinations.ai/prompt/${query}?width=400&height=300&nologo=true`;
       return res.json({ success: true, reply, imageUrl });
     }
