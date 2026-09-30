@@ -94,7 +94,7 @@ const CutMateLayout = () => {
               active={location.pathname === item.href}
             />
           ))}
-          <SidebarItem icon={MoreHorizontal} label="More" href="#" />
+          <SidebarItem icon={MoreHorizontal} label="More" href="/more" />
         </nav>
 
         {/* Become a Barber Banner */}
@@ -182,6 +182,7 @@ const CutMateLayout = () => {
             { icon: Compass, label: 'Explore', href: '/salons' },
             { icon: Calendar, label: 'Bookings', href: '/bookings' },
             { icon: User, label: 'Profile', href: '/profile' },
+            { icon: MoreHorizontal, label: 'More', href: '/more' },
           ].map(item => {
             const active = location.pathname === item.href;
             return (

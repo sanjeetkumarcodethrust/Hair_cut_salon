@@ -34,6 +34,7 @@ import OwnerJobsPage from '../pages/OwnerJobsPage.jsx';
 import BarberApplicationsPage from '../pages/BarberApplicationsPage.jsx';
 import BookingHistory from '../pages/BookingHistory.jsx';
 import BookingDetails from '../pages/BookingDetails.jsx';
+import MorePage from '../pages/MorePage.jsx';
 
 const AppRoutes = () => (
   <Router>
@@ -60,6 +61,7 @@ const AppRoutes = () => (
         <Route path="owner-dashboard" element={<OwnerDashboardPage />} />
         <Route path="admin-dashboard" element={<AdminDashboardPage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="more" element={<MorePage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="extras" element={<ExtraFeatures />} />

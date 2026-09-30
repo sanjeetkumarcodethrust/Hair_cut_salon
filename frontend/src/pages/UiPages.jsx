@@ -3286,24 +3286,9 @@ export const ProfilePage = () => {
         </div>
       </div>
     
-      {/* More Section */}
-      <div className={`${panelClasses} mt-6`}>
-        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">More</h3>
-        <div className="space-y-3">
-          <Link to="/settings" className="flex items-center justify-between rounded-2xl bg-slate-50 dark:bg-slate-800/60 px-4 py-3 hover:bg-slate-100 transition">
-            <span className="text-sm font-semibold text-slate-800 dark:text-white flex items-center gap-2">⚙️ Settings</span>
-            <span className="text-slate-400">→</span>
-          </Link>
-          <Link to="/history" className="flex items-center justify-between rounded-2xl bg-slate-50 dark:bg-slate-800/60 px-4 py-3 hover:bg-slate-100 transition">
-            <span className="text-sm font-semibold text-slate-800 dark:text-white flex items-center gap-2">📅 Booking History</span>
-            <span className="text-slate-400">→</span>
-          </Link>
-          <Link to="/support" className="flex items-center justify-between rounded-2xl bg-slate-50 dark:bg-slate-800/60 px-4 py-3 hover:bg-slate-100 transition">
-            <span className="text-sm font-semibold text-slate-800 dark:text-white flex items-center gap-2">❓ Help & Support</span>
-            <span className="text-slate-400">→</span>
-          </Link>
-        </div>
-      </div>
+      
+
+
 
     </PageShell>
   );
