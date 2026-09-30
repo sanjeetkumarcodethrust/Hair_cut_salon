@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Brain, Camera, Gift, MessageCircle, QrCode, Sparkles, Volume2, Languages, Smartphone } from 'lucide-react';
 import PageShell from '../components/PageShell';
-import aiResponses from '../data/aiResponses.json';
 import api from '../services/api';
 
 const recommendationCards = [

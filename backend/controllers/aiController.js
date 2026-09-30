@@ -1,13 +1,3 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Fallback logic from JSON (to keep it dynamic even without API key)
-const aiResponsesPath = path.join(__dirname, '../../frontend/src/data/aiResponses.json');
-
 export const generateAiResponse = async (req, res) => {
   try {
     const { prompt } = req.body;
@@ -64,28 +54,11 @@ export const generateAiResponse = async (req, res) => {
       console.error('Free AI API Error:', err);
     }
 
-    // 4. Final Fallback to Dynamic JSON responses
-    try {
-      if (fs.existsSync(aiResponsesPath)) {
-        const rawData = fs.readFileSync(aiResponsesPath, 'utf8');
-        const aiData = JSON.parse(rawData);
-        reply = aiData.default;
-
-        for (const intent of aiData.intents) {
-          const matched = intent.keywords.some(keyword => currentInput.includes(keyword) || currentInput.match(new RegExp(`\\b${keyword}\\b`)));
-          if (matched) {
-            reply = intent.reply;
-            break;
-          }
-        }
-      }
-    } catch (err) {
-      console.error('Error reading JSON:', err);
-    }
-
+    // Return the response
     res.json({ success: true, reply, imageUrl });
 
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
