@@ -29,14 +29,38 @@ const BookingHistory = () => {
 
   if (!userInfo) return <Navigate to="/login" replace />;
 
-  const todayMidnight = new Date();
-  todayMidnight.setHours(0, 0, 0, 0);
-  
+  const now = new Date();
+
+  const isPast = (a) => {
+    if (a.startTime) {
+      return new Date(a.startTime) < now;
+    }
+    const d = new Date(a.date);
+    if (a.time && typeof a.time === 'string' && a.time.includes(':')) {
+      const parts = a.time.match(/(\d+):(\d+)\s*(AM|PM|am|pm)?/);
+      if (parts) {
+        let h = parseInt(parts[1], 10);
+        let m = parseInt(parts[2], 10);
+        let ampm = parts[3];
+        if (ampm) {
+          if (ampm.toUpperCase() === 'PM' && h < 12) h += 12;
+          if (ampm.toUpperCase() === 'AM' && h === 12) h = 0;
+        }
+        d.setHours(h, m, 0, 0);
+      } else {
+        d.setHours(23, 59, 59, 999);
+      }
+    } else {
+      d.setHours(23, 59, 59, 999);
+    }
+    return d < now;
+  };
+
   const upcoming = appointments.filter(a => 
-    ['pending', 'confirmed'].includes(a.status) && new Date(a.date) >= todayMidnight
+    ['pending', 'confirmed'].includes(a.status) && !isPast(a)
   );
   
-  const completed = appointments.filter(a => a.status === 'completed' || (['pending', 'confirmed'].includes(a.status) && new Date(a.date) < todayMidnight));
+  const completed = appointments.filter(a => a.status === 'completed' || (['pending', 'confirmed'].includes(a.status) && isPast(a)));
   
   const cancelled = appointments.filter(a => a.status === 'cancelled');
 
