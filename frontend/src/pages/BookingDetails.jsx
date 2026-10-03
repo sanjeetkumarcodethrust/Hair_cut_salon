@@ -65,8 +65,8 @@ const BookingDetails = () => {
         try {
           // Since getAvailableSlots needs service duration, it's computed backend. 
           // But our API endpoint `/salons/:id/availability` is generic. Wait, Phase 5 created this API!
-          // GET /api/salons/:id/availability?date=...&serviceId=...
-          const res = await api.get(`/salons/${apt.salon._id}/availability?date=${selectedDate}&serviceId=${apt.serviceId}`);
+          const duration = apt.totalDuration || apt.snapshots?.serviceDuration || apt.service?.duration || 30;
+          const res = await api.get(`/salons/${apt.salon._id}/availability?date=${selectedDate}&totalDuration=${duration}`);
           setAvailableSlots(res.data.slots || []);
         } catch (err) {
           console.error(err);
