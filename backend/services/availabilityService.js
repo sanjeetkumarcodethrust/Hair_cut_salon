@@ -22,11 +22,17 @@ export const getAvailableSlots = async (shopId, dateStr, service, timezone = 'As
   }
 
   // Parse Shop Open/Close times
-  // Format is usually "HH:mm" e.g. "08:00", "23:59"
+  // Format can be "HH:mm" e.g. "08:00" or "hh:mm A" e.g. "09:00 AM"
   const openTime = todayHours.open || '08:00';
   const closeTime = todayHours.close || '23:59';
-  const shopStart = moment.tz(`${dateStr}T${openTime}:00`, timezone);
-  const shopEnd = moment.tz(`${dateStr}T${closeTime}:00`, timezone);
+  
+  const parseTime = (date, timeStr, tz) => {
+    // Robustly parse time whether it's in 24hr or 12hr format
+    return moment.tz(`${date} ${timeStr}`, ['YYYY-MM-DD HH:mm', 'YYYY-MM-DD hh:mm A'], tz);
+  };
+
+  const shopStart = parseTime(dateStr, openTime, timezone);
+  const shopEnd = parseTime(dateStr, closeTime, timezone);
 
   // 2. Fetch Barbers
   // A barber is considered capable if they have the service in their services array, 
@@ -177,8 +183,8 @@ export const getAvailableSlots = async (shopId, dateStr, service, timezone = 'As
       const bHours = barber.availability[dayOfWeek];
       const bStartTime = bHours.start || openTime;
       const bEndTime = bHours.end || closeTime;
-      const bStart = moment.tz(`${dateStr}T${bStartTime}:00`, timezone);
-      const bEnd = moment.tz(`${dateStr}T${bEndTime}:00`, timezone);
+      const bStart = parseTime(dateStr, bStartTime, timezone);
+      const bEnd = parseTime(dateStr, bEndTime, timezone);
 
       // Is the slot within barber's working hours?
       if (slotStart.isSameOrAfter(bStart) && slotEnd.isSameOrBefore(bEnd)) {
@@ -187,8 +193,8 @@ export const getAvailableSlots = async (shopId, dateStr, service, timezone = 'As
         if (barber.breaks && barber.breaks.length > 0) {
            onBreak = barber.breaks.some(brk => {
               if (brk.day !== dayOfWeek) return false;
-              const brkStart = moment.tz(`${dateStr}T${brk.start}:00`, timezone);
-              const brkEnd = moment.tz(`${dateStr}T${brk.end}:00`, timezone);
+              const brkStart = parseTime(dateStr, brk.start, timezone);
+              const brkEnd = parseTime(dateStr, brk.end, timezone);
               return brkStart.isBefore(slotEnd) && brkEnd.isAfter(slotStart);
            });
         }
