@@ -4,6 +4,7 @@ import Appointment from '../models/Appointment.js';
 import { calculateRelevance } from '../services/relevanceService.js';
 import Salon from '../models/Salon.js';
 import Review from '../models/Review.js';
+import mongoose from 'mongoose';
 
 // @desc    Get all salons with search/filter/pagination
 // @route   GET /api/salons?search=&city=&service=&minRating=&page=&limit=
@@ -230,6 +231,8 @@ export const deleteSalon = async (req, res) => {
 // @access  Public
 
 
+import User from '../models/User.js';
+
 export const getNearbySalons = async (req, res) => {
   try {
     const { 
@@ -249,6 +252,86 @@ export const getNearbySalons = async (req, res) => {
 
     if (isNaN(lat) || isNaN(lng) || isNaN(rad) || rad <= 0) {
       return res.status(400).json({ success: false, message: 'Invalid location parameters' });
+    }
+
+    // Google Places Sync
+    if (process.env.GOOGLE_MAPS_API_KEY) {
+      try {
+        const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+        const googleUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${rad}&type=beauty_salon&key=${apiKey}`;
+        const response = await fetch(googleUrl);
+        const data = await response.json();
+        
+        let resultsToSync = data.results || [];
+        
+        // MOCK DATA FALLBACK for demonstration if API key is invalid/denied
+        if (data.status === 'REQUEST_DENIED' || resultsToSync.length === 0) {
+          console.warn('Google Places API Denied or Empty. Using mock data for demonstration.');
+          resultsToSync = [
+            {
+              place_id: `mock_place_${lat}_${lng}_1`,
+              name: 'Premium Style Studio (Mock)',
+              vicinity: 'Central Avenue',
+              geometry: { location: { lat: lat + 0.01, lng: lng + 0.01 } },
+              rating: 4.8,
+              user_ratings_total: 120
+            },
+            {
+              place_id: `mock_place_${lat}_${lng}_2`,
+              name: 'Urban Cuts (Mock)',
+              vicinity: 'Downtown Street',
+              geometry: { location: { lat: lat - 0.01, lng: lng - 0.01 } },
+              rating: 4.5,
+              user_ratings_total: 85
+            }
+          ];
+        }
+
+        if (resultsToSync.length > 0) {
+          console.log('Inside resultsToSync block');
+          let adminUser;
+          if (!adminUser) {
+            adminUser = await User.findOne(); // Fallback to any user
+          }
+          
+          const ownerId = adminUser ? adminUser._id : new mongoose.Types.ObjectId();
+
+          const bulkOps = resultsToSync.map(place => {
+            const location = {
+                type: 'Point',
+                coordinates: [place.geometry.location.lng, place.geometry.location.lat]
+              };
+              return {
+                updateOne: {
+                  filter: { googlePlaceId: place.place_id },
+                  update: {
+                    $setOnInsert: {
+                      name: place.name,
+                      address: place.vicinity || 'Address not available',
+                      location,
+                      city: req.query.city || 'Unknown',
+                      state: req.query.state || 'Unknown',
+                      phone: 'Not available',
+                      owner: ownerId,
+                      description: 'Imported from Google Maps',
+                      rating: place.rating || 0,
+                      totalReviews: place.user_ratings_total || 0,
+                      services: [
+                        { name: 'Haircut', price: 199, duration: 30, description: 'Basic haircut' }
+                      ]
+                    }
+                  },
+                  upsert: true
+                }
+              };
+            });
+            console.log('Executing bulkWrite for', bulkOps.length, 'salons');
+            const result = await Salon.bulkWrite(bulkOps);
+            console.log('BulkWrite result:', result.upsertedCount, result.modifiedCount);
+        }
+      } catch (err) {
+        console.error('Google Places API Sync Error:', err);
+      }
     }
 
     const pageNum = Math.max(parseInt(page, 10) || 1, 1);

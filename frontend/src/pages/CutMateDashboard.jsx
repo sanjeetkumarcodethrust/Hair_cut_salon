@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { Calendar, Star, MapPin, ShieldCheck, Droplets, Sparkles, Scissors, Wallet, User, Loader2 } from 'lucide-react';
 import api from '../services/api';
 
@@ -43,6 +44,7 @@ const fallbackSalons = [
 ];
 
 const CutMateDashboard = () => {
+  const { selectedLocation } = useSelector(state => state.location || {});
   const [salons, setSalons] = useState([]);
   const [loadingSalons, setLoadingSalons] = useState(true);
   const [salonError, setSalonError] = useState('');
@@ -54,9 +56,17 @@ const CutMateDashboard = () => {
     setLoadingSalons(true);
     setSalonError('');
     try {
-      const response = await api.get('/salons', {
-        params: { ...nextFilters, page: nextPage, limit: 6 },
-      });
+      let endpoint = '/salons';
+      let params = { ...nextFilters, page: nextPage, limit: 6 };
+      
+      if (selectedLocation?.latitude && selectedLocation?.longitude) {
+        endpoint = '/salons/nearby';
+        params.latitude = selectedLocation.latitude;
+        params.longitude = selectedLocation.longitude;
+        params.radius = selectedLocation.radius || 10000;
+      }
+
+      const response = await api.get(endpoint, { params });
       const result = response.data || {};
       setSalons(Array.isArray(result.data) ? result.data : []);
       setPage(Number(result.page) || nextPage);
@@ -72,7 +82,7 @@ const CutMateDashboard = () => {
 
   useEffect(() => {
     fetchSalons(1, filters);
-  }, []);
+  }, [selectedLocation]);
 
   const handleSalonSearch = (event) => {
     event.preventDefault();

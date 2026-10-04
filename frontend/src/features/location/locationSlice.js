@@ -6,6 +6,7 @@ const initialState = {
     longitude: null,
     displayName: '', // string for UI (e.g. 'Pimpri, Pune')
     source: null, // 'current' or 'manual'
+    radius: 10000, // Default 10km radius
   }
 };
 
@@ -14,7 +15,12 @@ const locationSlice = createSlice({
   initialState,
   reducers: {
     setLocation: (state, action) => {
-      state.selectedLocation = action.payload;
+      state.selectedLocation = { ...state.selectedLocation, ...action.payload };
+    },
+    setRadius: (state, action) => {
+      if (state.selectedLocation) {
+        state.selectedLocation.radius = action.payload;
+      }
     },
     clearLocation: (state) => {
       state.selectedLocation = initialState.selectedLocation;
@@ -22,5 +28,5 @@ const locationSlice = createSlice({
   }
 });
 
-export const { setLocation, clearLocation } = locationSlice.actions;
+export const { setLocation, setRadius, clearLocation } = locationSlice.actions;
 export default locationSlice.reducer;

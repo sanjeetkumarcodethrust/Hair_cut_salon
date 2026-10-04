@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
-import { setLocation } from '../features/location/locationSlice.js';
+import { setLocation, setRadius } from '../features/location/locationSlice.js';
 import { LocationService } from '../services/LocationService.js';
 import { MapPin, Search, Navigation, X, SlidersHorizontal, Tag, Star, Clock, Phone, Calendar, Info } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -119,7 +119,7 @@ export const SearchSalons = () => {
   // Filter Drawer State
   const [showFilters, setShowFilters] = React.useState(false);
   const [activeFilters, setActiveFilters] = React.useState({
-    radius: 5000,
+    radius: selectedLocation?.radius || 5000,
     minPrice: '',
     maxPrice: '',
     minRating: '',
@@ -128,6 +128,14 @@ export const SearchSalons = () => {
   
   // Temp state for while the drawer is open
   const [tempFilters, setTempFilters] = React.useState(activeFilters);
+
+  // Sync radius from global selectedLocation changes
+  React.useEffect(() => {
+    if (selectedLocation?.radius && selectedLocation.radius !== activeFilters.radius) {
+      setActiveFilters(prev => ({ ...prev, radius: selectedLocation.radius }));
+      setTempFilters(prev => ({ ...prev, radius: selectedLocation.radius }));
+    }
+  }, [selectedLocation?.radius]);
 
   // Debounce search query
   React.useEffect(() => {
@@ -225,6 +233,9 @@ export const SearchSalons = () => {
 
   const applyFilters = () => {
     setActiveFilters(tempFilters);
+    if (tempFilters.radius) {
+      dispatch(setRadius(tempFilters.radius));
+    }
     setShowFilters(false);
   };
 

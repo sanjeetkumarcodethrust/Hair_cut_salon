@@ -85,6 +85,17 @@ const salonSchema = new mongoose.Schema(
     email: {
       type: String,
     },
+    googlePlaceId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    website: {
+      type: String,
+    },
+    googleMapsUrl: {
+      type: String,
+    },
     images: {
       type: [String],
       default: [],

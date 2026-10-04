@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { setLocation } from '../features/location/locationSlice';
+import { setLocation, setRadius } from '../features/location/locationSlice';
 import { MapPin, Search, Crosshair, X, Loader2, Navigation } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -151,7 +151,7 @@ const LocationSelector = () => {
 
       {isOpen && (
         <div className="absolute top-12 left-0 w-80 sm:w-96 bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl z-[70] overflow-hidden flex flex-col max-h-[85vh]">
-          <div className="p-4 border-b border-white/5">
+          <div className="p-4 border-b border-white/5 space-y-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
@@ -171,6 +171,21 @@ const LocationSelector = () => {
                   <X className="w-4 h-4" />
                 </button>
               )}
+            </div>
+            
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-slate-400">Search Radius:</span>
+              <select 
+                className="bg-[#2a2a2a] border border-white/10 rounded-lg px-2 py-1 text-white focus:outline-none"
+                onChange={(e) => dispatch(setRadius(Number(e.target.value)))}
+                defaultValue={selectedLocation?.radius || 10000}
+              >
+                <option value={1000}>1 km</option>
+                <option value={3000}>3 km</option>
+                <option value={5000}>5 km</option>
+                <option value={10000}>10 km</option>
+                <option value={20000}>20 km</option>
+              </select>
             </div>
           </div>
 
