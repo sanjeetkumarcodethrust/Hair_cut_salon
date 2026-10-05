@@ -48,6 +48,7 @@ const LocationSelector = () => {
       setSearchResults(data);
     } catch (error) {
       console.error('Error searching locations:', error);
+      setSearchResults([]);
     } finally {
       setSearchLoading(false);
     }
@@ -55,12 +56,12 @@ const LocationSelector = () => {
 
   const handleSelectLocation = (place) => {
     // Attempt to extract a cleaner name from display_name
-    const parts = place.display_name.split(',');
-    const displayName = parts.length >= 2 ? `${parts[0].trim()}, ${parts[1].trim()}` : place.display_name;
+    const parts = place.display_name ? place.display_name.split(',') : (place.name || "").split(',');
+    const displayName = parts.length >= 2 ? `${parts[0].trim()}, ${parts[1].trim()}` : (place.display_name || place.name);
     
     dispatch(setLocation({
-      latitude: parseFloat(place.lat),
-      longitude: parseFloat(place.lon),
+      latitude: parseFloat(place.lat || place.latitude),
+      longitude: parseFloat(place.lon || place.longitude),
       displayName: displayName,
       source: 'manual'
     }));
@@ -97,7 +98,7 @@ const LocationSelector = () => {
               const parts = data.display_name.split(',');
               displayName = parts.slice(0, 2).join(',').trim();
             }
-            
+
             dispatch(setLocation({
               latitude,
               longitude,
@@ -221,9 +222,9 @@ const LocationSelector = () => {
                   Search Results
                 </div>
                 {searchResults.map((place) => {
-                  const parts = place.display_name.split(',');
+                  const parts = place.display_name ? place.display_name.split(',') : (place.name || "").split(',');
                   const mainText = parts[0];
-                  const subText = parts.slice(1).join(',').trim();
+                  const subText = parts.slice(1).join(',').trim() || place.full_address;
                   
                   return (
                     <button

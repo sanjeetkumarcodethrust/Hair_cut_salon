@@ -254,41 +254,29 @@ export const getNearbySalons = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid location parameters' });
     }
 
-    // Google Places Sync
-    if (process.env.GOOGLE_MAPS_API_KEY) {
+    // Check existing candidates first to avoid unnecessary Geoapify calls
+    const existingCandidates = await Salon.find({
+      location: {
+        $near: {
+          $geometry: { type: 'Point', coordinates: [lng, lat] },
+          $maxDistance: rad
+        }
+      }
+    }).limit(1);
+
+    // Geoapify Places Sync
+    if (existingCandidates.length === 0 && process.env.GEOAPIFY_API_KEY) {
       try {
-        const apiKey = process.env.GOOGLE_MAPS_API_KEY;
-        const googleUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${rad}&type=beauty_salon&key=${apiKey}`;
-        const response = await fetch(googleUrl);
+        const apiKey = process.env.GEOAPIFY_API_KEY;
+        const categories = 'commercial.health_and_beauty.hairdresser,commercial.health_and_beauty.beauty_salon,commercial.health_and_beauty.barbershop';
+        const geoapifyUrl = `https://api.geoapify.com/v2/places?categories=${categories}&filter=circle:${lng},${lat},${rad}&limit=20&apiKey=${apiKey}`;
+        const response = await fetch(geoapifyUrl);
         const data = await response.json();
         
-        let resultsToSync = data.results || [];
+        let resultsToSync = data.features || [];
         
-        // MOCK DATA FALLBACK for demonstration if API key is invalid/denied
-        if (data.status === 'REQUEST_DENIED' || resultsToSync.length === 0) {
-          console.warn('Google Places API Denied or Empty. Using mock data for demonstration.');
-          resultsToSync = [
-            {
-              place_id: `mock_place_${lat}_${lng}_1`,
-              name: 'Premium Style Studio (Mock)',
-              vicinity: 'Central Avenue',
-              geometry: { location: { lat: lat + 0.01, lng: lng + 0.01 } },
-              rating: 4.8,
-              user_ratings_total: 120
-            },
-            {
-              place_id: `mock_place_${lat}_${lng}_2`,
-              name: 'Urban Cuts (Mock)',
-              vicinity: 'Downtown Street',
-              geometry: { location: { lat: lat - 0.01, lng: lng - 0.01 } },
-              rating: 4.5,
-              user_ratings_total: 85
-            }
-          ];
-        }
-
         if (resultsToSync.length > 0) {
-          console.log('Inside resultsToSync block');
+          console.log('Inside resultsToSync block (Geoapify)');
           let adminUser;
           if (!adminUser) {
             adminUser = await User.findOne(); // Fallback to any user
@@ -296,26 +284,32 @@ export const getNearbySalons = async (req, res) => {
           
           const ownerId = adminUser ? adminUser._id : new mongoose.Types.ObjectId();
 
-          const bulkOps = resultsToSync.map(place => {
+          const bulkOps = resultsToSync.map(feature => {
+            const place = feature.properties;
+            // Only sync places that have a name
+            if (!place.name) return null;
+
             const location = {
                 type: 'Point',
-                coordinates: [place.geometry.location.lng, place.geometry.location.lat]
+                coordinates: [place.lon, place.lat]
               };
               return {
                 updateOne: {
-                  filter: { googlePlaceId: place.place_id },
+                  filter: { externalPlaceId: place.place_id },
                   update: {
                     $setOnInsert: {
                       name: place.name,
-                      address: place.vicinity || 'Address not available',
+                      address: place.address_line2 || place.formatted || 'Address not available',
                       location,
-                      city: req.query.city || 'Unknown',
-                      state: req.query.state || 'Unknown',
-                      phone: 'Not available',
+                      city: place.city || req.query.city || 'Unknown',
+                      state: place.state || req.query.state || 'Unknown',
+                      phone: place.contact && place.contact.phone ? place.contact.phone : 'Not available',
+                      website: place.website || '',
                       owner: ownerId,
-                      description: 'Imported from Google Maps',
-                      rating: place.rating || 0,
-                      totalReviews: place.user_ratings_total || 0,
+                      externalProvider: 'geoapify',
+                      description: 'Imported from Geoapify',
+                      rating: 0,
+                      totalReviews: 0,
                       services: [
                         { name: 'Haircut', price: 199, duration: 30, description: 'Basic haircut' }
                       ]
@@ -324,13 +318,16 @@ export const getNearbySalons = async (req, res) => {
                   upsert: true
                 }
               };
-            });
-            console.log('Executing bulkWrite for', bulkOps.length, 'salons');
-            const result = await Salon.bulkWrite(bulkOps);
-            console.log('BulkWrite result:', result.upsertedCount, result.modifiedCount);
+            }).filter(op => op !== null);
+
+            if (bulkOps.length > 0) {
+              console.log('Executing bulkWrite for', bulkOps.length, 'salons');
+              const result = await Salon.bulkWrite(bulkOps);
+              console.log('BulkWrite result:', result.upsertedCount, result.modifiedCount);
+            }
         }
       } catch (err) {
-        console.error('Google Places API Sync Error:', err);
+        console.error('Geoapify API Sync Error:', err);
       }
     }
 
@@ -346,6 +343,7 @@ export const getNearbySalons = async (req, res) => {
           distanceField: 'distanceMeters',
           maxDistance: rad,
           spherical: true,
+          key: 'location'
         },
       }
     ];

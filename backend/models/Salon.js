@@ -75,7 +75,6 @@ const salonSchema = new mongoose.Schema(
       },
       coordinates: {
         type: [Number], // [longitude, latitude]
-        index: '2dsphere',
       },
     },
     phone: {
@@ -84,6 +83,15 @@ const salonSchema = new mongoose.Schema(
     },
     email: {
       type: String,
+    },
+    externalPlaceId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    externalProvider: {
+      type: String,
+      default: 'geoapify',
     },
     googlePlaceId: {
       type: String,
@@ -145,6 +153,8 @@ const salonSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+salonSchema.index({ location: '2dsphere' });
 
 const Salon = mongoose.model('Salon', salonSchema);
 export default Salon;

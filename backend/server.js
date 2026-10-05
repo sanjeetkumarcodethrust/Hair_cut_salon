@@ -32,6 +32,7 @@ import queueRoutes from './routes/queueRoutes.js';
 import workforceRoutes from './routes/workforceRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
+import areaRoutes from './routes/areaRoutes.js';
 import { notFound, errorHandler } from './middlewares/errorMiddleware.js';
 import startReminderJob from './jobs/reminderJob.js';
 import { isDatabaseConnected } from './config/db.js';
@@ -192,6 +193,7 @@ app.use('/api/workforce', workforceRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/areas', areaRoutes);
 
 // Centralized Error Handling — must be after all routes
 app.use(notFound);
