@@ -1,5 +1,6 @@
 import User from '../models/User.js';
 import generateToken from '../utils/generateToken.js';
+import { validatePassword } from '../utils/passwordValidator.js';
 import jwt from 'jsonwebtoken';
 import env from '../config/env.js';
 import { isDatabaseConnected } from '../config/db.js';
@@ -9,6 +10,11 @@ import { isDatabaseConnected } from '../config/db.js';
 // @access  Public
 export const registerUser = async (req, res) => {
   const { name, email, password, role, phone, referralCode } = req.body;
+
+  const passwordValidation = validatePassword(password);
+  if (!passwordValidation.isValid) {
+    return res.status(400).json({ success: false, message: passwordValidation.message });
+  }
 
   // Prevent clients from self-assigning the admin role
   const safeRole = ['customer', 'barber', 'owner'].includes(role) ? role : 'customer';
@@ -149,6 +155,10 @@ export const updateUserProfile = async (req, res) => {
       user.gender = req.body.gender || user.gender;
 
       if (req.body.password) {
+        const passwordValidation = validatePassword(req.body.password);
+        if (!passwordValidation.isValid) {
+          return res.status(400).json({ success: false, message: passwordValidation.message });
+        }
         user.password = req.body.password;
       }
 

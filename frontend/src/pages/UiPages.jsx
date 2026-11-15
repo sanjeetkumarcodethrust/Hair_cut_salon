@@ -4,13 +4,15 @@ import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import { setLocation, setRadius } from '../features/location/locationSlice.js';
 import { LocationService } from '../services/LocationService.js';
-import { MapPin, Search, Navigation, X, SlidersHorizontal, Tag, Star, Clock, Phone, Calendar, Info } from 'lucide-react';
+import { MapPin, Search, Navigation, X, SlidersHorizontal, Tag, Star, Clock, Phone, Calendar, Info, Lock, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { Loader2 } from 'lucide-react';
 import PageShell from '../components/PageShell';
 import api from '../services/api';
 import { SkeletonCard, ErrorState } from '../components/UIStates';
+import PasswordRequirements from '../components/PasswordRequirements';
+import { validatePassword } from '../utils/passwordValidator';
 const panelClasses = 'rounded-3xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/70';
 
 const quickLinks = [];
@@ -3221,6 +3223,36 @@ export const ProfilePage = () => {
     } catch { return null; }
   })();
 
+  const [newPassword, setNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState(null);
+
+  const handlePasswordUpdate = async (e) => {
+    e.preventDefault();
+    setPasswordMessage(null);
+
+    const validation = validatePassword(newPassword);
+    if (!validation.isValid) {
+      setPasswordMessage({ type: 'error', text: validation.message });
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    try {
+      await api.put('/auth/profile', { password: newPassword });
+      setPasswordMessage({ type: 'success', text: 'Password successfully updated!' });
+      setNewPassword('');
+    } catch (err) {
+      setPasswordMessage({
+        type: 'error',
+        text: err?.response?.data?.message || 'Failed to update password. Please try again.',
+      });
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
   if (!userInfo) {
     return (
       <PageShell eyebrow="Profile" title="Your profile" description="Sign in to view and manage your personal details.">
@@ -3294,6 +3326,66 @@ export const ProfilePage = () => {
               <span className="text-sm font-semibold text-slate-800 dark:text-white">{value}</span>
             </div>
           ))}
+        </div>
+
+        {/* Set / Change Password Section */}
+        <div className="mt-8 border-t border-slate-200 pt-6 dark:border-slate-800">
+          <h3 className="text-base font-semibold text-slate-900 dark:text-white">
+            Set new password
+          </h3>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            Ensure your password is at least 8 characters long and includes one capital letter, one small letter, and one symbol.
+          </p>
+
+          <form onSubmit={handlePasswordUpdate} className="mt-4 max-w-md space-y-3">
+            <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-3 text-sm text-slate-600 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-300">
+              <div className="flex w-full items-center gap-2">
+                <Lock className="h-4 w-4 shrink-0 text-slate-400" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Set new password (min. 8 characters)"
+                  value={newPassword}
+                  onChange={(e) => {
+                    setNewPassword(e.target.value);
+                    if (passwordMessage) setPasswordMessage(null);
+                  }}
+                  className="w-full border-none bg-transparent outline-none"
+                  aria-label="Set new password"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="shrink-0 px-1 text-slate-400 transition hover:text-slate-600 dark:hover:text-slate-200"
+                title={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+
+            <PasswordRequirements password={newPassword} />
+
+            {passwordMessage && (
+              <div
+                className={`rounded-2xl p-3 text-xs font-medium ${
+                  passwordMessage.type === 'success'
+                    ? 'border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300'
+                    : 'border border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-800/60 dark:bg-rose-950/40 dark:text-rose-300'
+                }`}
+              >
+                {passwordMessage.text}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={isUpdatingPassword || !newPassword}
+              className="flex justify-center rounded-full bg-gradient-to-r from-primary to-violet-500 px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isUpdatingPassword ? 'Updating...' : 'Set password'}
+            </button>
+          </form>
         </div>
       </div>
     

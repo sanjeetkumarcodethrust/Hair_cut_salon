@@ -1,5 +1,6 @@
 import { startAbandonedHoldJob } from './jobs/abandonedHoldJob.js';
 import express from 'express';
+import mongoose from 'mongoose';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';

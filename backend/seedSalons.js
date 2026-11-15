@@ -14,7 +14,7 @@ const seedSalons = async () => {
       owner = await User.create({
         name: 'Marunji Owner',
         email: 'owner@marunji.com',
-        password: 'password123',
+        password: 'Password123!',
         role: 'owner',
         phone: '9876543210',
       });

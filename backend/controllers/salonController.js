@@ -3,7 +3,9 @@ import RecentlyViewed from '../models/RecentlyViewed.js';
 import Appointment from '../models/Appointment.js';
 import { calculateRelevance } from '../services/relevanceService.js';
 import Salon from '../models/Salon.js';
+import User from '../models/User.js';
 import Review from '../models/Review.js';
+
 import mongoose from 'mongoose';
 
 // @desc    Get all salons with search/filter/pagination
@@ -231,7 +233,7 @@ export const deleteSalon = async (req, res) => {
 // @access  Public
 
 
-import User from '../models/User.js';
+
 
 export const getNearbySalons = async (req, res) => {
   try {
