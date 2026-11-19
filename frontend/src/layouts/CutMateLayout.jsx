@@ -22,7 +22,9 @@ import {
   X,
   Star,
   Loader2,
+  Sparkles,
 } from 'lucide-react';
+import CutMateChatbot from '../components/CutMateChatbot';
 
 const SidebarItem = ({ icon: Icon, label, href, active }) => (
   <Link
@@ -49,6 +51,7 @@ const CutMateLayout = () => {
   };
 
   const [unreadCount, setUnreadCount] = useState(0);
+  const [chatWidgetOpen, setChatWidgetOpen] = useState(false);
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -388,6 +391,30 @@ const CutMateLayout = () => {
             );
           })}
         </nav>
+
+        {/* Floating AI Chat Assistant Toggle & Modal */}
+        {location.pathname !== '/extras' && (
+          <div className="fixed bottom-20 xl:bottom-6 right-4 sm:right-6 z-40">
+            {chatWidgetOpen ? (
+              <div className="relative animate-in fade-in slide-in-from-bottom-5 duration-200">
+                <CutMateChatbot embedded={false} onClose={() => setChatWidgetOpen(false)} />
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setChatWidgetOpen(true)}
+                className="flex items-center gap-2.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-4 py-3 text-slate-950 font-bold text-xs sm:text-sm shadow-xl shadow-amber-500/25 hover:from-amber-400 hover:to-amber-500 hover:scale-105 active:scale-95 transition-all group"
+                title="CutMate AI Assistant (Ask to watch salons, view photos & prices)"
+              >
+                <div className="w-5 h-5 rounded-full bg-slate-950 text-amber-400 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+                </div>
+                <span className="hidden sm:inline">Ask AI / Watch Salons</span>
+                <span className="sm:hidden font-semibold">AI Assistant</span>
+              </button>
+            )}
+          </div>
+        )}
       </main>
     </div>
   );

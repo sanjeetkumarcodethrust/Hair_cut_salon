@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Brain, Camera, Gift, MessageCircle, QrCode, Sparkles, Volume2, Languages, Smartphone } from 'lucide-react';
 import PageShell from '../components/PageShell';
-import api from '../services/api';
+import CutMateChatbot from '../components/CutMateChatbot';
 
 const recommendationCards = [
   { title: 'Soft textured crop', detail: 'Ideal for oval and heart face shapes', vibe: 'Low-maintenance' },
@@ -25,36 +25,7 @@ const loyaltyTiers = [
 const ExtraFeatures = () => {
   const [otpMode, setOtpMode] = useState(false);
   const [language, setLanguage] = useState('en');
-  const [chatOpen, setChatOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    { role: 'ai', text: 'Hi! Need help choosing a service or hairstyle?' }
-  ]);
-  const [chatInput, setChatInput] = useState('');
-
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!chatInput.trim()) return;
-    
-    setMessages(prev => [...prev, { role: 'user', text: chatInput }]);
-    const currentInput = chatInput.trim();
-    setChatInput('');
-    
-    try {
-      const response = await api.post('/ai/chat', { prompt: currentInput });
-      if (response.data && response.data.success) {
-        setMessages(prev => [...prev, { 
-          role: 'ai', 
-          text: response.data.reply, 
-          image: response.data.imageUrl 
-        }]);
-      } else {
-        setMessages(prev => [...prev, { role: 'ai', text: "I'm having trouble connecting to my brain. Please try again." }]);
-      }
-    } catch (error) {
-      console.error("AI Error:", error);
-      setMessages(prev => [...prev, { role: 'ai', text: "An error occurred while thinking. Please try again later." }]);
-    }
-  };
+  const [chatOpen, setChatOpen] = useState(true);
 
   const copy = useMemo(() => ({
     en: {
@@ -213,45 +184,8 @@ const ExtraFeatures = () => {
           </button>
         </div>
         {chatOpen ? (
-          <div className="mt-5 rounded-[1.25rem] border border-slate-200 bg-white shadow-lg overflow-hidden flex flex-col h-[350px] dark:border-slate-800 dark:bg-slate-950">
-            <div className="bg-slate-50 border-b border-slate-100 px-4 py-3 dark:bg-slate-900 dark:border-slate-800">
-              <p className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                <Brain className="h-4 w-4 text-primary" /> AI Assistant
-              </p>
-            </div>
-            
-            <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-3">
-              {messages.map((msg, idx) => (
-                <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className="flex flex-col gap-2 max-w-[85%]">
-                    <div 
-                      className={`rounded-2xl px-4 py-2 text-sm ${msg.role === 'user' ? 'text-black font-medium' : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200'}`}
-                      style={msg.role === 'user' ? { backgroundColor: '#e2e8f0' } : {}}
-                    >
-                      {msg.text}
-                    </div>
-                    {msg.image && (
-                      <div className="rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700">
-                        <img src={msg.image} alt="Generated AI Photo" className="w-full h-auto object-cover max-h-48" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <form onSubmit={handleSendMessage} className="border-t border-slate-100 p-3 bg-white dark:bg-slate-950 dark:border-slate-800 flex gap-2">
-              <input 
-                type="text" 
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                placeholder="Ask something..." 
-                className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-primary dark:bg-slate-900 dark:border-slate-800 dark:text-white"
-              />
-              <button type="submit" className="bg-primary text-white rounded-full p-2 w-9 h-9 flex items-center justify-center hover:bg-primary/90 transition-colors">
-                <MessageCircle className="h-4 w-4" />
-              </button>
-            </form>
+          <div className="mt-5">
+            <CutMateChatbot embedded={true} />
           </div>
         ) : null}
       </motion.section>
