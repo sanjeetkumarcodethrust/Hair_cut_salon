@@ -13,6 +13,8 @@ const calculateSearchScore = (salon, searchLower) => {
   let score = 0;
   const name = salon.name?.toLowerCase() || '';
   const desc = salon.description?.toLowerCase() || '';
+  const city = salon.city?.toLowerCase() || '';
+  const address = salon.address?.toLowerCase() || '';
   
   // Exact name match
   if (name === searchLower) return 100;
@@ -28,6 +30,11 @@ const calculateSearchScore = (salon, searchLower) => {
       return sName === searchLower || sName.includes(searchLower);
     });
     if (serviceMatch && score < 75) score = 75; 
+  }
+
+  // City or Address match
+  if (score < 70 && (city.includes(searchLower) || address.includes(searchLower))) {
+    score = 65;
   }
   
   // Description match

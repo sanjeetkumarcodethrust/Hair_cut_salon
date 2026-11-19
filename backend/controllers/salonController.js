@@ -410,6 +410,37 @@ export const getNearbySalons = async (req, res) => {
 
     // Run pipeline
     const candidates = await Salon.aggregate(pipeline);
+
+    // Fallback: If no salons found within geographic radius but user explicitly searched for a keyword,
+    // search across all salons by text so they get real results
+    if (candidates.length === 0 && searchTrimmed) {
+      const regex = new RegExp(searchTrimmed, 'i');
+      const textMatches = await Salon.find({
+        $or: [
+          { name: { $regex: regex } },
+          { description: { $regex: regex } },
+          { 'services.name': { $regex: regex } },
+          { 'services.description': { $regex: regex } },
+          { city: { $regex: regex } },
+          { address: { $regex: regex } }
+        ]
+      })
+      .populate('owner', 'name email')
+      .limit(limitNum)
+      .lean();
+
+      if (textMatches.length > 0) {
+        return res.status(200).json({
+          success: true,
+          count: textMatches.length,
+          total: textMatches.length,
+          hasMore: false,
+          page: 1,
+          limit: limitNum,
+          data: textMatches
+        });
+      }
+    }
     
     // 3. Normalize Ranking Signals & Calculate Relevance
     

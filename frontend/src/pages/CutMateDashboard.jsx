@@ -66,8 +66,18 @@ const CutMateDashboard = () => {
         params.radius = selectedLocation.radius || 10000;
       }
 
-      const response = await api.get(endpoint, { params });
-      const result = response.data || {};
+      let response = await api.get(endpoint, { params });
+      let result = response.data || {};
+
+      // If user searched for a keyword or service and nearby returned 0 results,
+      // fallback to general /salons search so results are always shown
+      if ((nextFilters.search || nextFilters.service || nextFilters.location) && (!result.data || result.data.length === 0) && endpoint === '/salons/nearby') {
+        const fallbackRes = await api.get('/salons', { params: { ...nextFilters, page: nextPage, limit: 6 } });
+        if (fallbackRes.data?.data?.length > 0) {
+          result = fallbackRes.data;
+        }
+      }
+
       setSalons(Array.isArray(result.data) ? result.data : []);
       setPage(Number(result.page) || nextPage);
       setPages(Math.max(Number(result.pages) || 1, 1));
@@ -87,6 +97,10 @@ const CutMateDashboard = () => {
   const handleSalonSearch = (event) => {
     event.preventDefault();
     fetchSalons(1, filters);
+    const resultsSection = document.getElementById('trending-salons-section');
+    if (resultsSection) {
+      resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   const updateFilter = (name, value) => {
@@ -180,9 +194,11 @@ const CutMateDashboard = () => {
           </section>
 
           {/* Trending Salons */}
-          <section>
+          <section id="trending-salons-section">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">Trending Salons Near You</h3>
+              <h3 className="text-lg font-semibold text-white">
+                {filters.search ? `Search Results for "${filters.search}"` : 'Trending Salons Near You'}
+              </h3>
               <Link to="/salons" className="text-sm font-semibold text-purple-400 hover:text-purple-300">View all</Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

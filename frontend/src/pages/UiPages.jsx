@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import { setLocation, setRadius } from '../features/location/locationSlice.js';
@@ -107,6 +107,9 @@ export const SearchSalons = () => {
   const [hasMore, setHasMore] = React.useState(false);
   const [totalCount, setTotalCount] = React.useState(0);
   
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlSearch = searchParams.get('search') || '';
+
   // Location Picker State
   const [showLocationPicker, setShowLocationPicker] = React.useState(false);
   const [locationQuery, setLocationQuery] = React.useState('');
@@ -114,8 +117,8 @@ export const SearchSalons = () => {
   const [isSearchingLocation, setIsSearchingLocation] = React.useState(false);
 
   // Search & Filter State
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [debouncedSearch, setDebouncedSearch] = React.useState('');
+  const [searchQuery, setSearchQuery] = React.useState(urlSearch);
+  const [debouncedSearch, setDebouncedSearch] = React.useState(urlSearch);
   const [sortParam, setSortParam] = React.useState('relevance');
 
   // Filter Drawer State
@@ -131,6 +134,15 @@ export const SearchSalons = () => {
   // Temp state for while the drawer is open
   const [tempFilters, setTempFilters] = React.useState(activeFilters);
 
+  // Sync with URL query parameter changes
+  React.useEffect(() => {
+    const q = searchParams.get('search') || '';
+    if (q !== searchQuery) {
+      setSearchQuery(q);
+      setDebouncedSearch(q);
+    }
+  }, [searchParams]);
+
   // Sync radius from global selectedLocation changes
   React.useEffect(() => {
     if (selectedLocation?.radius && selectedLocation.radius !== activeFilters.radius) {
@@ -139,55 +151,90 @@ export const SearchSalons = () => {
     }
   }, [selectedLocation?.radius]);
 
-  // Debounce search query
+  // Debounce search query and update URL search params
   React.useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);
-    }, 400); 
+      const currentUrlParam = searchParams.get('search') || '';
+      if (searchQuery.trim() !== currentUrlParam) {
+        const nextParams = new URLSearchParams(searchParams);
+        if (searchQuery.trim()) {
+          nextParams.set('search', searchQuery.trim());
+        } else {
+          nextParams.delete('search');
+        }
+        setSearchParams(nextParams, { replace: true });
+      }
+    }, 350); 
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
   React.useEffect(() => {
-    if (selectedLocation?.latitude && selectedLocation?.longitude) {
-      fetchNearbySalons(1, true); 
-    } else {
-      setShowLocationPicker(true);
-      setSalons([]);
-    }
+    fetchNearbySalons(1, true);
   }, [selectedLocation?.latitude, selectedLocation?.longitude, debouncedSearch, sortParam, activeFilters]);
 
   const fetchNearbySalons = async (pageNum = 1, isReset = false) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get('/salons/nearby', {
-        params: {
-          latitude: selectedLocation.latitude,
-          longitude: selectedLocation.longitude,
-          lat: selectedLocation.latitude,
-          lng: selectedLocation.longitude,
-          page: pageNum,
-          limit: 12,
-          search: debouncedSearch,
-          sort: sortParam,
-          radius: activeFilters.radius,
-          minPrice: activeFilters.minPrice || undefined,
-          maxPrice: activeFilters.maxPrice || undefined,
-          minRating: activeFilters.minRating || undefined,
-          offersOnly: activeFilters.offersOnly || undefined
+      let response;
+      if (selectedLocation?.latitude && selectedLocation?.longitude) {
+        response = await api.get('/salons/nearby', {
+          params: {
+            latitude: selectedLocation.latitude,
+            longitude: selectedLocation.longitude,
+            lat: selectedLocation.latitude,
+            lng: selectedLocation.longitude,
+            page: pageNum,
+            limit: 12,
+            search: debouncedSearch,
+            sort: sortParam,
+            radius: activeFilters.radius,
+            minPrice: activeFilters.minPrice || undefined,
+            maxPrice: activeFilters.maxPrice || undefined,
+            minRating: activeFilters.minRating || undefined,
+            offersOnly: activeFilters.offersOnly || undefined
+          }
+        });
+
+        // If user searched for a keyword but nearby radius returned 0 results,
+        // automatically fallback to global /salons text search so they see results
+        if (debouncedSearch && (!response.data?.data || response.data.data.length === 0)) {
+          const fallbackRes = await api.get('/salons', {
+            params: {
+              search: debouncedSearch,
+              page: pageNum,
+              limit: 12,
+              minRating: activeFilters.minRating || undefined
+            }
+          });
+          if (fallbackRes.data?.data?.length > 0) {
+            response = fallbackRes;
+          }
         }
-      });
-      if (pageNum === 1 || isReset) {
-        setSalons(response.data.data || []);
       } else {
-        setSalons(prev => [...prev, ...(response.data.data || [])]);
+        response = await api.get('/salons', {
+          params: {
+            search: debouncedSearch,
+            page: pageNum,
+            limit: 12,
+            minRating: activeFilters.minRating || undefined
+          }
+        });
       }
-      setHasMore(response.data.hasMore);
-      setTotalCount(response.data.total);
+
+      const results = response.data?.data || [];
+      if (pageNum === 1 || isReset) {
+        setSalons(results);
+      } else {
+        setSalons(prev => [...prev, ...results]);
+      }
+      setHasMore(response.data?.hasMore ?? (pageNum < (response.data?.pages || 1)));
+      setTotalCount(response.data?.total ?? results.length);
       setPage(pageNum);
     } catch (err) {
       console.error(err);
-      setError("We couldn't load nearby barber shops. Please try again.");
+      setError("We couldn't load barber shops. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -287,12 +334,11 @@ export const SearchSalons = () => {
       {showLocationPicker && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
-            {selectedLocation?.latitude && (
-              <button 
+            <button 
                 onClick={() => setShowLocationPicker(false)}
                 className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100"
+                aria-label="Close"
               >✕</button>
-            )}
             <h3 className="text-lg font-bold text-slate-900 mb-4">Set your location</h3>
             <button
               onClick={handleCurrentLocation}
@@ -335,8 +381,7 @@ export const SearchSalons = () => {
         </div>
       )}
 
-      {selectedLocation?.latitude && (
-        <div className="mb-6 space-y-4">
+      <div className="mb-6 space-y-4">
           <div className="flex flex-col md:flex-row gap-4 items-center">
             <div className="relative flex-grow w-full md:w-auto">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -408,7 +453,6 @@ export const SearchSalons = () => {
             </div>
           )}
         </div>
-      )}
 
       {showFilters && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
@@ -493,7 +537,7 @@ export const SearchSalons = () => {
         </div>
       )}
 
-      {!selectedLocation?.latitude ? null : loading && page === 1 ? (
+      {loading && page === 1 ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 mt-4">
           <SkeletonCard />
           <SkeletonCard />
@@ -586,10 +630,12 @@ export const SearchSalons = () => {
 
 
 export const SearchBarbers = () => {
+  const [barberSearchParams] = useSearchParams();
+  const initialBarberSearch = barberSearchParams.get('search') || '';
   const [barbers, setBarbers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(initialBarberSearch);
   const [specialization, setSpecialization] = useState('');
   const [salon, setSalon] = useState('');
   const [city, setCity] = useState('');

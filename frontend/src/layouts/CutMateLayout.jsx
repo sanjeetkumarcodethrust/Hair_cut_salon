@@ -1,8 +1,9 @@
-import React from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../features/auth/authSlice';
 import LocationSelector from '../components/LocationSelector';
+import api from '../services/api';
 import {
   Scissors,
   Home,
@@ -18,6 +19,9 @@ import {
   Bell,
   MapPin,
   LogOut,
+  X,
+  Star,
+  Loader2,
 } from 'lucide-react';
 
 const SidebarItem = ({ icon: Icon, label, href, active }) => (
@@ -36,6 +40,7 @@ const SidebarItem = ({ icon: Icon, label, href, active }) => (
 
 const CutMateLayout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { userInfo } = useSelector((state) => state.auth);
 
@@ -43,17 +48,82 @@ const CutMateLayout = () => {
     dispatch(logout());
   };
 
-  const [unreadCount, setUnreadCount] = React.useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  React.useEffect(() => {
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const searchContainerRef = useRef(null);
+
+  // Sync search input with URL search param on /salons
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const q = params.get('search');
+    if (q !== null && location.pathname === '/salons') {
+      setSearchQuery(q);
+    }
+  }, [location.pathname, location.search]);
+
+  // Click outside listener for search suggestions
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Debounced search suggestions query
+  useEffect(() => {
+    const query = searchQuery.trim();
+    if (!query || query.length < 2) {
+      setSuggestions([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    const timer = setTimeout(async () => {
+      try {
+        const res = await api.get('/salons', {
+          params: { search: query, limit: 5 }
+        });
+        setSuggestions(res.data?.data || []);
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handleSearchSubmit = (e) => {
+    if (e) e.preventDefault();
+    const query = searchQuery.trim();
+    setShowSuggestions(false);
+    setMobileSearchOpen(false);
+    if (!query) {
+      navigate('/salons');
+      return;
+    }
+    navigate(`/salons?search=${encodeURIComponent(query)}`);
+  };
+
+  useEffect(() => {
     if (!userInfo) return;
     const fetchUnread = async () => {
       try {
-        const { default: api } = await import('../services/api');
         const res = await api.get('/notifications');
-        const count = (res.data.data || []).filter(n => !n.readAt).length;
+        const count = (res.data.data || []).filter((n) => !n.readAt).length;
         setUnreadCount(count);
-      } catch (err) {
+      } catch {
         // ignore errors silently
       }
     };
@@ -115,22 +185,123 @@ const CutMateLayout = () => {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col overflow-hidden relative">
         {/* Top Header */}
-        <header className="h-20 flex items-center justify-between px-8 border-b border-white/5 z-50 bg-[#0a0a0a]/80 backdrop-blur-md">
+        <header className="h-20 flex items-center justify-between px-4 sm:px-8 border-b border-white/5 z-50 bg-[#0a0a0a]/80 backdrop-blur-md relative">
           {/* Location */}
           <LocationSelector />
 
-          {/* Search */}
-          <div className="hidden md:flex flex-1 max-w-md mx-8 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-            <input
-              type="text"
-              placeholder="Search for salon, barber, service..."
-              className="w-full bg-white/5 border border-white/10 rounded-full py-2.5 pl-11 pr-4 text-sm focus:outline-none focus:border-amber-500/50 transition"
-            />
+          {/* Desktop Search Bar */}
+          <div ref={searchContainerRef} className="hidden md:flex flex-1 max-w-md mx-8 relative">
+            <form onSubmit={handleSearchSubmit} className="w-full relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => {
+                  if (searchQuery.trim().length >= 2) setShowSuggestions(true);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') setShowSuggestions(false);
+                }}
+                placeholder="Search for salon, barber, service..."
+                className="w-full bg-white/5 border border-white/10 rounded-full py-2.5 pl-11 pr-10 text-sm focus:outline-none focus:border-amber-500/50 transition text-white placeholder-slate-500"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSuggestions([]);
+                    setShowSuggestions(false);
+                  }}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </form>
+
+            {/* Suggestions Dropdown */}
+            {showSuggestions && searchQuery.trim().length >= 2 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-[#121212] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 divide-y divide-white/5">
+                {isSearching ? (
+                  <div className="flex items-center justify-center gap-2 p-4 text-xs text-slate-400">
+                    <Loader2 className="w-4 h-4 animate-spin text-amber-500" />
+                    Searching salons...
+                  </div>
+                ) : suggestions.length > 0 ? (
+                  <>
+                    <div className="py-1">
+                      {suggestions.map((salon) => (
+                        <button
+                          key={salon._id}
+                          type="button"
+                          onClick={() => {
+                            setShowSuggestions(false);
+                            navigate(`/salons/${salon._id}`);
+                          }}
+                          className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 transition text-left group"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0 font-bold text-xs">
+                              ✂️
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-white truncate group-hover:text-amber-400 transition">
+                                {salon.name}
+                              </p>
+                              <p className="text-xs text-slate-400 truncate">
+                                {salon.city || salon.address || 'Salon'}
+                              </p>
+                            </div>
+                          </div>
+                          {salon.rating > 0 && (
+                            <span className="flex items-center gap-1 text-xs text-amber-500 shrink-0 font-semibold ml-2">
+                              <Star className="w-3 h-3 fill-current" /> {salon.rating}
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSearchSubmit}
+                      className="w-full text-center py-2.5 px-4 text-xs font-semibold text-amber-400 hover:bg-white/5 transition"
+                    >
+                      See all results for &quot;{searchQuery}&quot; →
+                    </button>
+                  </>
+                ) : (
+                  <div className="p-4 text-center">
+                    <p className="text-xs text-slate-400">No matching salons found.</p>
+                    <button
+                      type="button"
+                      onClick={handleSearchSubmit}
+                      className="mt-2 text-xs font-semibold text-amber-400 hover:underline"
+                    >
+                      Search all salons for &quot;{searchQuery}&quot;
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Right Actions */}
           <div className="flex items-center gap-2 md:gap-4">
+            {/* Mobile Search Toggle */}
+            <button
+              onClick={() => setMobileSearchOpen((prev) => !prev)}
+              className="md:hidden p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition"
+              title="Search"
+              aria-label="Search"
+            >
+              <Search className="w-5 h-5" />
+            </button>
+
             <button className="text-slate-400 hover:text-white transition hidden sm:block">
               <Heart className="w-5 h-5" />
             </button>
@@ -168,6 +339,30 @@ const CutMateLayout = () => {
               </Link>
             )}
           </div>
+
+          {/* Mobile Search Input Overlay */}
+          {mobileSearchOpen && (
+            <div className="md:hidden absolute top-full left-0 right-0 bg-[#0a0a0a] border-b border-white/10 p-3 z-50">
+              <form onSubmit={handleSearchSubmit} className="relative flex items-center">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                  type="text"
+                  autoFocus
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search for salon, barber, service..."
+                  className="w-full bg-white/5 border border-white/10 rounded-full py-2.5 pl-10 pr-10 text-sm focus:outline-none focus:border-amber-500/50 text-white placeholder-slate-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setMobileSearchOpen(false)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </form>
+            </div>
+          )}
         </header>
 
         {/* Scrollable Content */}
@@ -183,14 +378,14 @@ const CutMateLayout = () => {
             { icon: Calendar, label: 'Bookings', href: '/bookings' },
             { icon: User, label: 'Profile', href: '/profile' },
             { icon: MoreHorizontal, label: 'More', href: '/more' },
-          ].map(item => {
+          ].map((item) => {
             const active = location.pathname === item.href;
             return (
               <Link key={item.label} to={item.href} className={`flex flex-col items-center gap-1.5 transition-colors ${active ? 'text-amber-500' : 'text-slate-500 hover:text-slate-300'}`}>
                 <item.icon className="w-5 h-5" />
                 <span className="text-[10px] font-semibold">{item.label}</span>
               </Link>
-            )
+            );
           })}
         </nav>
       </main>
